@@ -1,11 +1,10 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function LoginPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -25,21 +24,23 @@ export default function LoginPage() {
     const formData = new FormData(e.currentTarget);
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
+    const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
 
     try {
       const result = await signIn('credentials', {
         email,
         password,
         redirect: false,
-        callbackUrl: '/dashboard',
+        callbackUrl,
       });
 
       if (result?.error) {
         setError('Invalid email or password');
       } else {
+        // Use the callback URL from the result or fallback to dashboard
         const url = result?.url ? new URL(result.url) : null;
-        const callbackUrl = url?.searchParams.get('callbackUrl') || '/dashboard';
-        router.push(callbackUrl);
+        const redirectUrl = url?.searchParams.get('callbackUrl') || '/dashboard';
+        window.location.href = redirectUrl;
       }
     } catch (err) {
       setError('An error occurred. Please try again.');
