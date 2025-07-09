@@ -18,7 +18,10 @@ import {
   BookOpen,
   HelpCircle,
   Bot,
-  CreditCard
+  CreditCard,
+  LogOut,
+  User,
+  ChevronDown
 } from 'lucide-react';
 
 // Mock session data for demo
@@ -52,6 +55,7 @@ export default function PineGenieDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activePage, setActivePage] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   // Mock authentication check
   const session = mockSession;
@@ -241,6 +245,59 @@ export default function PineGenieDashboard() {
                   >
                     {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                   </button>
+
+                  {/* User Menu */}
+                  <div className="relative ml-2">
+                    <button
+                      onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                      className="flex items-center space-x-2 focus:outline-none"
+                    >
+                      <div className="h-8 w-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center overflow-hidden">
+                        {session?.user?.image ? (
+                          <Image 
+                            src={session.user.image} 
+                            alt={session.user.name || 'User'} 
+                            width={32}
+                            height={32}
+                            className="object-cover"
+                          />
+                        ) : (
+                          <User className="h-4 w-4 text-indigo-600 dark:text-indigo-300" />
+                        )}
+                      </div>
+                      <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${isUserMenuOpen ? 'transform rotate-180' : ''}`} />
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {isUserMenuOpen && (
+                      <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {session?.user?.name || 'User'}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {session?.user?.email || ''}
+                          </p>
+                        </div>
+                        <div className="py-1">
+                          <button
+                            onClick={() => setActivePage('settings')}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                          >
+                            <Settings className="h-4 w-4 mr-3" />
+                            Settings
+                          </button>
+                          <button
+                            onClick={handleSignOut}
+                            className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center"
+                          >
+                            <LogOut className="h-4 w-4 mr-3" />
+                            Sign out
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
