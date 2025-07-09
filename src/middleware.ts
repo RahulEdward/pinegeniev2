@@ -2,44 +2,53 @@ import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+// Define public paths that don't require authentication
 const publicPaths = ['/login', '/register'];
+const publicRootPath = '/'; // Handle root path separately
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  // Skip middleware for API routes and public assets
-  if (pathname.startsWith('/api/') || 
-      pathname.startsWith('/_next/') || 
-      pathname.includes('.')) {
+
+  // Allow API & asset routes
+  if (
+    pathname.startsWith('/api/') ||
+    pathname.startsWith('/_next/') ||
+    pathname.includes('.')
+  ) {
     return NextResponse.next();
   }
 
-  const token = await getToken({ 
+  const token = await getToken({
     req: request,
-    secret: process.env.NEXTAUTH_SECRET || 'your-secret-key'
+    secret: process.env.NEXTAUTH_SECRET || 'your-secret-key',
   });
-  
+
   const isAuthenticated = !!token;
-  const isAuthPage = publicPaths.some(path => pathname.startsWith(path));
+  
+  // Check if current path is a public path (excluding root)
+  const isAuthPage = publicPaths.includes(pathname);
+  const isRootPath = pathname === publicRootPath;
 
   // If user is authenticated and tries to access auth pages, redirect to dashboard
-  if (isAuthPage && isAuthenticated) {
-    const url = new URL('/dashboard', request.url);
-    return NextResponse.redirect(url);
+  if (isAuthenticated && isAuthPage) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  // Allow access to root path for everyone (landing page)
+  if (isRootPath) {
+    return NextResponse.next();
   }
 
   // If user is not authenticated and tries to access protected pages, redirect to login
   if (!isAuthenticated && !isAuthPage) {
-    const url = new URL('/login', request.url);
-    url.searchParams.set('callbackUrl', pathname);
-    return NextResponse.redirect(url);
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };

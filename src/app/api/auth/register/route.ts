@@ -31,7 +31,9 @@ export async function POST(req: Request) {
     });
 
     // Return the user without the password
-    const { password: _, ...userWithoutPassword } = user;
+    const userWithoutPassword = Object.fromEntries(
+      Object.entries(user).filter(([key]) => key !== 'password')
+    ) as Omit<typeof user, 'password'>;
 
     return NextResponse.json(
       { user: userWithoutPassword, message: 'User created successfully' },
