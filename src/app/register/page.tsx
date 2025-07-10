@@ -2,18 +2,34 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Eye, EyeOff, User, Mail, Lock, CheckCircle, AlertCircle, ArrowLeft, Sparkles } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, AlertCircle, Moon, Sun, ArrowLeft, Sparkles, CheckCircle } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
   const [error, setError] = useState('');
+  const [success] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('darkMode') === 'true';
+    }
+    return true; // Default to dark mode
+  });
+  const [fieldErrors, setFieldErrors] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [touched, setTouched] = useState({
+    name: false,
+    email: false,
+    password: false,
+    confirmPassword: false
+  });
   const [passwordStrength, setPasswordStrength] = useState(0);
-  
-  // Form state
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -21,11 +37,93 @@ export default function RegisterPage() {
     confirmPassword: ''
   });
 
+  // Theme colors matching your project
+  const colors = isDark ? {
+    bg: {
+      primary: 'from-slate-900 via-slate-800 to-slate-900',
+      secondary: 'bg-slate-800/80',
+      tertiary: 'bg-slate-700/50',
+      card: 'bg-slate-800/30',
+      glass: 'bg-slate-800/80 backdrop-blur-xl',
+    },
+    text: {
+      primary: 'text-white',
+      secondary: 'text-slate-300',
+      tertiary: 'text-slate-400',
+      muted: 'text-slate-500',
+    },
+    border: {
+      primary: 'border-slate-700/50',
+      secondary: 'border-slate-600/30',
+      accent: 'border-blue-500/50',
+    },
+    accent: {
+      blue: 'from-blue-500 to-cyan-500',
+      purple: 'from-purple-500 to-pink-500',
+      green: 'from-green-500 to-emerald-500',
+      orange: 'from-amber-500 to-orange-500',
+      red: 'from-red-500 to-pink-500',
+    }
+  } : {
+    bg: {
+      primary: 'from-gray-50 via-white to-gray-50',
+      secondary: 'bg-white/90',
+      tertiary: 'bg-gray-100/80',
+      card: 'bg-white/60',
+      glass: 'bg-white/80 backdrop-blur-xl',
+    },
+    text: {
+      primary: 'text-gray-900',
+      secondary: 'text-gray-700',
+      tertiary: 'text-gray-600',
+      muted: 'text-gray-500',
+    },
+    border: {
+      primary: 'border-gray-200',
+      secondary: 'border-gray-300/50',
+      accent: 'border-blue-400/50',
+    },
+    accent: {
+      blue: 'from-blue-400 to-cyan-400',
+      purple: 'from-purple-400 to-pink-400',
+      green: 'from-green-400 to-emerald-400',
+      orange: 'from-amber-400 to-orange-400',
+      red: 'from-red-400 to-pink-400',
+    }
+  };
+
+  // Custom animations
+  const customAnimations = `
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+      50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6), 0 0 40px rgba(139, 92, 246, 0.3); }
+    }
+    
+    .animate-pulse-glow {
+      animation: pulse-glow 2s ease-in-out infinite;
+    }
+    
+    .text-shadow-glow {
+      text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    }
+  `;
+
+  const toggleTheme = () => {
+    const newDarkMode = !isDark;
+    setIsDark(newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   useEffect(() => {
     // Check for dark mode preference
-    const isDark = localStorage.getItem('darkMode') === 'true';
-    setDarkMode(isDark);
-    if (isDark) {
+    const darkMode = localStorage.getItem('darkMode') === 'true';
+    setIsDark(darkMode);
+    if (darkMode) {
       document.documentElement.classList.add('dark');
     }
   }, []);
@@ -54,11 +152,63 @@ export default function RegisterPage() {
     return 'Strong';
   };
 
+  // Validation functions
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) return 'Email is required';
+    if (!emailRegex.test(email)) return 'Please enter a valid email address';
+    return '';
+  };
+
+  const validatePassword = (password: string) => {
+    if (!password) return 'Password is required';
+    if (password.length < 8) return 'Password must be at least 8 characters long';
+    if (!/(?=.*[a-z])/.test(password)) return 'Password must contain at least one lowercase letter';
+    if (!/(?=.*[A-Z])/.test(password)) return 'Password must contain at least one uppercase letter';
+    if (!/(?=.*\d)/.test(password)) return 'Password must contain at least one number';
+    return '';
+  };
+
+  const validateName = (name: string) => {
+    if (!name) return 'Name is required';
+    if (name.length < 2) return 'Name must be at least 2 characters long';
+    return '';
+  };
+
+  const validateConfirmPassword = (password: string, confirmPassword: string) => {
+    if (!confirmPassword) return 'Please confirm your password';
+    if (password !== confirmPassword) return 'Passwords do not match';
+    return '';
+  };
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (field === 'password') {
       checkPasswordStrength(value);
     }
+    
+    // Real-time validation
+    let error = '';
+    switch (field) {
+      case 'name':
+        error = validateName(value);
+        break;
+      case 'email':
+        error = validateEmail(value);
+        break;
+      case 'password':
+        error = validatePassword(value);
+        break;
+      case 'confirmPassword':
+        error = validateConfirmPassword(formData.password, value);
+        break;
+    }
+    
+    setFieldErrors(prev => ({ ...prev, [field]: error }));
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
   };
 
   const handleSubmit = async () => {
@@ -117,178 +267,220 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark' : ''}`}>
-      <div className="min-h-screen flex bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
-        
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-        
-        {/* Left Side - Branding */}
-        <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-700"></div>
-          <div className="relative z-10 flex flex-col justify-center px-12 text-white">
-            
-            {/* Back to Home */}
-            <button 
-              onClick={() => router.push('/')}
-              className="absolute top-8 left-8 flex items-center text-white/80 hover:text-white transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5 mr-2" />
-              Back to Home
-            </button>
+    <>
+      <style jsx>{customAnimations}</style>
+      <div className={`min-h-screen transition-all duration-500 ${isDark ? 'dark' : ''}`}>
+        <div className={`min-h-screen flex bg-gradient-to-br ${colors.bg.primary}`}>
+          
+          {/* Animated Background Elements */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className={`absolute top-20 left-20 w-72 h-72 bg-gradient-to-r ${colors.accent.blue} rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse`}></div>
+            <div className={`absolute top-40 right-20 w-72 h-72 bg-gradient-to-r ${colors.accent.purple} rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000`}></div>
+            <div className={`absolute -bottom-8 left-40 w-72 h-72 bg-gradient-to-r ${colors.accent.orange} rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-2000`}></div>
+          </div>
+          
+          {/* Left Side - Branding */}
+          <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+            <div className={`absolute inset-0 bg-gradient-to-br ${isDark ? 'from-black to-gray-900' : colors.accent.blue}`}></div>
+            <div className="relative z-10 flex flex-col justify-center px-12 text-white">
+              
+              {/* Back to Home */}
+              <button 
+                onClick={() => router.push('/')}
+                className="absolute top-8 left-8 flex items-center text-white hover:text-white/90 transition-all duration-200 hover:scale-105 drop-shadow-lg"
+              >
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                <span className="font-medium">Back to Home</span>
+              </button>
 
-            {/* Logo */}
-            <div className="flex items-center mb-8">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mr-4">
-                <span className="text-white font-bold text-xl">PG</span>
-              </div>
-              <span className="text-3xl font-bold">PineGenie</span>
-            </div>
-
-            <h1 className="text-4xl font-bold mb-6">
-              Join the Future of
-              <span className="block bg-gradient-to-r from-yellow-300 to-pink-300 bg-clip-text text-transparent">
-                AI-Powered Trading
-              </span>
-            </h1>
-            
-            <p className="text-xl text-white/90 mb-8 max-w-md">
-              Create professional Pine Script strategies without coding. Join thousands of traders already using Pine Genie.
-            </p>
-
-            {/* Features */}
-            <div className="space-y-4">
-              {[
-                'Visual Drag-n-Drop Builder',
-                'AI Strategy Generator',
-                'Zero-error Pine Script v6',
-                'Live Chart Testing'
-              ].map((feature, index) => (
-                <div key={index} className="flex items-center">
-                  <CheckCircle className="h-5 w-5 text-green-300 mr-3" />
-                  <span className="text-white/90">{feature}</span>
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className={`fixed top-4 right-4 z-50 p-3 rounded-full ${colors.bg.glass} ${colors.border.primary} border backdrop-blur-sm hover:${colors.bg.tertiary} transition-all duration-300 hover:scale-110`}
+                aria-label="Toggle theme"
+              >
+                {isDark ? (
+                  <Sun className={`h-5 w-5 ${colors.text.secondary}`} />
+                ) : (
+                  <Moon className={`h-5 w-5 ${colors.text.secondary}`} />
+                )}
+              </button>
+              
+              <div className="mb-8">
+                <div className="flex items-center mb-6">
+                  <div className="relative">
+                    <Sparkles className="h-10 w-10 mr-4 text-yellow-400 animate-pulse" />
+                    <div className="absolute inset-0 h-10 w-10 mr-4 text-yellow-400 animate-ping opacity-20">
+                      <Sparkles className="h-10 w-10" />
+                    </div>
+                  </div>
+                  <h1 className="text-4xl font-bold text-white drop-shadow-lg">PineGenie</h1>
                 </div>
-              ))}
-            </div>
-
-            {/* Decorative Elements */}
-            <div className="absolute bottom-8 right-8 opacity-20">
-              <Sparkles className="h-32 w-32" />
+                <p className="text-xl text-white mb-8 leading-relaxed drop-shadow-md">
+                  Join thousands of creators transforming their content with AI-powered innovation
+                </p>
+                <div className="space-y-4">
+                  <div className="flex items-center text-white hover:text-white/90 transition-colors duration-200">
+                    <CheckCircle className="h-5 w-5 mr-3 text-green-400 drop-shadow-sm" />
+                    <span className="font-medium drop-shadow-sm">AI-powered content generation</span>
+                  </div>
+                  <div className="flex items-center text-white hover:text-white/90 transition-colors duration-200">
+                    <CheckCircle className="h-5 w-5 mr-3 text-green-400 drop-shadow-sm" />
+                    <span className="font-medium drop-shadow-sm">Advanced customization tools</span>
+                  </div>
+                  <div className="flex items-center text-white hover:text-white/90 transition-colors duration-200">
+                    <CheckCircle className="h-5 w-5 mr-3 text-green-400 drop-shadow-sm" />
+                    <span className="font-medium drop-shadow-sm">Seamless workflow integration</span>
+                  </div>
+                  <div className="flex items-center text-white hover:text-white/90 transition-colors duration-200">
+                    <CheckCircle className="h-5 w-5 mr-3 text-green-400 drop-shadow-sm" />
+                    <span className="font-medium drop-shadow-sm">Enterprise-grade security</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Right Side - Form */}
-        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-          <div className="max-w-md w-full">
-            
-            {/* Mobile Logo */}
-            <div className="lg:hidden text-center mb-8">
-              <div className="inline-flex items-center">
-                <div className="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center mr-3">
-                  <span className="text-white font-bold">PG</span>
+          {/* Right Side - Registration Form */}
+          <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
+            <div className={`w-full max-w-md ${colors.bg.glass} rounded-2xl shadow-2xl border ${colors.border.primary} p-8`}>
+              {/* Mobile Logo */}
+              <div className="lg:hidden text-center mb-8">
+                <div className="flex items-center justify-center">
+                  <Sparkles className="h-8 w-8 mr-3 text-yellow-400" />
+                  <span className={`text-2xl font-bold ${colors.text.primary}`}>PineGenie</span>
                 </div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  PineGenie
-                </span>
               </div>
-            </div>
 
-            {/* Form Container */}
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/20 dark:border-gray-700/20 p-8">
-              
-              {/* Header */}
               <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                  Create Account
-                </h2>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Start building AI-powered trading strategies
-                </p>
+                <div className="flex items-center justify-center mb-4">
+                  <div className={`p-3 ${colors.bg.secondary} rounded-full`}>
+                    <User className={`h-8 w-8 ${colors.text.primary}`} />
+                  </div>
+                </div>
+                <h2 className={`text-3xl font-bold ${colors.text.primary} mb-2`}>Create Account</h2>
+                <p className={`${colors.text.secondary}`}>Join PineGenie and start creating amazing content</p>
               </div>
+
+              {/* Success Message */}
+              {success && (
+                <div className={`mb-6 ${colors.bg.tertiary} border ${colors.border.accent} rounded-lg p-4`}>
+                  <div className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
+                    <p className="text-green-600 dark:text-green-400 text-sm">{success}</p>
+                  </div>
+                </div>
+              )}
 
               {/* Error Message */}
               {error && (
-                <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <div className={`mb-6 ${colors.bg.tertiary} border border-red-500/50 rounded-lg p-4`}>
                   <div className="flex items-center">
                     <AlertCircle className="h-5 w-5 text-red-500 mr-3" />
-                    <p className="text-red-700 dark:text-red-400 text-sm">{error}</p>
+                    <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
                   </div>
                 </div>
               )}
 
               {/* Form Fields */}
-              <div className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 
                 {/* Name Field */}
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="name" className={`block text-sm font-medium ${colors.text.secondary} mb-2`}>
                     Full Name
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User className="h-5 w-5 text-gray-400" />
+                      <User className={`h-5 w-5 ${colors.text.muted}`} />
                     </div>
                     <input
                       id="name"
                       type="text"
                       value={formData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
+                      onBlur={() => handleBlur('name')}
                       onKeyPress={handleKeyPress}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                      className={`block w-full pl-10 pr-3 py-3 border rounded-lg ${colors.bg.secondary} ${colors.text.primary} placeholder-gray-500 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                        fieldErrors.name && touched.name
+                          ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                          : `${colors.border.primary} focus:ring-blue-500 focus:border-blue-500`
+                      }`}
                       placeholder="Enter your full name"
                     />
                   </div>
+                  {fieldErrors.name && touched.name && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      {fieldErrors.name}
+                    </p>
+                  )}
                 </div>
 
                 {/* Email Field */}
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="email" className={`block text-sm font-medium ${colors.text.secondary} mb-2`}>
                     Email Address
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-gray-400" />
+                      <Mail className={`h-5 w-5 ${colors.text.muted}`} />
                     </div>
                     <input
                       id="email"
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
+                      onBlur={() => handleBlur('email')}
                       onKeyPress={handleKeyPress}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                      className={`block w-full pl-10 pr-3 py-3 border rounded-lg ${colors.bg.secondary} ${colors.text.primary} placeholder-gray-500 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                        fieldErrors.email && touched.email
+                          ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                          : `${colors.border.primary} focus:ring-blue-500 focus:border-blue-500`
+                      }`}
                       placeholder="Enter your email"
                     />
                   </div>
+                  {fieldErrors.email && touched.email && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      {fieldErrors.email}
+                    </p>
+                  )}
                 </div>
 
                 {/* Password Field */}
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="password" className={`block text-sm font-medium ${colors.text.secondary} mb-2`}>
                     Password
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-gray-400" />
+                      <Lock className={`h-5 w-5 ${colors.text.muted}`} />
                     </div>
                     <input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       value={formData.password}
                       onChange={(e) => handleInputChange('password', e.target.value)}
+                      onBlur={() => handleBlur('password')}
                       onKeyPress={handleKeyPress}
-                      className="block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                      className={`block w-full pl-10 pr-10 py-3 border rounded-lg ${colors.bg.secondary} ${colors.text.primary} placeholder-gray-500 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                        fieldErrors.password && touched.password
+                          ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                          : `${colors.border.primary} focus:ring-blue-500 focus:border-blue-500`
+                      }`}
                       placeholder="Create a strong password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      className={`absolute inset-y-0 right-0 pr-3 flex items-center ${colors.text.muted} hover:${colors.text.secondary} transition-colors`}
                     >
                       {showPassword ? (
-                        <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                        <EyeOff className="h-5 w-5" />
                       ) : (
-                        <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                        <Eye className="h-5 w-5" />
                       )}
                     </button>
                   </div>
@@ -297,12 +489,12 @@ export default function RegisterPage() {
                   {formData.password && (
                     <div className="mt-2">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-500 dark:text-gray-400">Password strength:</span>
+                        <span className={colors.text.muted}>Password strength:</span>
                         <span className={`font-medium ${passwordStrength >= 4 ? 'text-green-600' : passwordStrength >= 3 ? 'text-blue-600' : passwordStrength >= 2 ? 'text-yellow-600' : 'text-red-600'}`}>
                           {getStrengthText(passwordStrength)}
                         </span>
                       </div>
-                      <div className="mt-1 w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
+                      <div className={`mt-1 w-full ${colors.bg.tertiary} rounded-full h-1.5`}>
                         <div 
                           className={`h-1.5 rounded-full transition-all duration-300 ${getStrengthColor(passwordStrength)}`}
                           style={{ width: `${(passwordStrength / 5) * 100}%` }}
@@ -314,42 +506,53 @@ export default function RegisterPage() {
 
                 {/* Confirm Password Field */}
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="confirmPassword" className={`block text-sm font-medium ${colors.text.secondary} mb-2`}>
                     Confirm Password
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-gray-400" />
+                      <Lock className={`h-5 w-5 ${colors.text.muted}`} />
                     </div>
                     <input
                       id="confirmPassword"
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={formData.confirmPassword}
                       onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                      onBlur={() => handleBlur('confirmPassword')}
                       onKeyPress={handleKeyPress}
-                      className="block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                      className={`block w-full pl-10 pr-10 py-3 border rounded-lg ${colors.bg.secondary} ${colors.text.primary} placeholder-gray-500 focus:outline-none focus:ring-2 transition-all duration-200 ${
+                        fieldErrors.confirmPassword && touched.confirmPassword
+                          ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                          : `${colors.border.primary} focus:ring-blue-500 focus:border-blue-500`
+                      }`}
                       placeholder="Confirm your password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      className={`absolute inset-y-0 right-0 pr-3 flex items-center ${colors.text.muted} hover:${colors.text.secondary} transition-colors`}
                     >
                       {showConfirmPassword ? (
-                        <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                        <EyeOff className="h-5 w-5" />
                       ) : (
-                        <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                        <Eye className="h-5 w-5" />
                       )}
                     </button>
                   </div>
+                  {fieldErrors.confirmPassword && touched.confirmPassword && (
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      {fieldErrors.confirmPassword}
+                    </p>
+                  )}
                 </div>
 
                 {/* Submit Button */}
                 <button
-                  onClick={handleSubmit}
+                  type="submit"
                   disabled={isLoading}
-                  className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all transform hover:scale-105 ${
-                    isLoading ? 'opacity-75 cursor-not-allowed transform-none' : ''
+                  className={`w-full bg-gradient-to-r ${colors.accent.blue} text-white py-3 px-4 rounded-lg font-semibold hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl ${
+                    isLoading ? 'opacity-75 cursor-not-allowed transform-none' : 'hover:shadow-blue-500/25'
                   }`}
                 >
                   {isLoading ? (
@@ -358,38 +561,42 @@ export default function RegisterPage() {
                       Creating Account...
                     </div>
                   ) : (
-                    'Create Account'
+                    <div className="flex items-center justify-center">
+                      <User className="h-5 w-5 mr-2" />
+                      Create Account
+                    </div>
                   )}
                 </button>
 
                 {/* Sign In Link */}
                 <div className="text-center">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className={`text-sm ${colors.text.secondary}`}>
                     Already have an account?{' '}
                     <button
                       type="button"
                       onClick={() => router.push('/login')}
-                      className="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors"
+                      className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 transition-colors hover:underline"
                     >
                       Sign in here
                     </button>
                   </p>
                 </div>
-              </div>
+              </form>
             </div>
 
             {/* Mobile Back Button */}
             <div className="lg:hidden text-center mt-6">
               <button 
                 onClick={() => router.push('/')}
-                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                className={`${colors.text.secondary} hover:${colors.text.primary} transition-colors flex items-center justify-center mx-auto`}
               >
-                ← Back to Home
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Home
               </button>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

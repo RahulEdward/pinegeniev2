@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, createContext, useContext } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   Menu, 
   X, 
@@ -676,6 +677,7 @@ function PineGenieLanding() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState('landing');
+  const router = useRouter();
   
   const theme = useTheme();
   
@@ -746,11 +748,11 @@ function PineGenieLanding() {
   `;
 
   const handleLogin = () => {
-    setCurrentPage('login');
+    router.push('/login');
   };
 
   const handleSignUp = () => {
-    setCurrentPage('register');
+    router.push('/register');
   };
 
 

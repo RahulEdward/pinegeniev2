@@ -3,7 +3,7 @@
 import { signIn } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Eye, EyeOff, Mail, Lock, CheckCircle, AlertCircle, ArrowLeft, Zap } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, CheckCircle, AlertCircle, ArrowLeft, Zap, Sun, Moon, Sparkles, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
   const searchParams = useSearchParams();
@@ -12,19 +12,111 @@ export default function LoginPage() {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [isDark, setIsDark] = useState(true);
   
   // Form state
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
+  
+  const [fieldErrors, setFieldErrors] = useState({
+    email: '',
+    password: ''
+  });
+  
+  const [touched, setTouched] = useState({
+    email: false,
+    password: false
+  });
+
+  // Theme colors matching your home page
+  const colors = isDark ? {
+    bg: {
+      primary: 'from-slate-900 via-slate-800 to-slate-900',
+      secondary: 'bg-slate-800/80',
+      tertiary: 'bg-slate-700/50',
+      card: 'bg-slate-800/30',
+      glass: 'bg-slate-800/80 backdrop-blur-xl',
+    },
+    text: {
+      primary: 'text-white',
+      secondary: 'text-slate-300',
+      tertiary: 'text-slate-400',
+      muted: 'text-slate-500',
+    },
+    border: {
+      primary: 'border-slate-700/50',
+      secondary: 'border-slate-600/30',
+      accent: 'border-blue-500/50',
+    },
+    accent: {
+      blue: 'from-blue-500 to-cyan-500',
+      purple: 'from-purple-500 to-pink-500',
+      green: 'from-green-500 to-emerald-500',
+      orange: 'from-amber-500 to-orange-500',
+      red: 'from-red-500 to-pink-500',
+    }
+  } : {
+    bg: {
+      primary: 'from-gray-50 via-white to-gray-50',
+      secondary: 'bg-white/90',
+      tertiary: 'bg-gray-100/80',
+      card: 'bg-white/60',
+      glass: 'bg-white/80 backdrop-blur-xl',
+    },
+    text: {
+      primary: 'text-gray-900',
+      secondary: 'text-gray-700',
+      tertiary: 'text-gray-600',
+      muted: 'text-gray-500',
+    },
+    border: {
+      primary: 'border-gray-200',
+      secondary: 'border-gray-300/50',
+      accent: 'border-blue-400/50',
+    },
+    accent: {
+      blue: 'from-blue-400 to-cyan-400',
+      purple: 'from-purple-400 to-pink-400',
+      green: 'from-green-400 to-emerald-400',
+      orange: 'from-amber-400 to-orange-400',
+      red: 'from-red-400 to-pink-400',
+    }
+  };
+
+  // Custom animations
+  const customAnimations = `
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+      50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6), 0 0 40px rgba(139, 92, 246, 0.3); }
+    }
+    
+    .animate-pulse-glow {
+      animation: pulse-glow 2s ease-in-out infinite;
+    }
+    
+    .text-shadow-glow {
+      text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    }
+  `;
+
+  const toggleTheme = () => {
+    const newDarkMode = !isDark;
+    setIsDark(newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
 
   useEffect(() => {
     // Check for dark mode preference
-    const isDark = localStorage.getItem('darkMode') === 'true';
-    setDarkMode(isDark);
-    if (isDark) {
+    const darkMode = localStorage.getItem('darkMode') === 'true';
+    setIsDark(darkMode);
+    if (darkMode) {
       document.documentElement.classList.add('dark');
     }
 
@@ -33,8 +125,39 @@ export default function LoginPage() {
     }
   }, [searchParams]);
 
+  const validateField = (field: string, value: string) => {
+    let error = '';
+    
+    if (field === 'email') {
+      if (!value) {
+        error = 'Email is required';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        error = 'Please enter a valid email address';
+      }
+    } else if (field === 'password') {
+      if (!value) {
+        error = 'Password is required';
+      } else if (value.length < 6) {
+        error = 'Password must be at least 6 characters';
+      }
+    }
+    
+    setFieldErrors(prev => ({ ...prev, [field]: error }));
+    return error === '';
+  };
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Clear error when user starts typing
+    if (touched[field as keyof typeof touched]) {
+      validateField(field, value);
+    }
+  };
+  
+  const handleBlur = (field: keyof typeof formData) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    validateField(field, formData[field]);
   };
 
   const handleSubmit = async () => {
@@ -81,15 +204,34 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark' : ''}`}>
-      <div className="min-h-screen flex bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+    <div className={`min-h-screen transition-colors duration-300 bg-gradient-to-br ${colors.bg.primary}`}>
+      {/* Inject custom CSS */}
+      <style dangerouslySetInnerHTML={{ __html: customAnimations }} />
+      
+      {/* Theme Toggle Button */}
+      <button
+        onClick={toggleTheme}
+        className={`fixed top-4 right-4 z-50 p-3 rounded-full ${colors.bg.glass} ${colors.border.primary} border backdrop-blur-sm hover:${colors.bg.tertiary} transition-all duration-300 hover:scale-110`}
+        aria-label="Toggle theme"
+      >
+        {isDark ? (
+          <Sun className={`h-5 w-5 ${colors.text.secondary}`} />
+        ) : (
+          <Moon className={`h-5 w-5 ${colors.text.secondary}`} />
+        )}
+      </button>
+      
+      <div className="min-h-screen flex">
         
         {/* Background Pattern */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
+        <div className="absolute inset-0 overflow-hidden">
+          <div className={`absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r ${colors.accent.blue} rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse`} />
+          <div className={`absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-r ${colors.accent.purple} rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse`} />
+        </div>
         
         {/* Left Side - Branding */}
         <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-700"></div>
+          <div className={`absolute inset-0 ${isDark ? 'bg-gradient-to-br from-black to-gray-900' : `bg-gradient-to-br ${colors.accent.blue}`}`}></div>
           <div className="relative z-10 flex flex-col justify-center px-12 text-white">
             
             {/* Back to Home */}
@@ -103,7 +245,7 @@ export default function LoginPage() {
 
             {/* Logo */}
             <div className="flex items-center mb-8">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mr-4">
+              <div className={`w-12 h-12 bg-gradient-to-r ${colors.accent.blue} rounded-xl flex items-center justify-center mr-4 backdrop-blur-sm bg-white/20`}>
                 <span className="text-white font-bold text-xl">PG</span>
               </div>
               <span className="text-3xl font-bold">PineGenie</span>
@@ -143,50 +285,57 @@ export default function LoginPage() {
         </div>
 
         {/* Right Side - Form */}
-        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative">
           <div className="max-w-md w-full">
             
             {/* Mobile Logo */}
             <div className="lg:hidden text-center mb-8">
               <div className="inline-flex items-center">
-                <div className="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                <div className={`w-10 h-10 bg-gradient-to-r ${colors.accent.blue} rounded-lg flex items-center justify-center mr-3`}>
                   <span className="text-white font-bold">PG</span>
                 </div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <span className={`text-2xl font-bold bg-gradient-to-r ${colors.accent.blue} bg-clip-text text-transparent`}>
                   PineGenie
                 </span>
               </div>
             </div>
 
             {/* Form Container */}
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/20 dark:border-gray-700/20 p-8">
+            <div className={`${colors.bg.glass} backdrop-blur-xl rounded-2xl shadow-2xl border ${colors.border.primary} p-8`}>
               
               {/* Header */}
               <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                <div className={`inline-flex items-center gap-2 px-4 py-2 ${colors.bg.glass} ${colors.border.primary} border rounded-full mb-6 animate-pulse-glow`}>
+                  <Sparkles className="w-4 h-4 text-blue-400 animate-spin" />
+                  <span className={`text-sm ${colors.text.secondary}`}>
+                    AI-Powered Strategy Builder
+                  </span>
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-ping" />
+                </div>
+                <h2 className={`text-3xl font-bold ${colors.text.primary} mb-2`}>
                   Welcome Back
                 </h2>
-                <p className="text-gray-600 dark:text-gray-300">
+                <p className={`${colors.text.tertiary}`}>
                   Sign in to continue building strategies
                 </p>
               </div>
 
               {/* Success Message */}
               {success && (
-                <div className="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                <div className={`mb-6 ${colors.bg.card} border ${colors.border.accent} rounded-lg p-4`}>
                   <div className="flex items-center">
                     <CheckCircle className="h-5 w-5 text-green-500 mr-3" />
-                    <p className="text-green-700 dark:text-green-400 text-sm">{success}</p>
+                    <p className={`text-green-400 text-sm`}>{success}</p>
                   </div>
                 </div>
               )}
 
               {/* Error Message */}
               {error && (
-                <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <div className={`mb-6 ${colors.bg.card} border border-red-500/50 rounded-lg p-4`}>
                   <div className="flex items-center">
                     <AlertCircle className="h-5 w-5 text-red-500 mr-3" />
-                    <p className="text-red-700 dark:text-red-400 text-sm">{error}</p>
+                    <p className={`text-red-400 text-sm`}>{error}</p>
                   </div>
                 </div>
               )}
@@ -196,41 +345,57 @@ export default function LoginPage() {
                 
                 {/* Email Field */}
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="email" className={`block text-sm font-medium ${colors.text.secondary} mb-2`}>
                     Email Address
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-gray-400" />
+                      <Mail className={`h-5 w-5 ${colors.text.muted}`} />
                     </div>
                     <input
                       id="email"
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
+                      onBlur={() => handleBlur('email')}
                       onKeyPress={handleKeyPress}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                      className={`block w-full pl-10 pr-3 py-3 border ${colors.border.primary} rounded-lg ${colors.bg.card} ${colors.text.primary} placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors backdrop-blur-sm ${
+                        fieldErrors.email && touched.email
+                          ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                          : ''
+                      }`}
                       placeholder="Enter your email"
-                    />
+                     />
                   </div>
+                  {fieldErrors.email && touched.email && (
+                    <p className="mt-2 text-sm text-red-400 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      {fieldErrors.email}
+                    </p>
+                  )}
                 </div>
 
                 {/* Password Field */}
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="password" className={`block text-sm font-medium ${colors.text.secondary} mb-2`}>
                     Password
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-gray-400" />
+                      <Lock className={`h-5 w-5 ${colors.text.muted}`} />
                     </div>
                     <input
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       value={formData.password}
                       onChange={(e) => handleInputChange('password', e.target.value)}
+                      onBlur={() => handleBlur('password')}
                       onKeyPress={handleKeyPress}
-                      className="block w-full pl-10 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                      className={`block w-full pl-10 pr-10 py-3 border ${colors.border.primary} rounded-lg ${colors.bg.card} ${colors.text.primary} placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors backdrop-blur-sm ${
+                        fieldErrors.password && touched.password
+                          ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                          : ''
+                      }`}
                       placeholder="Enter your password"
                     />
                     <button
@@ -239,24 +404,30 @@ export default function LoginPage() {
                       className="absolute inset-y-0 right-0 pr-3 flex items-center"
                     >
                       {showPassword ? (
-                        <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                        <EyeOff className={`h-5 w-5 ${colors.text.muted} hover:${colors.text.secondary}`} />
                       ) : (
-                        <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                        <Eye className={`h-5 w-5 ${colors.text.muted} hover:${colors.text.secondary}`} />
                       )}
                     </button>
                   </div>
+                  {fieldErrors.password && touched.password && (
+                    <p className="mt-2 text-sm text-red-400 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-1" />
+                      {fieldErrors.password}
+                    </p>
+                  )}
                 </div>
 
-                {/* Forgot Password */}
+                {/* Remember & Forgot */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <input
                       id="remember-me"
                       name="remember-me"
                       type="checkbox"
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                     />
-                    <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                    <label htmlFor="remember-me" className={`ml-2 block text-sm ${colors.text.secondary}`}>
                       Remember me
                     </label>
                   </div>
@@ -264,9 +435,9 @@ export default function LoginPage() {
                   <div className="text-sm">
                     <button
                       type="button"
-                      className="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors"
+                      className="font-medium text-blue-400 hover:text-blue-300 transition-colors"
                     >
-                      Forgot your password?
+                      Forgot password?
                     </button>
                   </div>
                 </div>
@@ -275,7 +446,7 @@ export default function LoginPage() {
                 <button
                   onClick={handleSubmit}
                   disabled={isLoading}
-                  className={`w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all transform hover:scale-105 ${
+                  className={`group w-full bg-gradient-to-r ${colors.accent.blue} text-white py-3 px-4 rounded-lg font-semibold hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all transform hover:scale-105 animate-pulse-glow text-shadow-glow flex items-center justify-center gap-3 ${
                     isLoading ? 'opacity-75 cursor-not-allowed transform-none' : ''
                   }`}
                 >
@@ -285,17 +456,21 @@ export default function LoginPage() {
                       Signing in...
                     </div>
                   ) : (
-                    'Sign In'
+                    <>
+                      <Zap className="w-5 h-5 animate-bounce" />
+                      Sign In
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
+                    </>
                   )}
                 </button>
 
                 {/* Divider */}
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300 dark:border-gray-600" />
+                    <div className={`w-full border-t ${colors.border.primary}`} />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">Or continue with</span>
+                    <span className={`px-2 ${colors.bg.glass} ${colors.text.muted}`}>Or continue with</span>
                   </div>
                 </div>
 
@@ -303,7 +478,7 @@ export default function LoginPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                    className={`w-full inline-flex justify-center py-2 px-4 border ${colors.border.primary} rounded-md shadow-sm ${colors.bg.card} text-sm font-medium ${colors.text.secondary} hover:${colors.bg.tertiary} transition-colors backdrop-blur-sm`}
                   >
                     <span className="sr-only">Sign in with Google</span>
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -316,7 +491,7 @@ export default function LoginPage() {
 
                   <button
                     type="button"
-                    className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                    className={`w-full inline-flex justify-center py-2 px-4 border ${colors.border.primary} rounded-md shadow-sm ${colors.bg.card} text-sm font-medium ${colors.text.secondary} hover:${colors.bg.tertiary} transition-colors backdrop-blur-sm`}
                   >
                     <span className="sr-only">Sign in with GitHub</span>
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -327,12 +502,12 @@ export default function LoginPage() {
 
                 {/* Sign Up Link */}
                 <div className="text-center">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className={`text-sm ${colors.text.tertiary}`}>
                     Don&apos;t have an account?{' '}
                     <button
                       type="button"
                       onClick={() => router.push('/register')}
-                      className="font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors"
+                      className="font-medium text-blue-400 hover:text-blue-300 transition-colors"
                     >
                       Sign up here
                     </button>
@@ -345,7 +520,7 @@ export default function LoginPage() {
             <div className="lg:hidden text-center mt-6">
               <button 
                 onClick={() => router.push('/')}
-                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                className={`${colors.text.tertiary} hover:${colors.text.primary} transition-colors`}
               >
                 ← Back to Home
               </button>
