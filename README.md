@@ -1,16 +1,17 @@
-# Next.js 14 Starter Template with Authentication
+# PineGenieV - AI-Powered TradingView Strategy Builder
 
-A modern, production-ready Next.js 14 starter template featuring authentication, protected routes, and a clean, responsive UI. Built with TypeScript, Tailwind CSS, and Prisma ORM.
+A modern, AI-powered visual builder for creating professional TradingView strategies without writing a single line of code. Built with Next.js, TypeScript, Tailwind CSS, and Prisma.
 
 ## ✨ Features
 
-- 🔒 **Authentication** - Email/Password authentication with NextAuth.js
-- 🛡 **Protected Routes** - Middleware for route protection
-- 🎨 **Modern UI** - Built with Tailwind CSS for beautiful, responsive designs
-- 🗃 **Database** - Prisma ORM with SQLite (easily switchable to other databases)
-- ⚡ **Fast Refresh** - Next.js 14 with App Router for optimal performance
-- 🔄 **State Management** - Built-in React Context API
-- 📱 **Fully Responsive** - Works on all device sizes
+- **Visual Strategy Builder**: Drag-and-drop interface to build complex trading strategies.
+- **AI-Powered Generation**: Describe your strategy in natural language and let our AI generate the Pine Script code for you.
+- **No-Code Solution**: Accessible to traders of all skill levels, no coding experience required.
+- **Live Testing**: Integrated live chart testing powered by TradingView to validate your strategies.
+- **Export to Pine Script v6**: Get clean, optimized, and production-ready Pine Script v6 code.
+- **Authentication**: Secure user authentication with NextAuth.js.
+- **Modern UI**: A clean, responsive, and intuitive user interface built with Tailwind CSS.
+- **Theming**: Light and dark mode support.
 
 ## 🚀 Getting Started
 
@@ -24,80 +25,73 @@ A modern, production-ready Next.js 14 starter template featuring authentication,
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/RahulEdward/nextjs14_startertemplate.git
-   cd nextjs14_startertemplate
+   git clone https://github.com/RahulEdward/pinegeniev.git
+   cd pinegeniev
    ```
 
 2. **Install dependencies**
    ```bash
    npm install
-   # or
-   yarn install
    ```
 
 3. **Set up environment variables**
-   Create a `.env` file in the root directory and add:
-   ```env
-   DATABASE_URL="file:./dev.db"
-   NEXTAUTH_SECRET="your-secret-key"
-   NEXTAUTH_URL="http://localhost:3000"
-   ```
+   Create a `.env.local` file in the root directory and add the necessary environment variables (e.g., `DATABASE_URL`, `NEXTAUTH_SECRET`).
 
 4. **Set up the database**
    ```bash
-   npx prisma generate
-   npx prisma db push
+   npx prisma migrate dev
    ```
 
 5. **Run the development server**
    ```bash
    npm run dev
-   # or
-   yarn dev
    ```
 
-6. **Open [http://localhost:3000](http://localhost:3000)** in your browser
+6. **Open [http://localhost:3000](http://localhost:3000)** in your browser.
 
 ## 🛠 Project Structure
 
 ```
-src/
-├── app/
-│   ├── api/
-│   │   └── auth/            # Authentication API routes
-│   ├── dashboard/           # Protected dashboard routes
-│   ├── login/               # Login page
-│   ├── register/            # Registration page
-│   └── layout.tsx           # Root layout
-├── components/              # Reusable components
-├── lib/                     # Utility functions and configs
-│   ├── auth.ts              # Auth utilities
-│   └── prisma.ts            # Prisma client
-├── middleware.ts            # Authentication middleware
-└── styles/                  # Global styles
+pinegeniev/
+├── prisma/
+│   └── schema.prisma
+├── public/
+│   ├── ... (static assets)
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   ├── builder/
+│   │   ├── dashboard/
+│   │   └── page.tsx
+│   ├── components/
+│   │   ├── auth/
+│   │   ├── landing/
+│   │   └── ui/
+│   ├── lib/
+│   └── styles/
+├── .gitignore
+├── next.config.js
+├── package.json
+├── README.md
+└── tailwind.config.ts
 ```
 
-## 🔧 Built With
+## 🔧 Tech Stack
 
-- [Next.js 14](https://nextjs.org/) - The React Framework
-- [TypeScript](https://www.typescriptlang.org/) - Type Safety
-- [Tailwind CSS](https://tailwindcss.com/) - For styling
-- [NextAuth.js](https://next-auth.js.org/) - For authentication
-- [Prisma](https://www.prisma.io/) - ORM for database
-- [bcryptjs](https://www.npmjs.com/package/bcryptjs) - Password hashing
+- **Framework**: [Next.js](https://nextjs.org/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Authentication**: [NextAuth.js](https://next-auth.js.org/)
+- **Database**: [Prisma](https://www.prisma.io/)
+- **UI Components**: Custom components, shadcn/ui (implied)
+- **Icons**: [Lucide React](https://lucide.dev/)
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [Next.js Documentation](https://nextjs.org/docs)
-- [NextAuth.js Documentation](https://next-auth.js.org/)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+This project is licensed under the terms of the LICENSE file. See [LICENSE](LICENSE) for details.
 
 ## 📬 Contact
 
-Rahul Edward - [@YourTwitter](https://twitter.com/yourtwitter)
+Rahul Edward
 
-Project Link: [https://github.com/RahulEdward/nextjs14_startertemplate](https://github.com/RahulEdward/nextjs14_startertemplate)
+Project Link: [https://github.com/RahulEdward/pinegeniev](https://github.com/RahulEdward/pinegeniev)

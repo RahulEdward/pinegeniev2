@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { 
   Code, 
   FileText, 
@@ -352,9 +353,9 @@ export default function PineGenieDashboard() {
                     <p className="text-gray-600 dark:text-gray-300 mb-6">
                       Build professional Pine Script indicators without coding knowledge.
                     </p>
-                    <button className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-8 py-3 rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all">
+                    <Link href="/builder" className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-8 py-3 rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all inline-block">
                       Launch Builder
-                    </button>
+                    </Link>
                   </div>
                 </div>
               </div>
