@@ -1,85 +1,187 @@
-'use client';
+/**
+* Toolbar Component - Strategy Builder Controls
+* 
+* This file contains:
+* - Main toolbar for strategy builder interface
+* - Save, export, and clear functionality
+* - Theme toggle and zoom controls
+* - Integration with builder state management
+* - Pine Script export functionality
+* - Toast notifications for user feedback
+*/
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { toast } from 'react-hot-toast';
-import { Download, Save, Trash2 } from 'lucide-react';
-import useBuilderStore from '../builder-state';
-import { generatePineScript } from '../export-pinescript';
+import React from 'react';
+import Link from 'next/link';
+import { Layers, Sun, Moon, Trash2, Code, Save, ZoomIn, ZoomOut, RotateCcw, ArrowLeft } from 'lucide-react';
+import { useTheme } from './ThemeProvider';
 
-export default function Toolbar() {
-  const { nodes, edges } = useBuilderStore();
-  const [isSaving, setIsSaving] = useState(false);
+export interface ToolbarProps {
+  zoom: number;
+  setZoom: (zoom: number) => void;
+  isDark: boolean;
+  toggleTheme: () => void;
+  clearCanvas: () => void;
+  generateScript: () => void;
+  saveStrategy: () => void;
+  backgroundType: 'grid' | 'dots' | 'lines' | 'clean';
+  setBackgroundType: (type: 'grid' | 'dots' | 'lines' | 'clean') => void;
+}
 
-  const handleSave = () => {
-    setIsSaving(true);
-    // Simulate save operation
-    setTimeout(() => {
-      setIsSaving(false);
-      toast.success('Strategy saved successfully!');
-    }, 1000);
-  };
+const Toolbar: React.FC<ToolbarProps> = ({
+  zoom,
+  setZoom,
+  isDark,
+  toggleTheme,
+  clearCanvas,
+  generateScript,
+  saveStrategy,
+  backgroundType,
+  setBackgroundType
+}) => {
+  const { colors } = useTheme();
 
-  const handleExport = () => {
-    const script = generatePineScript(nodes, edges);
-    // Create a blob and download link
-    const blob = new Blob([script], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'strategy.pine';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast.success('Pine Script exported successfully!');
-  };
-
-  const handleClear = () => {
-    if (confirm('Are you sure you want to clear the canvas? This action cannot be undone.')) {
-      // Reset to initial state using the store's reset function
-      const { reset } = useBuilderStore.getState();
-      reset();
-      toast.success('Canvas cleared');
-    }
-  };
+  const handleZoomIn = () => setZoom(Math.min(3, zoom * 1.2));
+  const handleZoomOut = () => setZoom(Math.max(0.1, zoom / 1.2));
+  const handleResetZoom = () => setZoom(1);
 
   return (
-    <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-2 flex items-center justify-between">
-      <div className="flex items-center space-x-2">
-        <h1 className="text-lg font-semibold text-gray-900 dark:text-white">PineGenie Builder</h1>
+    <div className={`flex items-center justify-between p-4 border-b transition-colors ${
+      isDark ? 'bg-slate-800/80 backdrop-blur-xl border-slate-700/50' : 'bg-white/80 backdrop-blur-xl border-gray-200/50'
+    }`}>
+      {/* Left side - Back Button and Branding */}
+      <div className="flex items-center gap-4">
+        {/* Back Button */}
+        <Link href="/dashboard" className="mr-2">
+          <button
+            className={`p-2 rounded-full border transition-colors ${
+              isDark ? 'bg-slate-700 border-slate-600 text-slate-200 hover:bg-slate-600' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-100'
+            }`}
+            title="Back to Dashboard"
+            style={{ minWidth: 36, minHeight: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        </Link>
+        {/* Branding */}
+        <div className="flex items-center gap-3">
+          <div className={`p-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl`}>
+            <Layers className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className={`text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent`}>
+              PineGenie Builder
+            </h1>
+            <p className={`text-xs transition-colors ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+              Visual Strategy Builder
+            </p>
+          </div>
+        </div>
       </div>
-      <div className="flex items-center space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleSave}
-          disabled={isSaving}
-          className="flex items-center gap-1"
+      {/* Right side - Controls */}
+      <div className="flex items-center gap-3">
+        {/* Background type selector */}
+        <div className={`flex items-center gap-1 rounded-xl p-1 border transition-colors ${
+          isDark ? 'bg-slate-700/50 border-slate-600' : 'bg-gray-100/50 border-gray-300'
+        }`}>
+          <button 
+            onClick={() => setBackgroundType('clean')}
+            className={`p-2 rounded-lg transition-all text-xs font-medium ${
+              backgroundType === 'clean' 
+                ? isDark ? 'bg-slate-600 text-white' : 'bg-gray-200 text-gray-900'
+                : isDark ? 'text-slate-400 hover:bg-slate-600/50' : 'text-gray-600 hover:bg-gray-200/50'
+            }`}
+            title="Clean Background"
+          >
+            Clean
+          </button>
+          <button 
+            onClick={() => setBackgroundType('dots')}
+            className={`p-2 rounded-lg transition-all text-xs font-medium ${
+              backgroundType === 'dots' 
+                ? isDark ? 'bg-slate-600 text-white' : 'bg-gray-200 text-gray-900'
+                : isDark ? 'text-slate-400 hover:bg-slate-600/50' : 'text-gray-600 hover:bg-gray-200/50'
+            }`}
+            title="Dotted Background"
+          >
+            Dots
+          </button>
+          <button 
+            onClick={() => setBackgroundType('grid')}
+            className={`p-2 rounded-lg transition-all text-xs font-medium ${
+              backgroundType === 'grid' 
+                ? isDark ? 'bg-slate-600 text-white' : 'bg-gray-200 text-gray-900'
+                : isDark ? 'text-slate-400 hover:bg-slate-600/50' : 'text-gray-600 hover:bg-gray-200/50'
+            }`}
+            title="Grid Background"
+          >
+            Grid
+          </button>
+          <button 
+            onClick={() => setBackgroundType('lines')}
+            className={`p-2 rounded-lg transition-all text-xs font-medium ${
+              backgroundType === 'lines' 
+                ? isDark ? 'bg-slate-600 text-white' : 'bg-gray-200 text-gray-900'
+                : isDark ? 'text-slate-400 hover:bg-slate-600/50' : 'text-gray-600 hover:bg-gray-200/50'
+            }`}
+            title="Line Background"
+          >
+            Lines
+          </button>
+        </div>
+        {/* Zoom controls */}
+        <div className={`flex items-center gap-1 rounded-xl p-1 border transition-colors ${
+          isDark ? 'bg-slate-700/50 border-slate-600' : 'bg-gray-100/50 border-gray-300'
+        }`}>
+          <button onClick={handleZoomOut} className={`p-2 hover:${colors.bg.tertiary} rounded-lg transition-all ${colors.text.secondary}`}>
+            <ZoomOut className="w-4 h-4" />
+          </button>
+          <span className={`text-sm px-3 font-mono ${colors.text.secondary} min-w-[60px] text-center`}>
+            {Math.round(zoom * 100)}%
+          </span>
+          <button onClick={handleZoomIn} className={`p-2 hover:${colors.bg.tertiary} rounded-lg transition-all ${colors.text.secondary}`}>
+            <ZoomIn className="w-4 h-4" />
+          </button>
+          <div className={`w-px h-6 ${colors.border.secondary} mx-1`} />
+          <button onClick={handleResetZoom} className={`p-2 hover:${colors.bg.tertiary} rounded-lg transition-all ${colors.text.secondary}`}>
+            <RotateCcw className="w-4 h-4" />
+          </button>
+        </div>
+        {/* Theme toggle */}
+        <button
+          onClick={toggleTheme}
+          className={`p-2 ${colors.bg.secondary} hover:${colors.bg.tertiary} ${colors.border.primary} border rounded-xl transition-all duration-200`}
         >
-          <Save className="h-4 w-4" />
-          {isSaving ? 'Saving...' : 'Save'}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleExport}
-          className="flex items-center gap-1"
+          {isDark ? (
+            <Sun className={`w-5 h-5 ${colors.text.secondary}`} />
+          ) : (
+            <Moon className={`w-5 h-5 ${colors.text.secondary}`} />
+          )}
+        </button>
+        {/* Action buttons */}
+        <button
+          onClick={clearCanvas}
+          className={`flex items-center gap-2 px-4 py-2 text-sm ${colors.bg.secondary} hover:${colors.bg.tertiary} ${colors.border.primary} border ${colors.text.secondary} rounded-xl transition-all duration-200`}
         >
-          <Download className="h-4 w-4" />
-          Export Pine Script
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleClear}
-          className="flex items-center gap-1 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-        >
-          <Trash2 className="h-4 w-4" />
+          <Trash2 className="w-4 h-4" />
           Clear
-        </Button>
+        </button>
+        <button
+          onClick={generateScript}
+          className={`flex items-center gap-2 px-4 py-2 text-sm bg-gradient-to-r ${colors.accent.blue} hover:opacity-90 text-white rounded-xl transition-all duration-200 shadow-lg`}
+        >
+          <Code className="w-4 h-4" />
+          Generate Script
+        </button>
+        <button
+          onClick={saveStrategy}
+          className={`flex items-center gap-2 px-4 py-2 text-sm bg-gradient-to-r ${colors.accent.green} hover:opacity-90 text-white rounded-xl transition-all duration-200 shadow-lg`}
+        >
+          <Save className="w-4 h-4" />
+          Save Strategy
+        </button>
       </div>
     </div>
   );
-}
+};
+
+export default Toolbar;
