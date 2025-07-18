@@ -51,10 +51,8 @@ const NODE_TYPES = {
 
 const nodeTemplates = {
   'Data Sources': [
-    { type: 'data', label: 'Live Market Feed', description: 'Real-time OHLCV data stream' },
-    { type: 'data', label: 'Historical Data', description: 'Backtesting data source' },
-    { type: 'data', label: 'Custom Dataset', description: 'External data integration' },
-    { type: 'data', label: 'Crypto Feed', description: 'Cryptocurrency market data' },
+    { type: 'data', label: 'Price Data', description: 'OHLCV price data (handled by TradingView)' },
+    { type: 'data', label: 'Volume Data', description: 'Trading volume data' },
   ],
   'Technical Analysis': [
     { type: 'indicator', label: 'Moving Average', description: 'SMA/EMA with adaptive periods' },

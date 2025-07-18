@@ -4,6 +4,8 @@ import Sidebar from './Sidebar';
 import Toolbar from './toolbar';
 import N8nNode, { N8nNodeData } from './N8nNode';
 import ConnectionLine from './ConnectionLine';
+import ValidationStatus from './ValidationStatus';
+import UserManual from './UserManual';
 
 interface Connection {
   id: string;
@@ -36,16 +38,63 @@ const Canvas: React.FC = () => {
   } | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [backgroundType, setBackgroundType] = useState<'grid' | 'dots' | 'lines' | 'clean'>('grid');
+  const [isManualOpen, setIsManualOpen] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // Node operations
   const onNodeAdd = (nodeTemplate: { type: string; label: string; description: string }) => {
+    // Create proper configuration based on node type
+    let nodeConfig = {};
+    
+    // Configure based on node type for zero-error system
+    switch (nodeTemplate.type) {
+      case 'data':
+        nodeConfig = {
+          symbol: 'BTCUSDT',
+          timeframe: '1h',
+          source: 'close'
+        };
+        break;
+      case 'indicator':
+        // Map indicator labels to proper IDs
+        const indicatorMap: Record<string, any> = {
+          'Moving Average': { indicatorId: 'sma', parameters: { period: 20, source: 'close' } },
+          'RSI': { indicatorId: 'rsi', parameters: { period: 14, source: 'close', overbought: 70, oversold: 30 } },
+          'MACD': { indicatorId: 'macd', parameters: { fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, source: 'close' } },
+          'Bollinger Bands': { indicatorId: 'bb', parameters: { period: 20, stddev: 2, source: 'close' } },
+          'Stochastic': { indicatorId: 'stoch', parameters: { period: 14, source: 'close' } }
+        };
+        nodeConfig = indicatorMap[nodeTemplate.label] || { indicatorId: 'sma', parameters: { period: 20, source: 'close' } };
+        break;
+      case 'condition':
+        nodeConfig = {
+          operator: 'greater_than',
+          threshold: 50
+        };
+        break;
+      case 'action':
+        nodeConfig = {
+          orderType: 'market',
+          quantity: '25%'
+        };
+        break;
+      case 'risk':
+        nodeConfig = {
+          stopLoss: 2,
+          takeProfit: 5,
+          maxRisk: 1
+        };
+        break;
+      default:
+        nodeConfig = {};
+    }
+
     const newNode: N8nNodeData = {
       id: `${nodeTemplate.type}-${Date.now()}`,
       type: nodeTemplate.type,
       label: nodeTemplate.label,
       description: nodeTemplate.description,
-      props: {},
+      props: nodeConfig,
       position: { x: 150 + Math.random() * 100, y: 100 + nodes.length * 80 }
     };
     setNodes(prev => [...prev, newNode]);
@@ -133,11 +182,68 @@ const Canvas: React.FC = () => {
     setSelectedNode(null);
   };
 
-  // PineScript generation (placeholder)
+  // Enhanced PineScript generation using zero-error system
   const generateScript = () => {
-    const script = `// Generated Pine Script Strategy\n//@version=6\nstrategy(\"PineGenie Strategy\", overlay=true)\n\n// Nodes: ${nodes.map(n => n.label).join(', ')}\n// Connections: ${connections.length}\nplotshape(true, title=\"Generated Strategy\", location=location.belowbar, color=color.blue, style=shape.labelup, text=\"PineGenie\")`;
-    navigator.clipboard.writeText(script);
-    alert('Pine Script copied to clipboard! 📋');
+    // Import the enhanced generator
+    import('../enhanced-pinescript-generator').then(({ generateEnhancedPineScript }) => {
+      // Convert current nodes and connections to the format expected by the generator
+      const convertedNodes = nodes.map(node => {
+        // Map node types to match what the generator expects
+        let nodeType = node.type;
+        if (node.type === 'data') {
+          nodeType = 'data-source'; // Fix the type mismatch
+        }
+        
+        return {
+          id: node.id,
+          type: nodeType as any,
+          data: {
+            id: node.id,
+            label: node.label,
+            type: nodeType as any,
+            description: node.description,
+            config: node.props || {},
+            category: 'Generated'
+          },
+          position: node.position
+        };
+      });
+
+      const convertedEdges = connections.map(conn => ({
+        id: conn.id,
+        source: conn.source,
+        target: conn.target,
+        animated: true,
+        style: { stroke: '#60a5fa', strokeWidth: 2 },
+        type: 'smoothstep' as const
+      }));
+
+      // Generate enhanced Pine Script
+      const result = generateEnhancedPineScript(convertedNodes, convertedEdges);
+      
+      if (result.success) {
+        navigator.clipboard.writeText(result.code);
+        alert(`✅ Zero-Error Pine Script Generated!\n\n📋 Code copied to clipboard\n🎯 ${result.metadata?.codeLines} lines of perfect Pine Script v6\n⚡ ${result.warnings.length} warnings (if any)`);
+        
+        // Log success details
+        console.log('✅ Pine Script Generation Success:', {
+          codeLines: result.metadata?.codeLines,
+          nodeCount: result.metadata?.nodeCount,
+          warnings: result.warnings
+        });
+      } else {
+        // Show detailed error information
+        const errorDetails = result.errors.join('\n• ');
+        alert(`❌ Pine Script Generation Failed\n\nErrors found:\n• ${errorDetails}\n\nPlease fix these issues and try again.`);
+        
+        // Still copy the error script for debugging
+        navigator.clipboard.writeText(result.code);
+        console.error('❌ Pine Script Generation Errors:', result.errors);
+      }
+    }).catch(error => {
+      console.error('Failed to load Pine Script generator:', error);
+      alert('❌ Failed to load Pine Script generator. Please refresh and try again.');
+    });
   };
 
   // Save strategy (placeholder)
@@ -163,6 +269,7 @@ const Canvas: React.FC = () => {
           saveStrategy={saveStrategy}
           backgroundType={backgroundType}
           setBackgroundType={setBackgroundType}
+          openUserManual={() => setIsManualOpen(true)}
         />
         <div className="flex-1 relative overflow-hidden">
           <div
@@ -170,7 +277,7 @@ const Canvas: React.FC = () => {
             className="w-full h-full cursor-move relative"
             onMouseDown={handleCanvasMouseDown}
             style={{
-              background: isDark ? `
+              backgroundImage: isDark ? `
                 radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
                 linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)
@@ -302,17 +409,56 @@ const Canvas: React.FC = () => {
                 </div>
               </div>
             )}
-            {/* Stats panel */}
+            {/* Enhanced Stats panel with real-time validation */}
             {nodes.length > 0 && (
-              <div className={`absolute top-6 right-6 ${colors.bg.glass} ${colors.border.primary} border rounded-2xl p-4 shadow-xl`}>
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full" />
-                    <span className={colors.text.secondary}>Nodes: {nodes.length}</span>
+              <div className={`absolute top-6 right-6 ${colors.bg.glass} ${colors.border.primary} border rounded-2xl p-4 shadow-xl min-w-[280px]`}>
+                <div className="space-y-3">
+                  {/* Basic Stats */}
+                  <div className="flex items-center gap-4 text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full" />
+                      <span className={colors.text.secondary}>Nodes: {nodes.length}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-purple-400 rounded-full" />
+                      <span className={colors.text.secondary}>Links: {connections.length}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-purple-400 rounded-full" />
-                    <span className={colors.text.secondary}>Links: {connections.length}</span>
+                  
+                  {/* Strategy Validation Status */}
+                  <div className={`${colors.border.secondary} border-t pt-3`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`text-sm font-medium ${colors.text.primary}`}>Strategy Status</span>
+                      <ValidationStatus nodes={nodes} connections={connections} />
+                    </div>
+                    
+                    {/* Node Type Breakdown */}
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+                        <span className={colors.text.tertiary}>
+                          Indicators: {nodes.filter(n => n.type === 'indicator').length}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 bg-orange-400 rounded-full" />
+                        <span className={colors.text.tertiary}>
+                          Conditions: {nodes.filter(n => n.type === 'condition').length}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 bg-blue-400 rounded-full" />
+                        <span className={colors.text.tertiary}>
+                          Data: {nodes.filter(n => n.type === 'data').length}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 bg-red-400 rounded-full" />
+                        <span className={colors.text.tertiary}>
+                          Actions: {nodes.filter(n => n.type === 'action').length}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -346,6 +492,12 @@ const Canvas: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* User Manual Modal */}
+      <UserManual 
+        isOpen={isManualOpen} 
+        onClose={() => setIsManualOpen(false)} 
+      />
     </div>
   );
 };

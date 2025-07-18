@@ -61,34 +61,30 @@ const CONDITION_OPERATORS = {
 
 
 
+// Import the enhanced generator
+import { generateEnhancedPineScript, validatePineScriptStrategy } from './enhanced-pinescript-generator';
+
 export const generatePineScript = (
  nodes: CustomNode[],
  edges: CustomEdge[]
 ): string => {
  try {
-   // Build the dependency graph
-   const graph = buildDependencyGraph(nodes, edges);
+   // Use the enhanced zero-error generator
+   const result = generateEnhancedPineScript(nodes, edges);
    
-   // Start building the Pine Script
-   let script = generateHeader();
-   
-   // Generate inputs section
-   script += generateInputsSection(nodes);
-   
-   // Generate indicator calculations in dependency order
-   const sortedNodes = topologicalSort(graph, nodes);
-   script += generateIndicatorsSection(sortedNodes);
-   
-   // Generate strategy logic
-   script += generateStrategyLogic(nodes, edges);
-   
-   // Generate plots and visual elements
-   script += generatePlotsSection(nodes);
-   
-   return script;
-    } catch (error) {
-    console.error('Error generating Pine Script:', error);
-    return generateErrorScript(error instanceof Error ? error.message : 'Unknown error');
+   if (result.success) {
+     console.log('✅ Pine Script generated successfully');
+     if (result.warnings.length > 0) {
+       console.warn('⚠️ Warnings:', result.warnings);
+     }
+     return result.code;
+   } else {
+     console.error('❌ Pine Script generation failed:', result.errors);
+     return result.code; // Returns error script with detailed error information
+   }
+ } catch (error) {
+   console.error('💥 Critical error generating Pine Script:', error);
+   return generateErrorScript(error instanceof Error ? error.message : 'Unknown error');
  }
 };
 
@@ -460,4 +456,30 @@ export const generatePineScriptPreview = (nodes: CustomNode[], edges: CustomEdge
  }
  
  return generatePineScript(nodes, edges);
+};
+
+// Enhanced validation using the new zero-error system
+export const validateStrategyEnhanced = (nodes: CustomNode[], edges: CustomEdge[]) => {
+  return validatePineScriptStrategy(nodes, edges);
+};
+
+// Real-time validation for live feedback
+export const validateStrategyRealtime = (nodes: CustomNode[], edges: CustomEdge[]) => {
+  const validation = validatePineScriptStrategy(nodes, edges);
+  
+  return {
+    isValid: validation.isValid,
+    errors: validation.errors,
+    warnings: validation.warnings,
+    summary: {
+      nodeCount: nodes.length,
+      edgeCount: edges.length,
+      indicatorCount: nodes.filter(n => n.type === 'indicator').length,
+      conditionCount: nodes.filter(n => n.type === 'condition').length,
+      actionCount: nodes.filter(n => n.type === 'action').length,
+      hasDataSource: nodes.some(n => n.type === 'data-source' || n.type === 'input'),
+      hasActions: nodes.some(n => n.type === 'action'),
+      hasConditions: nodes.some(n => n.type === 'condition')
+    }
+  };
 };

@@ -12,7 +12,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Layers, Sun, Moon, Trash2, Code, Save, ZoomIn, ZoomOut, RotateCcw, ArrowLeft } from 'lucide-react';
+import { Layers, Sun, Moon, Trash2, Code, Save, ZoomIn, ZoomOut, RotateCcw, ArrowLeft, Book } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 
 export interface ToolbarProps {
@@ -25,6 +25,7 @@ export interface ToolbarProps {
   saveStrategy: () => void;
   backgroundType: 'grid' | 'dots' | 'lines' | 'clean';
   setBackgroundType: (type: 'grid' | 'dots' | 'lines' | 'clean') => void;
+  openUserManual: () => void;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
@@ -36,7 +37,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
   generateScript,
   saveStrategy,
   backgroundType,
-  setBackgroundType
+  setBackgroundType,
+  openUserManual
 }) => {
   const { colors } = useTheme();
 
@@ -146,6 +148,14 @@ const Toolbar: React.FC<ToolbarProps> = ({
             <RotateCcw className="w-4 h-4" />
           </button>
         </div>
+        {/* User Manual Button */}
+        <button
+          onClick={openUserManual}
+          className={`p-2 ${colors.bg.secondary} hover:${colors.bg.tertiary} ${colors.border.primary} border rounded-xl transition-all duration-200`}
+          title="Open User Manual"
+        >
+          <Book className={`w-5 h-5 ${colors.text.secondary}`} />
+        </button>
         {/* Theme toggle */}
         <button
           onClick={toggleTheme}
