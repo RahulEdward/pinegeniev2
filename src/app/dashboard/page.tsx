@@ -157,14 +157,22 @@ export default function PineGenieDashboard() {
             }`}>
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-full ring-2 ring-blue-500/20 overflow-hidden">
-                  <Image 
-                    src={session.user.image || '/default-avatar.png'}
-                    alt={session.user.name || 'User'}
-                    width={40}
-                    height={40}
-                    className="object-cover w-full h-full"
-                    priority
-                  />
+                  {session.user.image ? (
+                    <Image 
+                      src={session.user.image}
+                      alt={session.user.name || 'User'}
+                      width={40}
+                      height={40}
+                      className="object-cover w-full h-full"
+                      priority
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                      <span className="text-white text-sm font-semibold">
+                        {session.user.name?.charAt(0)?.toUpperCase() || session.user.email?.charAt(0)?.toUpperCase() || 'U'}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm font-medium truncate transition-colors ${

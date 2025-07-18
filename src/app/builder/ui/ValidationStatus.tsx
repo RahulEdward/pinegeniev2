@@ -1,10 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTheme } from './ThemeProvider';
 import { CheckCircle, AlertTriangle, XCircle, Info } from 'lucide-react';
 
 interface ValidationStatusProps {
-  nodes: any[];
-  connections: any[];
+  nodes: Array<{
+    id: string;
+    type: string;
+    label: string;
+    description?: string;
+    position: { x: number; y: number };
+    props?: Record<string, unknown>;
+  }>;
+  connections: Array<{
+    id: string;
+    source: string;
+    target: string;
+  }>;
 }
 
 interface ValidationResult {
@@ -24,11 +35,7 @@ const ValidationStatus: React.FC<ValidationStatusProps> = ({ nodes, connections 
   });
   const [showDetails, setShowDetails] = useState(false);
 
-  useEffect(() => {
-    validateStrategy();
-  }, [nodes, connections]);
-
-  const validateStrategy = async () => {
+  const validateStrategy = useCallback(async () => {
     if (nodes.length === 0) {
       setValidation({
         isValid: true,
@@ -44,19 +51,26 @@ const ValidationStatus: React.FC<ValidationStatusProps> = ({ nodes, connections 
       const { validateStrategyRealtime } = await import('../export-pinescript');
       
       // Convert nodes to the expected format
-      const convertedNodes = nodes.map(node => ({
-        id: node.id,
-        type: node.type as any,
-        data: {
+      const convertedNodes = nodes.map(node => {
+        // Map node types to match what the generator expects
+        let nodeType = node.type;
+        if (node.type === 'data') nodeType = 'data-source';
+        if (node.type === 'riskManagement') nodeType = 'risk';
+        
+        return {
           id: node.id,
-          label: node.label,
-          type: node.type as any,
-          description: node.description,
-          config: node.props || {},
-          category: 'Generated'
-        },
-        position: node.position
-      }));
+          type: nodeType as 'data-source' | 'indicator' | 'condition' | 'action' | 'risk',
+          data: {
+            id: node.id,
+            label: node.label,
+            type: nodeType as 'data-source' | 'indicator' | 'condition' | 'action' | 'risk',
+            description: node.description,
+            config: node.props || {},
+            category: 'Generated'
+          },
+          position: node.position
+        };
+      });
 
       const convertedEdges = connections.map(conn => ({
         id: conn.id,
@@ -91,7 +105,11 @@ const ValidationStatus: React.FC<ValidationStatusProps> = ({ nodes, connections 
         status: 'error'
       });
     }
-  };
+  }, [nodes, connections]);
+
+  useEffect(() => {
+    validateStrategy();
+  }, [validateStrategy]);
 
   const getStatusIcon = () => {
     switch (validation.status) {
@@ -201,7 +219,7 @@ const ValidationStatus: React.FC<ValidationStatusProps> = ({ nodes, connections 
                   <div>• Fix errors before generating Pine Script</div>
                 )}
                 {validation.status === 'warning' && (
-                  <div>• Warnings won't prevent code generation</div>
+                  <div>• Warnings won&apos;t prevent code generation</div>
                 )}
                 {nodes.filter(n => n.type === 'data').length === 0 && (
                   <div>• Add a data source to start building</div>

@@ -57,7 +57,7 @@ const Canvas: React.FC = () => {
         break;
       case 'indicator':
         // Map indicator labels to proper IDs
-        const indicatorMap: Record<string, any> = {
+        const indicatorMap: Record<string, { indicatorId: string; parameters: Record<string, number | string> }> = {
           'Moving Average': { indicatorId: 'sma', parameters: { period: 20, source: 'close' } },
           'RSI': { indicatorId: 'rsi', parameters: { period: 14, source: 'close', overbought: 70, oversold: 30 } },
           'MACD': { indicatorId: 'macd', parameters: { fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, source: 'close' } },
@@ -196,11 +196,11 @@ const Canvas: React.FC = () => {
         
         return {
           id: node.id,
-          type: nodeType as any,
+          type: nodeType as 'data-source' | 'indicator' | 'condition' | 'action' | 'risk',
           data: {
             id: node.id,
             label: node.label,
-            type: nodeType as any,
+            type: nodeType as 'data-source' | 'indicator' | 'condition' | 'action' | 'risk',
             description: node.description,
             config: node.props || {},
             category: 'Generated'

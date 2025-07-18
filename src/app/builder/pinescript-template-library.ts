@@ -100,7 +100,7 @@ export interface TemplateParameter {
   id: string;
   name: string;
   type: 'int' | 'float' | 'bool' | 'string' | 'color';
-  defaultValue: any;
+  defaultValue: number | string | boolean;
   minValue?: number;
   maxValue?: number;
   options?: string[];
@@ -115,7 +115,7 @@ export interface TemplateCustomization {
   displayName: string;
   description: string;
   type: 'slider' | 'input' | 'select' | 'toggle';
-  validation?: (value: any) => boolean;
+  validation?: (value: number | string | boolean) => boolean;
 }
 
 // Comprehensive Template Library
@@ -735,19 +735,26 @@ export class TemplateLibrary {
   
   // Convert template to nodes and edges
   static templateToNodesAndEdges(template: StrategyTemplate): { nodes: CustomNode[], edges: CustomEdge[] } {
-    const nodes: CustomNode[] = template.nodes.map(templateNode => ({
-      id: templateNode.id,
-      type: templateNode.type as any,
-      data: {
+    const nodes: CustomNode[] = template.nodes.map(templateNode => {
+      // Map node types to match the expected NodeType
+      let nodeType = templateNode.type;
+      if (templateNode.type === 'dataSource') nodeType = 'data-source';
+      if (templateNode.type === 'riskManagement') nodeType = 'risk';
+      
+      return {
         id: templateNode.id,
-        label: templateNode.label,
-        type: templateNode.type as any,
-        description: templateNode.description,
-        config: templateNode.config,
-        category: templateNode.category
-      },
-      position: templateNode.position
-    }));
+        type: nodeType as 'data-source' | 'indicator' | 'condition' | 'action' | 'risk',
+        data: {
+          id: templateNode.id,
+          label: templateNode.label,
+          type: nodeType as 'data-source' | 'indicator' | 'condition' | 'action' | 'risk',
+          description: templateNode.description,
+          config: templateNode.config,
+          category: templateNode.category
+        },
+        position: templateNode.position
+      };
+    });
     
     const edges: CustomEdge[] = template.edges.map(templateEdge => ({
       id: templateEdge.id,
@@ -763,7 +770,7 @@ export class TemplateLibrary {
   }
   
   // Customize template with parameters
-  static customizeTemplate(template: StrategyTemplate, customizations: Record<string, any>): StrategyTemplate {
+  static customizeTemplate(template: StrategyTemplate, customizations: Record<string, unknown>): StrategyTemplate {
     const customizedTemplate = JSON.parse(JSON.stringify(template)); // Deep clone
     
     // Apply customizations to parameters
@@ -832,5 +839,4 @@ export class TemplateLibrary {
   }
 }
 
-// Export template categories and difficulties for UI
-export { TemplateCategory, TemplateDifficulty };
+// Template categories and difficulties are already exported above

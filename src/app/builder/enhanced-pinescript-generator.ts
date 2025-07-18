@@ -10,7 +10,7 @@
  * - Variable naming conventions and best practices
  */
 
-import { CustomNode, CustomEdge, CustomNodeData, NodeConfig } from './canvas-config';
+import { CustomNode, CustomEdge, NodeConfig } from './canvas-config';
 
 // Pine Script v6 Constants and Configuration
 const PINE_SCRIPT_VERSION = '6';
@@ -23,13 +23,13 @@ interface PineScriptFunction {
   parameters: Record<string, PineScriptParameter>;
   returnType: 'float' | 'int' | 'bool' | 'string' | 'color' | 'array' | 'matrix' | 'tuple';
   category: 'indicator' | 'math' | 'strategy' | 'plot' | 'input' | 'security';
-  validation?: (params: Record<string, any>) => string[];
+  validation?: (params: Record<string, unknown>) => string[];
 }
 
 interface PineScriptParameter {
   type: 'int' | 'float' | 'bool' | 'string' | 'color' | 'source';
   required: boolean;
-  default?: any;
+  default?: unknown;
   min?: number;
   max?: number;
   options?: string[];
@@ -48,9 +48,10 @@ const PINE_SCRIPT_FUNCTIONS: Record<string, PineScriptFunction> = {
     },
     returnType: 'float',
     category: 'indicator',
-    validation: (params) => {
-      const errors = [];
-      if (params.length < 1 || params.length > 5000) {
+    validation: (params: Record<string, unknown>) => {
+      const errors: string[] = [];
+      const length = params.length as number;
+      if (length !== undefined && (length < 1 || length > 5000)) {
         errors.push('RSI length must be between 1 and 5000');
       }
       return errors;
@@ -87,9 +88,11 @@ const PINE_SCRIPT_FUNCTIONS: Record<string, PineScriptFunction> = {
     },
     returnType: 'tuple',
     category: 'indicator',
-    validation: (params) => {
-      const errors = [];
-      if (params.fastlen >= params.slowlen) {
+    validation: (params: Record<string, unknown>) => {
+      const errors: string[] = [];
+      const fastlen = params.fastlen as number;
+      const slowlen = params.slowlen as number;
+      if (fastlen !== undefined && slowlen !== undefined && fastlen >= slowlen) {
         errors.push('MACD fast length must be less than slow length');
       }
       return errors;
@@ -366,7 +369,7 @@ export class EnhancedPineScriptGenerator {
     return { errors, warnings };
   }
 
-  private validateParameter(value: any, paramDef: PineScriptParameter, paramPath: string): string[] {
+  private validateParameter(value: unknown, paramDef: PineScriptParameter, paramPath: string): string[] {
     const errors: string[] = [];
     
     // Type validation
@@ -648,7 +651,7 @@ strategy("${DEFAULT_STRATEGY_TITLE}",
     
     // Generate conditions
     strategy += '// Trading Conditions\n';
-    conditionNodes.forEach((node, index) => {
+    conditionNodes.forEach((node) => {
       const conditionCode = this.generateConditionCode(node);
       const varInfo = this.variables.get(node.id);
       if (varInfo) {
@@ -697,7 +700,7 @@ strategy("${DEFAULT_STRATEGY_TITLE}",
 
   private generateConditionCode(node: CustomNode): string {
     const config = node.data.config || {};
-    const operator = config.operator || 'greater_than';
+    const operator = (config.operator || 'greater_than') as 'greater_than' | 'less_than' | 'equal_to' | 'not_equal_to' | 'crosses_above' | 'crosses_below';
     const threshold = config.threshold || 0;
     
     // Find connected indicator
@@ -858,7 +861,7 @@ strategy("${DEFAULT_STRATEGY_TITLE}",
     const variableNames = Array.from(this.variables.values()).map(v => v.name);
     const codeLines = code.split('\n');
     
-    codeLines.forEach((line, index) => {
+    codeLines.forEach((line) => {
       const trimmedLine = line.trim();
       if (trimmedLine && !trimmedLine.startsWith('//')) {
         // Simple check for undefined variables (this could be more sophisticated)
