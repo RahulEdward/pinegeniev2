@@ -19,6 +19,24 @@ export function AuthNav() {
   if (session) {
     return (
       <div className="flex items-center space-x-4">
+        <Link
+          href="/dashboard"
+          className="text-sm font-medium text-gray-700 hover:text-indigo-600"
+        >
+          Dashboard
+        </Link>
+        <Link
+          href="/builder"
+          className="text-sm font-medium text-gray-700 hover:text-indigo-600"
+        >
+          Builder
+        </Link>
+        <Link
+          href="/ai-chat"
+          className="text-sm font-medium text-gray-700 hover:text-indigo-600"
+        >
+          AI Chat
+        </Link>
         <span className="text-sm text-gray-700">
           Welcome, {session.user?.name || 'User'}!
         </span>

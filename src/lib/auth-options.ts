@@ -46,24 +46,44 @@ export const authOptions: AuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        console.log('🔐 Authorization attempt:', { email: credentials?.email });
+        
         if (!credentials?.email || !credentials?.password) {
+          console.log('❌ Missing credentials');
           throw new Error('Please enter email and password');
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
-        });
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email as string },
+          });
 
-        if (!user || !(await compare(credentials.password as string, user.password))) {
-          throw new Error('Invalid email or password');
+          console.log('👤 User found:', !!user, user?.email);
+
+          if (!user) {
+            console.log('❌ User not found');
+            throw new Error('Invalid email or password');
+          }
+
+          const isPasswordValid = await compare(credentials.password as string, user.password);
+          console.log('🔑 Password valid:', isPasswordValid);
+
+          if (!isPasswordValid) {
+            console.log('❌ Invalid password');
+            throw new Error('Invalid email or password');
+          }
+
+          console.log('✅ Authentication successful');
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+          };
+        } catch (error) {
+          console.error('🚨 Auth error:', error);
+          throw error;
         }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-        };
       },
     }),
   ],
