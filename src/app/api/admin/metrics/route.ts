@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { withAdminAuthAndLogging, addSecurityHeaders } from '@/middleware/admin';
 import { prisma } from '@/lib/prisma';
 
-export const GET = withAdminAuthAndLogging(async (request: NextRequest, adminId: string, adminUser: any) => {
+export const GET = withAdminAuthAndLogging(async () => {
 
   try {
     // Fetch dashboard metrics

@@ -16,7 +16,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import LogoutButton from './LogoutButton';
-import SimpleThemeToggle from './SimpleThemeToggle';
+import EnhancedThemeToggle from './EnhancedThemeToggle';
 
 const iconMap = {
   LayoutDashboard,

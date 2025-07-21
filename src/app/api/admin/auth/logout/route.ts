@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     if (token) {
       try {
         // Decode token to get admin info
-        const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+        const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as { adminId: string };
         
         // Clear admin session
         await logoutAdmin(decoded.adminId);

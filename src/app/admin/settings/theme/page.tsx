@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { redirect } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { getAdminUser } from '@/lib/admin-auth';
 import { ThemeMode } from '@/lib/theme-config';
 import { Sun, Moon, Monitor, Check } from 'lucide-react';
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { AdminUserService, logSecurityEvent, logAdminAction } from '@/services/admin';
+import { AdminUser } from '@prisma/client';
 
 /**
  * Middleware to verify admin authentication
@@ -24,7 +25,7 @@ export async function verifyAdminAuth(request: NextRequest): Promise<{
     }
 
     // Verify and decode token
-    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as { adminId: string; sessionId: string };
     
     // Get admin user from database
     const adminUser = await AdminUserService.findById(decoded.adminId);
@@ -55,7 +56,7 @@ export async function verifyAdminAuth(request: NextRequest): Promise<{
       adminId: adminUser.id,
     };
 
-  } catch (error) {
+  } catch (_error) {
     return {
       isValid: false,
       response: NextResponse.json(
@@ -87,7 +88,7 @@ export function withAdminAuth(handler: (request: NextRequest, adminId: string) =
 export async function verifyAdminAuthWithLogging(request: NextRequest): Promise<{
   isValid: boolean;
   adminId?: string;
-  adminUser?: any;
+  adminUser?: AdminUser;
   response?: NextResponse;
 }> {
   const clientIP = request.headers.get('x-forwarded-for') || 
@@ -119,7 +120,7 @@ export async function verifyAdminAuthWithLogging(request: NextRequest): Promise<
     }
 
     // Verify and decode token
-    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as { adminId: string; sessionId: string };
     
     // Get admin user from database
     const adminUser = await AdminUserService.findById(decoded.adminId);
@@ -286,7 +287,7 @@ export function hasFullAccess(): boolean {
 /**
  * Check if admin has access to specific resource (always true for single admin)
  */
-export function hasResourceAccess(resource: string): boolean {
+export function hasResourceAccess(_resource: string): boolean {
   return true; // Single admin has access to all resources
 }
 

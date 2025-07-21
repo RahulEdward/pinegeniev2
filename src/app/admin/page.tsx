@@ -1,14 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import AdminRoute from '@/components/admin/AdminRoute';
 import AdminLayout from '@/components/admin/AdminLayout';
 import EnhancedMetricsCard from '@/components/admin/EnhancedMetricsCard';
-import SystemStatusCard from '@/components/admin/SystemStatusCard';
 import AdminDashboardTest from '@/components/admin/AdminDashboardTest';
-import { Users, Bot, TrendingUp, Activity, DollarSign, Shield } from 'lucide-react';
+import { Users, Bot, TrendingUp } from 'lucide-react';
 
 interface DashboardMetrics {
   totalUsers: number;
@@ -19,7 +17,7 @@ interface DashboardMetrics {
 
 export default function AdminPage() {
   const { adminUser, isLoading, isAuthenticated } = useAdminAuth();
-  const router = useRouter();
+
   const [metrics, setMetrics] = useState<DashboardMetrics>({
     totalUsers: 0,
     totalModels: 0,

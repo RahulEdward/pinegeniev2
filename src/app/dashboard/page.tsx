@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import Image from 'next/image';
-import { 
-  Code, 
-  FileText, 
-  Settings, 
+import {
+  Code,
+  FileText,
+  Settings,
   Zap,
   Search,
   Bell,
@@ -23,7 +23,11 @@ import {
   User,
   ChevronDown,
   Plus,
-  Sparkles
+  Sparkles,
+  Edit,
+  Trash2,
+  Eye,
+
 } from 'lucide-react';
 
 
@@ -44,6 +48,734 @@ const bottomSidebarItems = [
   { id: 'billing', label: 'Billing', icon: CreditCard, path: '/billing' },
   { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' }
 ];
+
+// Pine Genie AI Chat Component
+function PineGenieAIChat({ darkMode }: { darkMode: boolean }) {
+  const [messages, setMessages] = useState<Array<{
+    id: string;
+    role: 'user' | 'assistant';
+    content: string;
+    timestamp: Date;
+  }>>([
+    {
+      id: '1',
+      role: 'assistant',
+      content: "Hello! I'm Pine Genie AI, your Pine Script v6 assistant. I can help you with:\n\n• Creating Pine Script indicators and strategies\n• Debugging Pine Script code\n• Explaining Pine Script concepts\n• Converting ideas to Pine Script v6 code\n• Trading strategy optimization\n\nWhat would you like to work on today?",
+      timestamp: new Date()
+    }
+  ]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const sendMessage = async () => {
+    if (!inputMessage.trim() || isLoading) return;
+
+    const userMessage = {
+      id: Date.now().toString(),
+      role: 'user' as const,
+      content: inputMessage,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputMessage('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/ai-chat', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: inputMessage,
+          conversationHistory: messages.slice(-10) // Send last 10 messages for context
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const aiResponse = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant' as const,
+          content: data.data.response,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, aiResponse]);
+      } else {
+        const errorData = await response.json();
+        const errorResponse = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant' as const,
+          content: `Sorry, I encountered an error: ${errorData.error || 'Unknown error'}. Please try again.`,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, errorResponse]);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorResponse = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant' as const,
+        content: 'Sorry, I encountered a connection error. Please check your internet connection and try again.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorResponse]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  const quickPrompts = [
+    "Create a simple RSI indicator",
+    "Help me build a moving average crossover strategy",
+    "Explain Pine Script v6 syntax",
+    "Convert my trading idea to Pine Script",
+    "Debug my Pine Script code"
+  ];
+
+  return (
+    <div className="h-[calc(100vh-200px)] flex flex-col">
+      {/* Chat Header */}
+      <div className={`backdrop-blur-xl rounded-t-2xl border-b p-4 transition-colors ${darkMode
+          ? 'bg-slate-800/50 border-slate-700/50'
+          : 'bg-white/70 border-gray-200/50'
+        }`}>
+        <div className="flex items-center space-x-3">
+          <div className="relative">
+            <Bot className="h-10 w-10 text-blue-400" />
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+          </div>
+          <div>
+            <h2 className={`text-xl font-bold transition-colors ${darkMode ? 'text-white' : 'text-gray-900'
+              }`}>Pine Genie AI</h2>
+            <p className={`text-sm transition-colors ${darkMode ? 'text-slate-400' : 'text-gray-500'
+              }`}>Pine Script v6 Assistant • Online</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Messages Area */}
+      <div className={`flex-1 overflow-y-auto p-4 space-y-4 transition-colors ${darkMode
+          ? 'bg-slate-800/30'
+          : 'bg-white/50'
+        }`}>
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === 'user'
+                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+                : darkMode
+                  ? 'bg-slate-700/50 text-slate-100 border border-slate-600/50'
+                  : 'bg-gray-100 text-gray-900 border border-gray-200'
+              }`}>
+              <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                {message.content}
+              </div>
+              <div className={`text-xs mt-2 opacity-70 ${message.role === 'user' ? 'text-blue-100' : darkMode ? 'text-slate-400' : 'text-gray-500'
+                }`}>
+                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${darkMode
+                ? 'bg-slate-700/50 border border-slate-600/50'
+                : 'bg-gray-100 border border-gray-200'
+              }`}>
+              <div className="flex items-center space-x-2">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                </div>
+                <span className={`text-sm ${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                  Pine Genie is thinking...
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Quick Prompts */}
+      {messages.length <= 1 && (
+        <div className={`p-4 border-t transition-colors ${darkMode
+            ? 'bg-slate-800/30 border-slate-700/50'
+            : 'bg-white/50 border-gray-200/50'
+          }`}>
+          <p className={`text-sm font-medium mb-3 transition-colors ${darkMode ? 'text-slate-300' : 'text-gray-700'
+            }`}>Quick Start:</p>
+          <div className="flex flex-wrap gap-2">
+            {quickPrompts.map((prompt, index) => (
+              <button
+                key={index}
+                onClick={() => setInputMessage(prompt)}
+                className={`px-3 py-2 text-sm rounded-lg border transition-colors hover:scale-105 ${darkMode
+                    ? 'border-slate-600 bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'
+                    : 'border-gray-300 bg-gray-50 text-gray-700 hover:bg-gray-100'
+                  }`}
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Input Area */}
+      <div className={`backdrop-blur-xl rounded-b-2xl border-t p-4 transition-colors ${darkMode
+          ? 'bg-slate-800/50 border-slate-700/50'
+          : 'bg-white/70 border-gray-200/50'
+        }`}>
+        <div className="flex items-end space-x-3">
+          <div className="flex-1">
+            <textarea
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask Pine Genie about Pine Script v6, trading strategies, or code help..."
+              rows={1}
+              className={`w-full px-4 py-3 rounded-xl border resize-none transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${darkMode
+                  ? 'border-slate-600 bg-slate-700/50 text-white placeholder-slate-400'
+                  : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'
+                }`}
+              style={{ minHeight: '48px', maxHeight: '120px' }}
+              onInput={(e) => {
+                const target = e.target as HTMLTextAreaElement;
+                target.style.height = 'auto';
+                target.style.height = Math.min(target.scrollHeight, 120) + 'px';
+              }}
+            />
+          </div>
+          <button
+            onClick={sendMessage}
+            disabled={!inputMessage.trim() || isLoading}
+            className="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-3 rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-blue-500/25"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+          </button>
+        </div>
+        <div className={`flex items-center justify-between mt-2 text-xs transition-colors ${darkMode ? 'text-slate-500' : 'text-gray-400'
+          }`}>
+          <span>Press Enter to send, Shift+Enter for new line</span>
+          <span>{inputMessage.length}/2000</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// My Scripts Section Component
+function MyScriptsSection({ darkMode, setActivePage }: { darkMode: boolean; setActivePage: (page: string) => void }) {
+  const { data: session } = useSession();
+  const [scripts, setScripts] = useState<Array<Record<string, unknown>>>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [filters, setFilters] = useState({
+    search: '',
+    type: '',
+    status: ''
+  });
+  const [newScript, setNewScript] = useState({
+    title: '',
+    description: '',
+    type: 'INDICATOR'
+  });
+
+  useEffect(() => {
+    console.log('Session in MyScriptsSection:', session);
+    if (session) {
+      fetchScripts();
+    }
+  }, [filters, session]);
+
+  const fetchScripts = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        ...(filters.search && { search: filters.search }),
+        ...(filters.type && { type: filters.type }),
+        ...(filters.status && { status: filters.status }),
+      });
+
+      const response = await fetch(`/api/scripts?${params}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('Scripts API response status:', response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Scripts API response data:', data);
+        setScripts(data.data?.scripts || []);
+      } else {
+        const errorData = await response.json();
+        console.error('Scripts API error:', errorData);
+        setScripts([]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch scripts:', error);
+      setScripts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createScript = async () => {
+    try {
+      const scriptData = {
+        ...newScript,
+        code: newScript.code || '//@version=6\nindicator("' + newScript.title + '", overlay=true)\n\n// Your Pine Script v6 code will be generated here\nplot(close, "Close", color=color.blue)',
+        status: newScript.code ? 'DRAFT' : 'DRAFT'
+      };
+
+      const response = await fetch('/api/scripts', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(scriptData),
+      });
+
+      console.log('Create script response status:', response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Script created successfully:', data);
+        setShowCreateModal(false);
+        setNewScript({ title: '', description: '', type: 'INDICATOR' });
+        fetchScripts();
+
+        // If no code, redirect to builder
+        if (!newScript.code) {
+          setTimeout(() => {
+            setActivePage('builder');
+          }, 500);
+        }
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to create script:', errorData);
+        alert('Failed to create script: ' + (errorData.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Failed to create script:', error);
+      alert('Failed to create script: ' + error.message);
+    }
+  };
+
+  const deleteScript = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this script?')) return;
+
+    try {
+      const response = await fetch(`/api/scripts/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('Delete script response status:', response.status);
+
+      if (response.ok) {
+        console.log('Script deleted successfully');
+        fetchScripts();
+      } else {
+        const errorData = await response.json();
+        console.error('Failed to delete script:', errorData);
+        alert('Failed to delete script: ' + (errorData.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Failed to delete script:', error);
+      alert('Failed to delete script: ' + error.message);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'PUBLISHED': return 'bg-green-500/20 text-green-400';
+      case 'DRAFT': return 'bg-yellow-500/20 text-yellow-400';
+      case 'ARCHIVED': return 'bg-gray-500/20 text-gray-400';
+      default: return 'bg-blue-500/20 text-blue-400';
+    }
+  };
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'STRATEGY': return 'bg-purple-500/20 text-purple-400';
+      case 'INDICATOR': return 'bg-blue-500/20 text-blue-400';
+      case 'LIBRARY': return 'bg-orange-500/20 text-orange-400';
+      default: return 'bg-gray-500/20 text-gray-400';
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className={`backdrop-blur-xl rounded-2xl border p-6 transition-colors ${darkMode
+          ? 'bg-slate-800/50 border-slate-700/50'
+          : 'bg-white/70 border-gray-200/50 shadow-lg'
+        }`}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <Code className="h-8 w-8 text-blue-400" />
+            <div>
+              <h2 className={`text-2xl font-bold transition-colors ${darkMode ? 'text-white' : 'text-gray-900'
+                }`}>My Scripts</h2>
+              <p className={`transition-colors ${darkMode ? 'text-slate-300' : 'text-gray-600'
+                }`}>
+                Manage your Pine Script indicators and strategies
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all shadow-lg flex items-center space-x-2"
+          >
+            <Plus className="h-4 w-4" />
+            <span>New Script</span>
+          </button>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search scripts..."
+                value={filters.search}
+                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                className={`w-full pl-10 pr-4 py-2 border rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${darkMode
+                    ? 'border-slate-600 bg-slate-700/50 text-white placeholder-slate-400'
+                    : 'border-gray-300 bg-white/50 text-gray-900 placeholder-gray-400'
+                  }`}
+              />
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <select
+              value={filters.type}
+              onChange={(e) => setFilters(prev => ({ ...prev, type: e.target.value }))}
+              className={`px-3 py-2 border rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${darkMode
+                  ? 'border-slate-600 bg-slate-700/50 text-white'
+                  : 'border-gray-300 bg-white/50 text-gray-900'
+                }`}
+            >
+              <option value="">All Types</option>
+              <option value="INDICATOR">Indicator</option>
+              <option value="STRATEGY">Strategy</option>
+              <option value="LIBRARY">Library</option>
+            </select>
+            <select
+              value={filters.status}
+              onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+              className={`px-3 py-2 border rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${darkMode
+                  ? 'border-slate-600 bg-slate-700/50 text-white'
+                  : 'border-gray-300 bg-white/50 text-gray-900'
+                }`}
+            >
+              <option value="">All Status</option>
+              <option value="DRAFT">Draft</option>
+              <option value="PUBLISHED">Published</option>
+              <option value="ARCHIVED">Archived</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Scripts Grid */}
+      <div className={`backdrop-blur-xl rounded-2xl border transition-colors ${darkMode
+          ? 'bg-slate-800/50 border-slate-700/50'
+          : 'bg-white/70 border-gray-200/50 shadow-lg'
+        }`}>
+        {loading ? (
+          <div className="p-8 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className={`mt-2 transition-colors ${darkMode ? 'text-slate-400' : 'text-gray-600'
+              }`}>Loading scripts...</p>
+          </div>
+        ) : scripts.length === 0 ? (
+          <div className="p-8 text-center">
+            <Code className={`h-16 w-16 mx-auto mb-4 transition-colors ${darkMode ? 'text-slate-400' : 'text-gray-400'
+              }`} />
+            <h3 className={`text-lg font-medium mb-2 transition-colors ${darkMode ? 'text-white' : 'text-gray-900'
+              }`}>No scripts yet</h3>
+            <p className={`mb-4 transition-colors ${darkMode ? 'text-slate-400' : 'text-gray-600'
+              }`}>
+              Create your first Pine Script v6 indicator or strategy using our visual builder
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all shadow-lg"
+              >
+                Create Script
+              </button>
+              <button
+                onClick={() => setActivePage('builder')}
+                className={`px-6 py-2 border rounded-lg transition-colors ${darkMode
+                    ? 'border-slate-600 text-slate-300 hover:bg-slate-700'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+              >
+                Open Builder
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {scripts.map((script) => (
+                <div
+                  key={script.id}
+                  className={`p-4 border rounded-lg hover:border-blue-500/50 transition-colors ${darkMode
+                      ? 'bg-slate-700/30 border-slate-600/50'
+                      : 'bg-gray-50/50 border-gray-200/50'
+                    }`}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <h4 className={`font-medium transition-colors ${darkMode ? 'text-white' : 'text-gray-900'
+                      }`}>{script.title}</h4>
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={() => {/* View script */ }}
+                        className={`p-1 rounded hover:bg-blue-500/20 transition-colors ${darkMode ? 'text-slate-400 hover:text-blue-400' : 'text-gray-400 hover:text-blue-600'
+                          }`}
+                        title="View"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      {script.code && script.code.includes('// Your Pine Script v6 code will be generated here') ? (
+                        <button
+                          onClick={() => {
+                            // Navigate to builder with script ID
+                            setActivePage('builder');
+                          }}
+                          className={`p-1 rounded hover:bg-purple-500/20 transition-colors ${darkMode ? 'text-slate-400 hover:text-purple-400' : 'text-gray-400 hover:text-purple-600'
+                            }`}
+                          title="Complete in Builder"
+                        >
+                          <Zap className="h-4 w-4" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {/* Edit script */ }}
+                          className={`p-1 rounded hover:bg-green-500/20 transition-colors ${darkMode ? 'text-slate-400 hover:text-green-400' : 'text-gray-400 hover:text-green-600'
+                            }`}
+                          title="Edit"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => deleteScript(script.id)}
+                        className={`p-1 rounded hover:bg-red-500/20 transition-colors ${darkMode ? 'text-slate-400 hover:text-red-400' : 'text-gray-400 hover:text-red-600'
+                          }`}
+                        title="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {script.description && (
+                    <p className={`text-sm mb-3 transition-colors ${darkMode ? 'text-slate-400' : 'text-gray-500'
+                      }`}>
+                      {script.description.length > 100
+                        ? `${script.description.substring(0, 100)}...`
+                        : script.description}
+                    </p>
+                  )}
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-2">
+                      <span className={`px-2 py-1 text-xs rounded ${getTypeColor(script.type)}`}>
+                        {script.type}
+                      </span>
+                      <span className={`px-2 py-1 text-xs rounded ${getStatusColor(script.status)}`}>
+                        {script.status}
+                      </span>
+                      {(!script.code || script.code.includes('// Your Pine Script v6 code will be generated here')) && (
+                        <span className="px-2 py-1 text-xs rounded bg-orange-500/20 text-orange-400">
+                          USE BUILDER
+                        </span>
+                      )}
+                    </div>
+                    <p className={`text-xs transition-colors ${darkMode ? 'text-slate-500' : 'text-gray-400'
+                      }`}>
+                      {new Date(script.updatedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Create Script Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className={`w-full max-w-2xl rounded-2xl border transition-colors ${darkMode
+              ? 'bg-slate-800 border-slate-700'
+              : 'bg-white border-gray-200'
+            }`}>
+            <div className={`p-6 border-b transition-colors ${darkMode ? 'border-slate-700' : 'border-gray-200'
+              }`}>
+              <h3 className={`text-lg font-semibold transition-colors ${darkMode ? 'text-white' : 'text-gray-900'
+                }`}>Create New Pine Script v6</h3>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className={`block text-sm font-medium mb-2 transition-colors ${darkMode ? 'text-slate-300' : 'text-gray-700'
+                  }`}>
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  value={newScript.title}
+                  onChange={(e) => setNewScript(prev => ({ ...prev, title: e.target.value }))}
+                  className={`w-full px-3 py-2 border rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${darkMode
+                      ? 'border-slate-600 bg-slate-700 text-white placeholder-slate-400'
+                      : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'
+                    }`}
+                  placeholder="Enter script title"
+                />
+              </div>
+
+              <div>
+                <label className={`block text-sm font-medium mb-2 transition-colors ${darkMode ? 'text-slate-300' : 'text-gray-700'
+                  }`}>
+                  Type
+                </label>
+                <select
+                  value={newScript.type}
+                  onChange={(e) => setNewScript(prev => ({ ...prev, type: e.target.value }))}
+                  className={`w-full px-3 py-2 border rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${darkMode
+                      ? 'border-slate-600 bg-slate-700 text-white'
+                      : 'border-gray-300 bg-white text-gray-900'
+                    }`}
+                >
+                  <option value="INDICATOR">Indicator</option>
+                  <option value="STRATEGY">Strategy</option>
+                  <option value="LIBRARY">Library</option>
+                </select>
+              </div>
+
+              <div>
+                <label className={`block text-sm font-medium mb-2 transition-colors ${darkMode ? 'text-slate-300' : 'text-gray-700'
+                  }`}>
+                  Description
+                </label>
+                <textarea
+                  value={newScript.description}
+                  onChange={(e) => setNewScript(prev => ({ ...prev, description: e.target.value }))}
+                  rows={3}
+                  className={`w-full px-3 py-2 border rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${darkMode
+                      ? 'border-slate-600 bg-slate-700 text-white placeholder-slate-400'
+                      : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'
+                    }`}
+                  placeholder="Describe your script"
+                />
+              </div>
+
+              <div>
+                <label className={`block text-sm font-medium mb-2 transition-colors ${darkMode ? 'text-slate-300' : 'text-gray-700'
+                  }`}>
+                  Script Source
+                </label>
+                <div className={`p-4 border rounded-md transition-colors ${darkMode
+                    ? 'border-slate-600 bg-slate-700/50'
+                    : 'border-gray-300 bg-gray-50'
+                  }`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className={`text-sm font-medium transition-colors ${darkMode ? 'text-white' : 'text-gray-900'
+                        }`}>
+                        Use Script Builder
+                      </p>
+                      <p className={`text-xs transition-colors ${darkMode ? 'text-slate-400' : 'text-gray-500'
+                        }`}>
+                        Create your Pine Script v6 code using our visual builder
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Navigate to script builder
+                        setActivePage('builder');
+                        setShowCreateModal(false);
+                      }}
+                      className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-md hover:from-purple-600 hover:to-blue-600 transition-all text-sm"
+                    >
+                      Open Builder
+                    </button>
+                  </div>
+
+
+                </div>
+              </div>
+            </div>
+
+            <div className={`p-6 border-t flex justify-end space-x-3 transition-colors ${darkMode ? 'border-slate-700' : 'border-gray-200'
+              }`}>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className={`px-4 py-2 border rounded-md transition-colors ${darkMode
+                    ? 'border-slate-600 text-slate-300 hover:bg-slate-700'
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={createScript}
+                disabled={!newScript.title}
+                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-md hover:from-blue-600 hover:to-purple-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Create Script
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function PineGenieDashboard() {
   const router = useRouter();
@@ -100,26 +832,23 @@ export default function PineGenieDashboard() {
 
   return (
     <div className={`min-h-screen transition-colors duration-300`}>
-      <div className={`min-h-screen flex transition-colors duration-300 ${
-        darkMode 
-          ? 'bg-slate-900' 
+      <div className={`min-h-screen flex transition-colors duration-300 ${darkMode
+          ? 'bg-slate-900'
           : 'bg-gray-50'
-      }`} style={{
-        backgroundImage: darkMode 
-          ? 'radial-gradient(circle, rgba(100, 116, 139, 0.1) 1px, transparent 1px)'
-          : 'radial-gradient(circle, rgba(156, 163, 175, 0.15) 1px, transparent 1px)',
-        backgroundSize: '20px 20px'
-      }}>
+        }`} style={{
+          backgroundImage: darkMode
+            ? 'radial-gradient(circle, rgba(100, 116, 139, 0.1) 1px, transparent 1px)'
+            : 'radial-gradient(circle, rgba(156, 163, 175, 0.15) 1px, transparent 1px)',
+          backgroundSize: '20px 20px'
+        }}>
         {/* Sidebar */}
-        <div className={`fixed inset-y-0 left-0 z-50 border-r transition-all duration-300 ${
-          darkMode 
-            ? 'bg-slate-800/90 backdrop-blur-xl border-slate-700/50' 
+        <div className={`fixed inset-y-0 left-0 z-50 border-r transition-all duration-300 ${darkMode
+            ? 'bg-slate-800/90 backdrop-blur-xl border-slate-700/50'
             : 'bg-white/95 backdrop-blur-xl border-gray-200/50'
-        } ${sidebarOpen ? 'w-64' : 'w-16'}`}>
+          } ${sidebarOpen ? 'w-64' : 'w-16'}`}>
           {/* Sidebar Header */}
-          <div className={`flex items-center justify-between h-16 px-4 border-b transition-colors ${
-            darkMode ? 'border-slate-700/50' : 'border-gray-200'
-          }`}>
+          <div className={`flex items-center justify-between h-16 px-4 border-b transition-colors ${darkMode ? 'border-slate-700/50' : 'border-gray-200'
+            }`}>
             {sidebarOpen && (
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
@@ -132,11 +861,10 @@ export default function PineGenieDashboard() {
             )}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className={`p-2 rounded border transition-colors ${
-                darkMode 
-                  ? 'border-slate-600 hover:bg-slate-700/50 text-slate-300 hover:text-white' 
+              className={`p-2 rounded border transition-colors ${darkMode
+                  ? 'border-slate-600 hover:bg-slate-700/50 text-slate-300 hover:text-white'
                   : 'border-gray-300 hover:bg-gray-100 text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               {sidebarOpen ? (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,13 +880,12 @@ export default function PineGenieDashboard() {
 
           {/* User Profile Section */}
           {sidebarOpen && session && (
-            <div className={`p-4 border-b transition-colors ${
-              darkMode ? 'border-slate-700/50' : 'border-gray-200'
-            }`}>
+            <div className={`p-4 border-b transition-colors ${darkMode ? 'border-slate-700/50' : 'border-gray-200'
+              }`}>
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-full ring-2 ring-blue-500/20 overflow-hidden">
                   {session.user.image ? (
-                    <Image 
+                    <Image
                       src={session.user.image}
                       alt={session.user.name || 'User'}
                       width={40}
@@ -175,14 +902,12 @@ export default function PineGenieDashboard() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium truncate transition-colors ${
-                    darkMode ? 'text-white' : 'text-gray-900'
-                  }`}>
+                  <p className={`text-sm font-medium truncate transition-colors ${darkMode ? 'text-white' : 'text-gray-900'
+                    }`}>
                     {session.user.name || 'User'}
                   </p>
-                  <p className={`text-xs truncate transition-colors ${
-                    darkMode ? 'text-slate-400' : 'text-gray-500'
-                  }`}>
+                  <p className={`text-xs truncate transition-colors ${darkMode ? 'text-slate-400' : 'text-gray-500'
+                    }`}>
                     {session.user.email || 'user@example.com'}
                   </p>
                 </div>
@@ -200,13 +925,12 @@ export default function PineGenieDashboard() {
                   <button
                     key={item.id}
                     onClick={() => setActivePage(item.id)}
-                    className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive
+                    className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${isActive
                         ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                        : darkMode 
+                        : darkMode
                           ? 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
                           : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
+                      }`}
                     title={!sidebarOpen ? item.label : ''}
                   >
                     <Icon className={`h-5 w-5 ${sidebarOpen ? 'mr-3' : 'mx-auto'}`} />
@@ -218,9 +942,8 @@ export default function PineGenieDashboard() {
           </div>
 
           {/* Bottom Navigation */}
-          <div className={`px-3 py-4 border-t transition-colors ${
-            darkMode ? 'border-slate-700/50' : 'border-gray-200'
-          }`}>
+          <div className={`px-3 py-4 border-t transition-colors ${darkMode ? 'border-slate-700/50' : 'border-gray-200'
+            }`}>
             <nav className="space-y-1">
               {bottomSidebarItems.map((item) => {
                 const Icon = item.icon;
@@ -229,13 +952,12 @@ export default function PineGenieDashboard() {
                   <button
                     key={item.id}
                     onClick={() => setActivePage(item.id)}
-                    className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive
+                    className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${isActive
                         ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                        : darkMode 
+                        : darkMode
                           ? 'text-slate-300 hover:bg-slate-700/50 hover:text-white'
                           : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
+                      }`}
                     title={!sidebarOpen ? item.label : ''}
                   >
                     <Icon className={`h-5 w-5 ${sidebarOpen ? 'mr-3' : 'mx-auto'}`} />
@@ -250,29 +972,27 @@ export default function PineGenieDashboard() {
         {/* Main Content */}
         <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-16'}`} style={{ zIndex: 1 }}>
           {/* Top Navigation Bar */}
-          <header className={`shadow-sm border-b transition-colors relative ${
-            darkMode 
-              ? 'bg-slate-800/80 backdrop-blur-xl border-slate-700/50' 
+          <header className={`shadow-sm border-b transition-colors relative ${darkMode
+              ? 'bg-slate-800/80 backdrop-blur-xl border-slate-700/50'
               : 'bg-white/95 backdrop-blur-xl border-gray-200/50'
-          }`} style={{ zIndex: 10 }}>
+            }`} style={{ zIndex: 10 }}>
             <div className="px-4 sm:px-6 lg:px-8">
               <div className="flex justify-between h-16">
                 {/* Left Side - Page Title */}
                 <div className="flex items-center">
-                  <h1 className={`text-xl font-semibold capitalize flex items-center gap-2 transition-colors ${
-                    darkMode ? 'text-white' : 'text-gray-900'
-                  }`}>
+                  <h1 className={`text-xl font-semibold capitalize flex items-center gap-2 transition-colors ${darkMode ? 'text-white' : 'text-gray-900'
+                    }`}>
                     <Sparkles className="h-6 w-6 text-blue-400" />
-                    {activePage === 'dashboard' ? 'Dashboard' : 
-                     activePage === 'scripts' ? 'My Scripts' :
-                     activePage === 'builder' ? 'Script Builder' :
-                     activePage === 'pinegenie-ai' ? 'Pine Genie AI' :
-                     activePage === 'templates' ? 'Templates' :
-                     activePage === 'library' ? 'Library' :
-                     activePage === 'projects' ? 'Projects' :
-                     activePage === 'help' ? 'Help & Support' :
-                     activePage === 'billing' ? 'Billing' :
-                     activePage === 'settings' ? 'Settings' : 'Dashboard'}
+                    {activePage === 'dashboard' ? 'Dashboard' :
+                      activePage === 'scripts' ? 'My Scripts' :
+                        activePage === 'builder' ? 'Script Builder' :
+                          activePage === 'pinegenie-ai' ? 'Pine Genie AI' :
+                            activePage === 'templates' ? 'Templates' :
+                              activePage === 'library' ? 'Library' :
+                                activePage === 'projects' ? 'Projects' :
+                                  activePage === 'help' ? 'Help & Support' :
+                                    activePage === 'billing' ? 'Billing' :
+                                      activePage === 'settings' ? 'Settings' : 'Dashboard'}
                   </h1>
                 </div>
 
@@ -281,29 +1001,26 @@ export default function PineGenieDashboard() {
                   {/* Search */}
                   <div className="hidden md:block relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Search className={`h-4 w-4 transition-colors ${
-                        darkMode ? 'text-slate-400' : 'text-gray-400'
-                      }`} />
+                      <Search className={`h-4 w-4 transition-colors ${darkMode ? 'text-slate-400' : 'text-gray-400'
+                        }`} />
                     </div>
                     <input
                       type="text"
                       placeholder="Search strategies..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className={`block w-full pl-10 pr-3 py-2 border rounded-lg leading-5 backdrop-blur-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${
-                        darkMode 
+                      className={`block w-full pl-10 pr-3 py-2 border rounded-lg leading-5 backdrop-blur-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm ${darkMode
                           ? 'border-slate-600 bg-slate-700/50 text-white placeholder-slate-400'
                           : 'border-gray-300 bg-white/50 text-gray-900 placeholder-gray-400'
-                      }`}
+                        }`}
                     />
                   </div>
 
                   {/* Notifications */}
-                  <button className={`p-2 transition-colors relative ${
-                    darkMode 
-                      ? 'text-slate-400 hover:text-slate-300' 
+                  <button className={`p-2 transition-colors relative ${darkMode
+                      ? 'text-slate-400 hover:text-slate-300'
                       : 'text-gray-400 hover:text-gray-500'
-                  }`}>
+                    }`}>
                     <Bell className="h-5 w-5" />
                     <span className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
                   </button>
@@ -311,11 +1028,10 @@ export default function PineGenieDashboard() {
                   {/* Theme Toggle */}
                   <button
                     onClick={() => setDarkMode(!darkMode)}
-                    className={`p-2 transition-colors ${
-                      darkMode 
-                        ? 'text-slate-400 hover:text-slate-300' 
+                    className={`p-2 transition-colors ${darkMode
+                        ? 'text-slate-400 hover:text-slate-300'
                         : 'text-gray-400 hover:text-gray-500'
-                    }`}
+                      }`}
                   >
                     {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                   </button>
@@ -329,8 +1045,8 @@ export default function PineGenieDashboard() {
                       <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center overflow-hidden">
                         {session?.user?.image ? (
                           <div className="relative w-8 h-8">
-                            <Image 
-                              src={session.user.image} 
+                            <Image
+                              src={session.user.image}
                               alt={session.user.name || 'User'}
                               fill
                               className="object-cover rounded-full"
@@ -346,25 +1062,21 @@ export default function PineGenieDashboard() {
 
                     {/* Dropdown Menu */}
                     {isUserMenuOpen && (
-                      <div 
-                        className={`fixed right-4 top-16 w-56 rounded-lg shadow-2xl py-1 ring-1 focus:outline-none border transition-colors ${
-                          darkMode 
+                      <div
+                        className={`fixed right-4 top-16 w-56 rounded-lg shadow-2xl py-1 ring-1 focus:outline-none border transition-colors ${darkMode
                             ? 'bg-slate-800 backdrop-blur-xl ring-slate-700/50 border-slate-700/50'
                             : 'bg-white backdrop-blur-xl ring-gray-200/50 border-gray-200/50'
-                        }`} 
+                          }`}
                         style={{ zIndex: 999999 }}
                       >
-                        <div className={`px-4 py-3 border-b transition-colors ${
-                          darkMode ? 'border-slate-700/50' : 'border-gray-200/50'
-                        }`}>
-                          <p className={`text-sm font-medium transition-colors ${
-                            darkMode ? 'text-white' : 'text-gray-900'
+                        <div className={`px-4 py-3 border-b transition-colors ${darkMode ? 'border-slate-700/50' : 'border-gray-200/50'
                           }`}>
+                          <p className={`text-sm font-medium transition-colors ${darkMode ? 'text-white' : 'text-gray-900'
+                            }`}>
                             {session?.user?.name || 'User'}
                           </p>
-                          <p className={`text-xs truncate transition-colors ${
-                            darkMode ? 'text-slate-400' : 'text-gray-500'
-                          }`}>
+                          <p className={`text-xs truncate transition-colors ${darkMode ? 'text-slate-400' : 'text-gray-500'
+                            }`}>
                             {session?.user?.email || ''}
                           </p>
                         </div>
@@ -374,11 +1086,10 @@ export default function PineGenieDashboard() {
                               setActivePage('settings');
                               setIsUserMenuOpen(false);
                             }}
-                            className={`w-full text-left px-4 py-2 text-sm flex items-center transition-colors ${
-                              darkMode 
-                                ? 'text-slate-300 hover:bg-slate-700/50' 
+                            className={`w-full text-left px-4 py-2 text-sm flex items-center transition-colors ${darkMode
+                                ? 'text-slate-300 hover:bg-slate-700/50'
                                 : 'text-gray-700 hover:bg-gray-100'
-                            }`}
+                              }`}
                           >
                             <Settings className="h-4 w-4 mr-3" />
                             Settings
@@ -388,11 +1099,10 @@ export default function PineGenieDashboard() {
                               handleSignOut();
                               setIsUserMenuOpen(false);
                             }}
-                            className={`w-full text-left px-4 py-2 text-sm flex items-center transition-colors ${
-                              darkMode 
-                                ? 'text-red-400 hover:bg-red-900/20' 
+                            className={`w-full text-left px-4 py-2 text-sm flex items-center transition-colors ${darkMode
+                                ? 'text-red-400 hover:bg-red-900/20'
                                 : 'text-red-600 hover:bg-red-50'
-                            }`}
+                              }`}
                           >
                             <LogOut className="h-4 w-4 mr-3" />
                             Sign out
@@ -405,17 +1115,16 @@ export default function PineGenieDashboard() {
               </div>
             </div>
           </header>
-          
+
           <main className="flex-1 p-6">
             {/* Dashboard Content */}
             {activePage === 'dashboard' && (
               <div className="space-y-6">
                 {/* Welcome Section */}
-                <div className={`backdrop-blur-xl rounded-2xl border p-8 transition-colors ${
-                  darkMode 
-                    ? 'bg-slate-800/30 border-slate-700/30' 
+                <div className={`backdrop-blur-xl rounded-2xl border p-8 transition-colors ${darkMode
+                    ? 'bg-slate-800/30 border-slate-700/30'
                     : 'bg-white/60 border-gray-200/40 shadow-lg'
-                }`}>
+                  }`}>
                   <div className="text-center">
                     <div className="relative mb-6">
                       <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-xl opacity-30 animate-pulse" />
@@ -426,9 +1135,8 @@ export default function PineGenieDashboard() {
                     <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
                       Welcome to PineGenie Dashboard! 🚀
                     </h2>
-                    <p className={`mb-8 text-lg transition-colors ${
-                      darkMode ? 'text-slate-300' : 'text-gray-600'
-                    }`}>
+                    <p className={`mb-8 text-lg transition-colors ${darkMode ? 'text-slate-300' : 'text-gray-600'
+                      }`}>
                       Your AI-powered Pine Script builder and trading assistant.
                     </p>
                     <button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3 rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all shadow-lg hover:shadow-blue-500/25">
@@ -440,133 +1148,38 @@ export default function PineGenieDashboard() {
             )}
 
             {/* Scripts Content */}
-            {activePage === 'scripts' && (
-              <div className="space-y-6">
-                <div className={`backdrop-blur-xl rounded-2xl border p-8 transition-colors ${
-                  darkMode 
-                    ? 'bg-slate-800/50 border-slate-700/50' 
-                    : 'bg-white/70 border-gray-200/50 shadow-lg'
-                }`}>
-                  <div className="text-center">
-                    <Code className="h-16 w-16 text-blue-400 mx-auto mb-4" />
-                    <h2 className={`text-2xl font-bold mb-2 transition-colors ${
-                      darkMode ? 'text-white' : 'text-gray-900'
-                    }`}>My Scripts</h2>
-                    <p className={`mb-6 transition-colors ${
-                      darkMode ? 'text-slate-300' : 'text-gray-600'
-                    }`}>
-                      Manage and view all your Pine Script indicators and strategies.
-                    </p>
-                    <button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3 rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all shadow-lg">
-                      Create New Script
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+            {activePage === 'scripts' && <MyScriptsSection darkMode={darkMode} setActivePage={setActivePage} />}
 
             {/* Script Builder Content */}
             {activePage === 'builder' && (
               <div className="space-y-6">
-                <div className={`backdrop-blur-xl rounded-2xl border p-8 transition-colors ${
-                  darkMode 
-                    ? 'bg-slate-800/50 border-slate-700/50' 
+                <div className={`backdrop-blur-xl rounded-2xl border p-8 transition-colors ${darkMode
+                    ? 'bg-slate-800/50 border-slate-700/50'
                     : 'bg-white/70 border-gray-200/50 shadow-lg'
-                }`}>
+                  }`}>
                   <div className="text-center">
                     <Zap className="h-16 w-16 text-blue-400 mx-auto mb-4" />
-                    <h2 className={`text-2xl font-bold mb-2 transition-colors ${
-                      darkMode ? 'text-white' : 'text-gray-900'
-                    }`}>Script Builder</h2>
-                    <p className={`mb-6 transition-colors ${
-                      darkMode ? 'text-slate-300' : 'text-gray-600'
-                    }`}>
+                    <h2 className={`text-2xl font-bold mb-2 transition-colors ${darkMode ? 'text-white' : 'text-gray-900'
+                      }`}>Script Builder</h2>
+                    <p className={`mb-6 transition-colors ${darkMode ? 'text-slate-300' : 'text-gray-600'
+                      }`}>
                       Build professional Pine Script indicators without coding knowledge.
                     </p>
-                    <a 
-                      href="/builder" 
+                    <a
+                      href="/builder"
                       className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3 rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all inline-block shadow-lg no-underline"
                     >
                       Launch Builder
                     </a>
                   </div>
                 </div>
-                
-                {/* Recent Strategies Preview */}
-                <div className={`backdrop-blur-xl rounded-2xl border p-6 transition-colors ${
-                  darkMode 
-                    ? 'bg-slate-800/50 border-slate-700/50' 
-                    : 'bg-white/70 border-gray-200/50 shadow-lg'
-                }`}>
-                  <h3 className={`text-lg font-semibold mb-4 transition-colors ${
-                    darkMode ? 'text-white' : 'text-gray-900'
-                  }`}>Recent Strategies</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className={`p-4 border rounded-lg hover:border-blue-500/50 transition-colors ${
-                      darkMode 
-                        ? 'bg-slate-700/30 border-slate-600/50' 
-                        : 'bg-gray-50/50 border-gray-200/50'
-                    }`}>
-                      <h4 className={`font-medium mb-2 transition-colors ${
-                        darkMode ? 'text-white' : 'text-gray-900'
-                      }`}>RSI Strategy</h4>
-                      <p className={`text-sm transition-colors ${
-                        darkMode ? 'text-slate-400' : 'text-gray-500'
-                      }`}>Last edited 2 hours ago</p>
-                      <div className="mt-3 flex gap-2">
-                        <span className="px-2 py-1 text-xs bg-green-500/20 text-green-400 rounded">Active</span>
-                        <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 rounded">Profitable</span>
-                      </div>
-                    </div>
-                    <div className={`p-4 border rounded-lg hover:border-blue-500/50 transition-colors ${
-                      darkMode 
-                        ? 'bg-slate-700/30 border-slate-600/50' 
-                        : 'bg-gray-50/50 border-gray-200/50'
-                    }`}>
-                      <h4 className={`font-medium mb-2 transition-colors ${
-                        darkMode ? 'text-white' : 'text-gray-900'
-                      }`}>MACD Crossover</h4>
-                      <p className={`text-sm transition-colors ${
-                        darkMode ? 'text-slate-400' : 'text-gray-500'
-                      }`}>Last edited 1 day ago</p>
-                      <div className="mt-3 flex gap-2">
-                        <span className="px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded">Testing</span>
-                      </div>
-                    </div>
-                    <div className={`p-4 border border-dashed rounded-lg hover:border-blue-500/50 transition-colors cursor-pointer ${
-                      darkMode 
-                        ? 'border-slate-600/50' 
-                        : 'border-gray-300/50'
-                    }`}>
-                      <div className={`text-center transition-colors ${
-                        darkMode ? 'text-slate-400' : 'text-gray-400'
-                      }`}>
-                        <Plus className="h-8 w-8 mx-auto mb-2" />
-                        <p className="text-sm">Create New Strategy</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+
+
               </div>
             )}
 
             {/* Pine Genie AI Content */}
-            {activePage === 'pinegenie-ai' && (
-              <div className="space-y-6">
-                <div className="bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-slate-700/50 p-8">
-                  <div className="text-center">
-                    <Bot className="h-16 w-16 text-blue-400 mx-auto mb-4" />
-                    <h2 className="text-2xl font-bold text-white mb-2">Pine Genie AI</h2>
-                    <p className="text-slate-300 mb-6">
-                      AI-powered assistant for Pine Script development and trading strategies.
-                    </p>
-                    <button className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3 rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all shadow-lg">
-                      Chat with AI
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+            {activePage === 'pinegenie-ai' && <PineGenieAIChat darkMode={darkMode} />}
 
             {/* Other pages with similar styling... */}
             {(activePage === 'templates' || activePage === 'library' || activePage === 'projects' || activePage === 'help' || activePage === 'billing' || activePage === 'settings') && (

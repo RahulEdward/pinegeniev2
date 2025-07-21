@@ -5,18 +5,11 @@ import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import AdminRoute from '@/components/admin/AdminRoute';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { 
-  Users, 
   Search, 
-  Filter, 
   Download, 
-  Plus, 
-  MoreHorizontal,
   Eye,
-  Edit,
   Trash2,
-  UserX,
-  UserCheck,
-  Mail
+  UserX
 } from 'lucide-react';
 
 interface User {

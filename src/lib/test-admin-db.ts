@@ -4,7 +4,6 @@
  */
 
 import { AdminUserService, AuditLogService, SystemMetricsService } from '@/services/admin';
-import { AdminRole, AdminPermission } from '@prisma/client';
 
 export async function testAdminDatabase() {
   console.log('🧪 Testing Admin Database Schema and Services...');

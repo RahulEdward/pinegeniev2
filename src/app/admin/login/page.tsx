@@ -13,7 +13,7 @@ export default function AdminLoginPage() {
   const [showMfa, setShowMfa] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  const { login } = useAdminAuth();
+  const { } = useAdminAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -101,9 +101,9 @@ export default function AdminLoginPage() {
         throw new Error('Login response missing user data');
       }
       
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('❌ Login error:', err);
-      setError(err.message || 'Login failed');
+      setError(err instanceof Error ? err.message : 'Login failed');
       
       // Check if MFA is required
       if (err.message?.includes('MFA') || err.message?.includes('2FA')) {

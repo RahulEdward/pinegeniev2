@@ -45,7 +45,7 @@ export enum AdminAction {
  */
 export function hasResourceAccess(
   adminUser: AdminUser | null,
-  resource: AdminResource
+  _resource: AdminResource
 ): boolean {
   if (!adminUser || !adminUser.isAdmin || !adminUser.isActive) {
     return false;
@@ -61,8 +61,8 @@ export function hasResourceAccess(
  */
 export function canPerformAction(
   adminUser: AdminUser | null,
-  resource: AdminResource,
-  action: AdminAction
+  _resource: AdminResource,
+  _action: AdminAction
 ): boolean {
   if (!adminUser || !adminUser.isAdmin || !adminUser.isActive) {
     return false;
@@ -91,7 +91,7 @@ export function getAccessibleResources(adminUser: AdminUser | null): AdminResour
  */
 export function getAllowedActions(
   adminUser: AdminUser | null,
-  resource: AdminResource
+  _resource: AdminResource
 ): AdminAction[] {
   if (!adminUser || !adminUser.isAdmin || !adminUser.isActive) {
     return [];
@@ -217,8 +217,8 @@ export function getAdminCapabilities(adminUser: AdminUser | null): {
  */
 export function validateApiAccess(
   adminUser: AdminUser | null,
-  resource: AdminResource,
-  action: AdminAction
+  _resource: AdminResource,
+  _action: AdminAction
 ): { allowed: boolean; reason?: string } {
   if (!adminUser) {
     return { allowed: false, reason: 'No admin user provided' };

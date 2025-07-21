@@ -94,13 +94,13 @@ export async function POST(request: NextRequest) {
 
       return response;
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Log security event for authentication errors
       await logSecurityEvent(
         'admin_auth_error',
         'high',
-        `Admin authentication error: ${error.message}`,
-        { email, error: error.message },
+        `Admin authentication error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        { email, error: error instanceof Error ? error.message : 'Unknown error' },
         { ip: clientIP, userAgent }
       );
 

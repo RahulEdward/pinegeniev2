@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAdminAuthAndLogging, addSecurityHeaders } from '@/middleware/admin';
 import { prisma } from '@/lib/prisma';
 
-export const GET = withAdminAuthAndLogging(async (request: NextRequest, adminId: string, adminUser: any) => {
+export const GET = withAdminAuthAndLogging(async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period') || 'week';
     
     // Get date range based on period
     const now = new Date();
-    let startDate = new Date();
+    const startDate = new Date();
     
     switch (period) {
       case 'day':
@@ -74,12 +74,10 @@ export const GET = withAdminAuthAndLogging(async (request: NextRequest, adminId:
     // Get model usage data
     const modelUsage = await prisma.conversation.groupBy({
       by: ['modelId'],
-      _count: {
-        _all: true
-      },
+      _count: true,
       orderBy: {
         _count: {
-          _all: 'desc'
+          modelId: 'desc'
         }
       }
     });
@@ -88,7 +86,7 @@ export const GET = withAdminAuthAndLogging(async (request: NextRequest, adminId:
     const models = await prisma.lLMModel.findMany({
       where: {
         id: {
-          in: modelUsage.map(item => item.modelId)
+          in: modelUsage.map(item => item.modelId).filter(Boolean)
         }
       },
       select: {
@@ -104,7 +102,7 @@ export const GET = withAdminAuthAndLogging(async (request: NextRequest, adminId:
       return {
         modelId: usage.modelId,
         modelName: model?.displayName || model?.name || 'Unknown',
-        count: usage._count._all
+        count: typeof usage._count === 'number' ? usage._count : usage._count?.modelId || 0
       };
     });
 

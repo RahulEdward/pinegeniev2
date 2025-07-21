@@ -1,6 +1,4 @@
 import { AdminUserService } from '@/services/admin';
-import { AdminUser as PrismaAdminUser } from '@prisma/client';
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 
@@ -42,7 +40,7 @@ export async function getAdminUser(): Promise<AdminUser | null> {
     }
 
     // Verify and decode token
-    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+    const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as { adminId: string; sessionId: string };
     
     // Get admin user from database
     const adminUser = await AdminUserService.findById(decoded.adminId);
@@ -118,26 +116,7 @@ export function hasFullAccess(adminUser: AdminUser): boolean {
   return adminUser.isAdmin && adminUser.isActive;
 }
 
-/**
- * Generate a secure session ID
- */
-function generateSessionId(): string {
-  return jwt.sign(
-    { 
-      timestamp: Date.now(),
-      random: Math.random().toString(36).substring(2)
-    },
-    process.env.NEXTAUTH_SECRET || 'fallback-secret',
-    { expiresIn: '24h' }
-  );
-}
 
-/**
- * Increment login attempts and lock account if necessary
- */
-async function incrementLoginAttempts(adminId: string): Promise<void> {
-  await AdminUserService.incrementLoginAttempts(adminId);
-}
 
 /**
  * Update admin login IP address

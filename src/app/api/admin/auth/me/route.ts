@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     try {
       // Verify and decode token
-      const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as any;
+      const decoded = jwt.verify(token, process.env.NEXTAUTH_SECRET || 'fallback-secret') as { adminId: string; sessionId: string };
       
       // Get admin user from database
       const adminUser = await AdminUserService.findById(decoded.adminId);
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
         },
       });
 
-    } catch (jwtError) {
+    } catch {
       return NextResponse.json(
         { success: false, message: 'Invalid token' },
         { status: 401 }

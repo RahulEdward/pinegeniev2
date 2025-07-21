@@ -5,11 +5,9 @@ import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import AdminRoute from '@/components/admin/AdminRoute';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { 
-  BarChart3, 
   Users, 
   MessageSquare, 
   TrendingUp,
-  Calendar,
   Download,
   Bot
 } from 'lucide-react';

@@ -2,6 +2,9 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "./auth-options";
 import { prisma } from "./prisma";
 
+// Re-export authOptions for convenience
+export { authOptions };
+
 export const getCurrentUser = async () => {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {

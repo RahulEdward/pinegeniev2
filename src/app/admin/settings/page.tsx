@@ -14,6 +14,10 @@ import {
   ChevronRight
 } from 'lucide-react';
 
+// Force dynamic rendering for this page since it uses server-side features (cookies)
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AdminSettingsPage() {
   const adminUser = await getAdminUser();
 

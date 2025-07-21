@@ -5,14 +5,10 @@ import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import AdminRoute from '@/components/admin/AdminRoute';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { 
-  Shield, 
   AlertTriangle, 
   CheckCircle, 
-  XCircle,
   Clock,
-  User,
   Search,
-  Filter,
   Download,
   RefreshCw
 } from 'lucide-react';
@@ -22,7 +18,7 @@ interface SecurityEvent {
   type: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
   description: string;
-  details: any;
+  details: Record<string, unknown>;
   ipAddress: string | null;
   userAgent: string | null;
   userId: string | null;

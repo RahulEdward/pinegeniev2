@@ -43,7 +43,7 @@ export default function EnhancedThemeToggle({ variant = 'default', className = '
       try {
         const storedConfig = localStorage.getItem('theme-config');
         config = storedConfig ? JSON.parse(storedConfig) : { mode: 'system' };
-      } catch (e) {
+      } catch (error) {
         config = { mode: 'system' };
       }
       
