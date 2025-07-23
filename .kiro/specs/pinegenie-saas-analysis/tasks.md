@@ -8,14 +8,34 @@
   - Add OAuth integration for Google and GitHub login options
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-- [ ] 2. Build Strategy Management and Persistence System
-  - [ ] 2.1 Create database models for strategy storage
+- [-] 2. Build Strategy Management and Persistence System
+
+
+
+
+
+
+
+
+  - [x] 2.1 Create database models for strategy storage
+
+
+
+
+
+
+
+
+
     - Extend Prisma schema to include Strategy, StrategyNode, and BacktestResult models
     - Implement database migrations for new strategy-related tables
     - Create indexes for optimal query performance on user strategies
     - _Requirements: 2.1, 2.2_
 
-  - [ ] 2.2 Implement strategy CRUD operations
+  - [x] 2.2 Implement strategy CRUD operations
+
+
+
     - Build API endpoints for creating, reading, updating, and deleting strategies
     - Add strategy versioning system to track changes over time
     - Implement strategy import/export functionality for backup and sharing
@@ -30,7 +50,7 @@
     - _Requirements: 2.3, 2.4, 8.1, 8.2_
 
 - [ ] 3. Implement Subscription and Billing System
-  - [ ] 3.1 Set up Stripe integration
+  - [ ] 3.1 Set up Razor pay integration    
     - Configure Stripe webhook handlers for subscription events
     - Implement subscription creation, upgrade, and cancellation flows
     - Create billing portal integration for users to manage their subscriptions

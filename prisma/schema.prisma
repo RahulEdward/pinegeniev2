@@ -22,6 +22,12 @@ model User {
   sessions      Session[]
   activities    UserActivity[]
   scripts       Script[]
+  strategies    Strategy[]
+  strategyFolders StrategyFolder[]
+  sharedByStrategies SharedStrategy[] @relation("SharedByUser")
+  sharedWithStrategies SharedStrategy[] @relation("SharedWithUser")
+  agentConversations AgentConversation[]
+  generatedPineCode GeneratedPineCode[]
 
   @@map("users")
 }
@@ -268,5 +274,215 @@ enum ScriptStatus {
   ARCHIVED
 }
 
+model Strategy {
+  id              String            @id @default(cuid())
+  userId          String            @map("user_id")
+  name            String
+  description     String?
+  category        String?
+  nodes           Json              @default("[]") // Array of StrategyNode objects
+  connections     Json              @default("[]") // Array of NodeConnection objects
+  pineScriptCode  String?           @map("pine_script_code")
+  isPublic        Boolean           @default(false) @map("is_public")
+  tags            String?           // JSON array of tags
+  version         Int               @default(1)
+  folderId        String?           @map("folder_id")
+  templateId      String?           @map("template_id")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder          StrategyFolder?   @relation(fields: [folderId], references: [id])
+  template        StrategyTemplate? @relation(fields: [templateId], references: [id])
+  backtestResults BacktestResult[]
+  sharedStrategies SharedStrategy[]
+  strategyVersions StrategyVersion[]
+
+  @@index([userId])
+  @@index([category])
+  @@index([isPublic])
+  @@index([createdAt])
+  @@index([folderId])
+  @@index([templateId])
+  @@index([userId, category])
+  @@index([userId, isPublic])
+  @@index([userId, createdAt])
+  @@index([userId, folderId])
+  @@map("strategies")
+}
+
+model StrategyVersion {
+  id              String   @id @default(cuid())
+  strategyId      String   @map("strategy_id")
+  version         Int
+  name            String
+  description     String?
+  nodes           Json     @default("[]")
+  connections     Json     @default("[]")
+  pineScriptCode  String?  @map("pine_script_code")
+  changeLog       String?  @map("change_log")
+  createdAt       DateTime @default(now()) @map("created_at")
+  strategy        Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@unique([strategyId, version])
+  @@index([strategyId])
+  @@index([createdAt])
+  @@map("strategy_versions")
+}
+
+model StrategyFolder {
+  id          String     @id @default(cuid())
+  userId      String     @map("user_id")
+  name        String
+  description String?
+  parentId    String?    @map("parent_id")
+  color       String?    // Hex color for folder
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent      StrategyFolder? @relation("FolderHierarchy", fields: [parentId], references: [id])
+  children    StrategyFolder[] @relation("FolderHierarchy")
+  strategies  Strategy[]
+
+  @@index([userId])
+  @@index([parentId])
+  @@index([userId, parentId])
+  @@map("strategy_folders")
+}
+
+model StrategyTemplate {
+  id          String     @id @default(cuid())
+  name        String
+  description String
+  category    String
+  nodes       Json       @default("[]")
+  connections Json       @default("[]")
+  tags        String?    // JSON array of tags
+  difficulty  String     @default("beginner") // beginner, intermediate, advanced
+  isOfficial  Boolean    @default(false) @map("is_official")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  strategies  Strategy[]
+
+  @@index([category])
+  @@index([difficulty])
+  @@index([isOfficial])
+  @@map("strategy_templates")
+}
+
+model BacktestResult {
+  id                 String   @id @default(cuid())
+  strategyId         String   @map("strategy_id")
+  config             Json     // BacktestConfig object
+  results            Json     // Raw backtest results
+  performanceMetrics Json     @map("performance_metrics") // Calculated metrics
+  status             String   @default("pending") // pending, running, completed, failed
+  errorMessage       String?  @map("error_message")
+  startedAt          DateTime @default(now()) @map("started_at")
+  completedAt        DateTime? @map("completed_at")
+  strategy           Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@index([strategyId])
+  @@index([status])
+  @@index([startedAt])
+  @@index([strategyId, status])
+  @@index([strategyId, startedAt])
+  @@map("backtest_results")
+}
+
+model SharedStrategy {
+  id          String      @id @default(cuid())
+  strategyId  String      @map("strategy_id")
+  sharedBy    String      @map("shared_by")
+  sharedWith  String?     @map("shared_with") // null for public sharing
+  permission  Permission  @default(READ)
+  expiresAt   DateTime?   @map("expires_at")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  strategy    Strategy    @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  sharedByUser User       @relation("SharedByUser", fields: [sharedBy], references: [id], onDelete: Cascade)
+  sharedWithUser User?    @relation("SharedWithUser", fields: [sharedWith], references: [id], onDelete: Cascade)
+
+  @@unique([strategyId, sharedWith])
+  @@index([strategyId])
+  @@index([sharedBy])
+  @@index([sharedWith])
+  @@map("shared_strategies")
+}
+
+enum Permission {
+  READ
+  WRITE
+  ADMIN
+}
+
 // Single admin model - no roles or permissions needed
 // The single admin has unrestricted access to everything
+
+// Agent Conversation Schema Extensions
+
+// Agent conversation model
+model AgentConversation {
+  id              String            @id @default(cuid())
+  userId          String            @map("user_id")
+  sessionId       String            @unique @map("session_id")
+  agentType       String            @default("pinescript") @map("agent_type")
+  context         Json              @default("{}")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages        AgentMessage[]
+  generatedCode   GeneratedPineCode[]
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([agentType])
+  @@index([createdAt])
+  @@index([userId, agentType])
+  @@index([userId, createdAt])
+  @@map("agent_conversations")
+}
+
+// Agent message model
+model AgentMessage {
+  id              String            @id @default(cuid())
+  conversationId  String            @map("conversation_id")
+  role            AgentMessageRole
+  content         String
+  metadata        Json?             @default("{}")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  conversation    AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([role])
+  @@index([createdAt])
+  @@index([conversationId, createdAt])
+  @@map("agent_messages")
+}
+
+// Generated Pine Script code model
+model GeneratedPineCode {
+  id              String            @id @default(cuid())
+  conversationId  String            @map("conversation_id")
+  userId          String            @map("user_id")
+  code            String            @map("pine_script_code")
+  version         Int               @default(1)
+  validationStatus String           @default("pending") @map("validation_status")
+  metadata        Json?             @default("{}")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  conversation    AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([userId])
+  @@index([validationStatus])
+  @@index([createdAt])
+  @@index([conversationId, version])
+  @@index([userId, createdAt])
+  @@map("generated_pine_code")
+}
+
+// Agent message role enum
+enum AgentMessageRole {
+  USER
+  AGENT
+  SYSTEM
+}

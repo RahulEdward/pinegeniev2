@@ -172,6 +172,162 @@ async function main() {
 
   console.log('✅ Created initial audit log');
 
+  // Create strategy templates
+  const strategyTemplates = [
+    {
+      name: 'Simple Moving Average Crossover',
+      description: 'A basic trend-following strategy using two moving averages',
+      category: 'trend-following',
+      nodes: JSON.stringify([
+        {
+          id: 'sma-fast',
+          type: 'indicator',
+          position: { x: 100, y: 100 },
+          config: { indicator: 'SMA', period: 10 }
+        },
+        {
+          id: 'sma-slow',
+          type: 'indicator',
+          position: { x: 100, y: 200 },
+          config: { indicator: 'SMA', period: 20 }
+        },
+        {
+          id: 'crossover',
+          type: 'condition',
+          position: { x: 300, y: 150 },
+          config: { condition: 'crossover' }
+        },
+        {
+          id: 'buy-signal',
+          type: 'action',
+          position: { x: 500, y: 100 },
+          config: { action: 'buy' }
+        },
+        {
+          id: 'sell-signal',
+          type: 'action',
+          position: { x: 500, y: 200 },
+          config: { action: 'sell' }
+        }
+      ]),
+      connections: JSON.stringify([
+        { id: 'c1', source: 'sma-fast', target: 'crossover' },
+        { id: 'c2', source: 'sma-slow', target: 'crossover' },
+        { id: 'c3', source: 'crossover', target: 'buy-signal' },
+        { id: 'c4', source: 'crossover', target: 'sell-signal' }
+      ]),
+      tags: JSON.stringify(['moving-average', 'crossover', 'trend']),
+      difficulty: 'beginner',
+      isOfficial: true,
+    },
+    {
+      name: 'RSI Oversold/Overbought',
+      description: 'Mean reversion strategy using RSI indicator',
+      category: 'mean-reversion',
+      nodes: JSON.stringify([
+        {
+          id: 'rsi',
+          type: 'indicator',
+          position: { x: 100, y: 150 },
+          config: { indicator: 'RSI', period: 14 }
+        },
+        {
+          id: 'oversold',
+          type: 'condition',
+          position: { x: 300, y: 100 },
+          config: { condition: 'less_than', value: 30 }
+        },
+        {
+          id: 'overbought',
+          type: 'condition',
+          position: { x: 300, y: 200 },
+          config: { condition: 'greater_than', value: 70 }
+        },
+        {
+          id: 'buy-signal',
+          type: 'action',
+          position: { x: 500, y: 100 },
+          config: { action: 'buy' }
+        },
+        {
+          id: 'sell-signal',
+          type: 'action',
+          position: { x: 500, y: 200 },
+          config: { action: 'sell' }
+        }
+      ]),
+      connections: JSON.stringify([
+        { id: 'c1', source: 'rsi', target: 'oversold' },
+        { id: 'c2', source: 'rsi', target: 'overbought' },
+        { id: 'c3', source: 'oversold', target: 'buy-signal' },
+        { id: 'c4', source: 'overbought', target: 'sell-signal' }
+      ]),
+      tags: JSON.stringify(['rsi', 'oversold', 'overbought', 'mean-reversion']),
+      difficulty: 'beginner',
+      isOfficial: true,
+    },
+    {
+      name: 'Bollinger Bands Breakout',
+      description: 'Breakout strategy using Bollinger Bands',
+      category: 'breakout',
+      nodes: JSON.stringify([
+        {
+          id: 'bb',
+          type: 'indicator',
+          position: { x: 100, y: 150 },
+          config: { indicator: 'BB', period: 20, stdDev: 2 }
+        },
+        {
+          id: 'upper-break',
+          type: 'condition',
+          position: { x: 300, y: 100 },
+          config: { condition: 'price_above_upper_band' }
+        },
+        {
+          id: 'lower-break',
+          type: 'condition',
+          position: { x: 300, y: 200 },
+          config: { condition: 'price_below_lower_band' }
+        },
+        {
+          id: 'buy-signal',
+          type: 'action',
+          position: { x: 500, y: 100 },
+          config: { action: 'buy' }
+        },
+        {
+          id: 'sell-signal',
+          type: 'action',
+          position: { x: 500, y: 200 },
+          config: { action: 'sell' }
+        }
+      ]),
+      connections: JSON.stringify([
+        { id: 'c1', source: 'bb', target: 'upper-break' },
+        { id: 'c2', source: 'bb', target: 'lower-break' },
+        { id: 'c3', source: 'upper-break', target: 'buy-signal' },
+        { id: 'c4', source: 'lower-break', target: 'sell-signal' }
+      ]),
+      tags: JSON.stringify(['bollinger-bands', 'breakout', 'volatility']),
+      difficulty: 'intermediate',
+      isOfficial: true,
+    }
+  ];
+
+  for (const template of strategyTemplates) {
+    const existingTemplate = await prisma.strategyTemplate.findFirst({
+      where: { name: template.name }
+    });
+    
+    if (!existingTemplate) {
+      await prisma.strategyTemplate.create({
+        data: template,
+      });
+    }
+  }
+
+  console.log('✅ Strategy templates seeded');
+
   console.log('🎉 Seeding completed!');
   console.log('');
   console.log('User credentials:');

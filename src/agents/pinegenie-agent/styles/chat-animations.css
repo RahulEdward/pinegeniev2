@@ -1,0 +1,160 @@
+/**
+ * Chat Animations CSS
+ * 
+ * Custom animations for the Kiro-style chat interface
+ */
+
+/* Message bubble animations */
+@keyframes message-appear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-bubble {
+  animation: message-appear 0.3s ease-out forwards;
+}
+
+/* Typing indicator animation */
+@keyframes typing-dot {
+  0%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  animation: typing-dot 1.5s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Message status animations */
+@keyframes status-appear {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.status-icon {
+  animation: status-appear 0.2s ease-out forwards;
+}
+
+/* Input field focus animation */
+.chat-input:focus {
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 0 0 2px rgba(var(--agent-primary-rgb), 0.3);
+}
+
+/* Button hover animations */
+.button-hover {
+  transition: all 0.2s ease-in-out;
+}
+
+.button-hover:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.button-hover:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Voice button pulse animation */
+@keyframes voice-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.voice-active {
+  animation: voice-pulse 1.5s infinite;
+}
+
+/* Avatar animations */
+@keyframes avatar-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.avatar-animation:hover {
+  animation: avatar-bounce 1s ease infinite;
+}
+
+/* Message thread connection lines */
+.message-thread::before {
+  content: '';
+  position: absolute;
+  left: 15px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--agent-border);
+  opacity: 0.5;
+}
+
+/* Smooth height transition for textarea */
+.auto-resize-textarea {
+  transition: height 0.2s ease-in-out;
+}
+
+/* Character counter fade animation */
+@keyframes counter-fade {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.char-counter {
+  animation: counter-fade 0.2s ease-out forwards;
+}
+
+/* Welcome card animation */
+@keyframes welcome-appear {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.welcome-card {
+  animation: welcome-appear 0.5s ease-out forwards;
+}

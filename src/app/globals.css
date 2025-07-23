@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Import agent theme styles */
+@import "../agents/pinegenie-agent/styles/agent-theme.css";
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

@@ -1,0 +1,69 @@
+// Agent Conversation Schema Extensions
+
+// Agent conversation model
+model AgentConversation {
+  id              String            @id @default(cuid())
+  userId          String            @map("user_id")
+  sessionId       String            @unique @map("session_id")
+  agentType       String            @default("pinescript") @map("agent_type")
+  context         Json              @default("{}")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages        AgentMessage[]
+  generatedCode   GeneratedPineCode[]
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([agentType])
+  @@index([createdAt])
+  @@index([userId, agentType])
+  @@index([userId, createdAt])
+  @@map("agent_conversations")
+}
+
+// Agent message model
+model AgentMessage {
+  id              String            @id @default(cuid())
+  conversationId  String            @map("conversation_id")
+  role            AgentMessageRole
+  content         String            @db.Text
+  metadata        Json?             @default("{}")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  conversation    AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([role])
+  @@index([createdAt])
+  @@index([conversationId, createdAt])
+  @@map("agent_messages")
+}
+
+// Generated Pine Script code model
+model GeneratedPineCode {
+  id              String            @id @default(cuid())
+  conversationId  String            @map("conversation_id")
+  userId          String            @map("user_id")
+  code            String            @db.Text @map("pine_script_code")
+  version         Int               @default(1)
+  validationStatus String           @default("pending") @map("validation_status")
+  metadata        Json?             @default("{}")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  conversation    AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([userId])
+  @@index([validationStatus])
+  @@index([createdAt])
+  @@index([conversationId, version])
+  @@index([userId, createdAt])
+  @@map("generated_pine_code")
+}
+
+// Agent message role enum
+enum AgentMessageRole {
+  USER
+  AGENT
+  SYSTEM
+}

@@ -1,0 +1,203 @@
+/**
+ * PineGenie AI Welcome Cards Animations CSS
+ * 
+ * Custom animations for PineGenie AI welcome cards
+ */
+
+/* Card hover animations */
+.welcome-card-item {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  will-change: transform, box-shadow;
+}
+
+.welcome-card-item:hover {
+  transform: translateY(-3px);
+}
+
+/* Card appearance animation */
+@keyframes card-appear {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.welcome-cards-container {
+  animation: welcome-appear 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+/* Pulse animation for primary card */
+@keyframes subtle-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(14, 165, 233, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0);
+  }
+}
+
+.welcome-card-item.primary-card {
+  animation: subtle-pulse 2s infinite;
+}
+
+/* Icon animations */
+@keyframes icon-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.welcome-card-item:hover .spin-on-hover {
+  animation: icon-spin 1s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Bounce animation for icons */
+@keyframes icon-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.welcome-card-item:hover .bounce-on-hover {
+  animation: icon-bounce 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Scale animation for icons */
+@keyframes icon-scale {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.welcome-card-item:hover .scale-on-hover {
+  animation: icon-scale 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Pulse animation for icons */
+@keyframes icon-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.welcome-card-item:hover .pulse-on-hover {
+  animation: icon-pulse 1s cubic-bezier(0.25, 0.8, 0.25, 1) infinite;
+}
+
+/* Personalized message fade-in */
+@keyframes message-fade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.personalized-message {
+  animation: message-fade 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+  animation-delay: 0.3s;
+  opacity: 0;
+}
+
+/* Avatar animation */
+@keyframes avatar-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.2);
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(14, 165, 233, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0);
+  }
+}
+
+.avatar-animation {
+  animation: avatar-glow 2s infinite;
+}
+
+/* Staggered card appearance */
+.welcome-card-item:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.welcome-card-item:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.welcome-card-item:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.welcome-card-item:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.welcome-card-item:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+.welcome-card-item:nth-child(6) {
+  animation-delay: 0.6s;
+}
+
+.welcome-card-item:nth-child(7) {
+  animation-delay: 0.7s;
+}
+
+/* Responsive adjustments for smaller cards */
+@media (max-width: 768px) {
+  .welcome-cards-container .grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* PineGenie specific styles */
+.welcome-cards-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+  .avatar-animation {
+    animation: avatar-glow 2s infinite;
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.2);
+  }
+  
+  .welcome-card-item {
+    backdrop-filter: blur(5px);
+  }
+}

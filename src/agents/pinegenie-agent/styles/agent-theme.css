@@ -1,0 +1,311 @@
+/**
+ * Agent Theme CSS Variables and Utilities
+ * 
+ * This file defines CSS custom properties for the agent theme
+ * and provides utility classes for consistent styling.
+ */
+
+/* Agent Theme CSS Variables */
+:root {
+  /* Primary Colors */
+  --agent-primary: #0ea5e9;
+  --agent-primary-hover: #0284c7;
+  --agent-primary-active: #0369a1;
+  
+  /* Secondary Colors */
+  --agent-secondary: #64748b;
+  --agent-secondary-hover: #475569;
+  
+  /* Accent */
+  --agent-accent: #38bdf8;
+  
+  /* Background and Surface */
+  --agent-background: #ffffff;
+  --agent-surface: #f8fafc;
+  --agent-surface-hover: #f1f5f9;
+  
+  /* Borders */
+  --agent-border: #e2e8f0;
+  --agent-border-hover: #cbd5e1;
+  
+  /* Text Colors */
+  --agent-text-primary: #171717;
+  --agent-text-secondary: #475569;
+  --agent-text-muted: #64748b;
+  --agent-text-inverse: #ffffff;
+  
+  /* Status Colors */
+  --agent-success: #22c55e;
+  --agent-success-bg: #f0fdf4;
+  --agent-warning: #f59e0b;
+  --agent-warning-bg: #fffbeb;
+  --agent-error: #ef4444;
+  --agent-error-bg: #fef2f2;
+  --agent-info: #0ea5e9;
+  --agent-info-bg: #f0f9ff;
+  
+  /* Chat Colors */
+  --agent-chat-user-bubble: #0ea5e9;
+  --agent-chat-user-text: #ffffff;
+  --agent-chat-agent-bubble: #f1f5f9;
+  --agent-chat-agent-text: #171717;
+  --agent-chat-input-bg: #ffffff;
+  --agent-chat-input-border: #cbd5e1;
+  --agent-chat-input-text: #171717;
+  --agent-chat-input-placeholder: #64748b;
+}
+
+/* Dark mode overrides */
+.dark {
+  --agent-background: #0a0a0a;
+  --agent-surface: #0f172a;
+  --agent-surface-hover: #1e293b;
+  --agent-border: #334155;
+  --agent-border-hover: #475569;
+  --agent-text-primary: #ededed;
+  --agent-text-secondary: #cbd5e1;
+  --agent-text-muted: #94a3b8;
+  --agent-text-inverse: #171717;
+  --agent-success-bg: #14532d;
+  --agent-warning-bg: #78350f;
+  --agent-error-bg: #7f1d1d;
+  --agent-info-bg: #0c4a6e;
+  --agent-chat-agent-bubble: #1e293b;
+  --agent-chat-agent-text: #ededed;
+  --agent-chat-input-bg: #0f172a;
+  --agent-chat-input-border: #334155;
+  --agent-chat-input-text: #ededed;
+  --agent-chat-input-placeholder: #94a3b8;
+}
+
+/* Agent Theme Utility Classes */
+
+/* Background Colors */
+.agent-bg-primary { background-color: var(--agent-primary); }
+.agent-bg-secondary { background-color: var(--agent-secondary); }
+.agent-bg-accent { background-color: var(--agent-accent); }
+.agent-bg-surface { background-color: var(--agent-surface); }
+.agent-bg-background { background-color: var(--agent-background); }
+
+/* Text Colors */
+.agent-text-primary { color: var(--agent-text-primary); }
+.agent-text-secondary { color: var(--agent-text-secondary); }
+.agent-text-muted { color: var(--agent-text-muted); }
+.agent-text-inverse { color: var(--agent-text-inverse); }
+
+/* Border Colors */
+.agent-border { border-color: var(--agent-border); }
+.agent-border-hover:hover { border-color: var(--agent-border-hover); }
+
+/* Status Colors */
+.agent-text-success { color: var(--agent-success); }
+.agent-bg-success { background-color: var(--agent-success-bg); }
+.agent-text-warning { color: var(--agent-warning); }
+.agent-bg-warning { background-color: var(--agent-warning-bg); }
+.agent-text-error { color: var(--agent-error); }
+.agent-bg-error { background-color: var(--agent-error-bg); }
+.agent-text-info { color: var(--agent-info); }
+.agent-bg-info { background-color: var(--agent-info-bg); }
+
+/* Interactive States */
+.agent-hover-primary:hover { background-color: var(--agent-primary-hover); }
+.agent-hover-secondary:hover { background-color: var(--agent-secondary-hover); }
+.agent-hover-surface:hover { background-color: var(--agent-surface-hover); }
+
+/* Chat Specific Styles */
+.agent-chat-user-bubble {
+  background-color: var(--agent-chat-user-bubble);
+  color: var(--agent-chat-user-text);
+}
+
+.agent-chat-agent-bubble {
+  background-color: var(--agent-chat-agent-bubble);
+  color: var(--agent-chat-agent-text);
+}
+
+.agent-chat-input {
+  background-color: var(--agent-chat-input-bg);
+  border-color: var(--agent-chat-input-border);
+  color: var(--agent-chat-input-text);
+}
+
+.agent-chat-input::placeholder {
+  color: var(--agent-chat-input-placeholder);
+}
+
+.agent-chat-input:focus {
+  border-color: var(--agent-primary);
+  box-shadow: 0 0 0 1px var(--agent-primary);
+}
+
+/* Component Specific Styles */
+
+/* Agent Button Styles */
+.agent-btn {
+  @apply px-4 py-2 rounded-lg font-medium transition-all duration-200;
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.agent-btn-primary {
+  background-color: var(--agent-primary);
+  color: var(--agent-text-inverse);
+}
+
+.agent-btn-primary:hover {
+  background-color: var(--agent-primary-hover);
+}
+
+.agent-btn-primary:active {
+  background-color: var(--agent-primary-active);
+}
+
+.agent-btn-primary:focus {
+  --tw-ring-color: var(--agent-primary);
+}
+
+.agent-btn-secondary {
+  background-color: var(--agent-surface);
+  color: var(--agent-text-primary);
+  border: 1px solid var(--agent-border);
+}
+
+.agent-btn-secondary:hover {
+  background-color: var(--agent-surface-hover);
+  border-color: var(--agent-border-hover);
+}
+
+/* Agent Card Styles */
+.agent-card {
+  background-color: var(--agent-surface);
+  border: 1px solid var(--agent-border);
+  @apply rounded-lg shadow-sm;
+}
+
+.agent-card:hover {
+  background-color: var(--agent-surface-hover);
+  border-color: var(--agent-border-hover);
+}
+
+/* Agent Input Styles */
+.agent-input {
+  background-color: var(--agent-chat-input-bg);
+  border: 1px solid var(--agent-chat-input-border);
+  color: var(--agent-chat-input-text);
+  @apply rounded-lg px-3 py-2 transition-colors duration-200;
+}
+
+.agent-input:focus {
+  border-color: var(--agent-primary);
+  box-shadow: 0 0 0 1px var(--agent-primary);
+}
+
+.agent-input::placeholder {
+  color: var(--agent-chat-input-placeholder);
+}
+
+/* Agent Status Indicators */
+.agent-status-success {
+  background-color: var(--agent-success-bg);
+  color: var(--agent-success);
+  @apply px-2 py-1 rounded text-sm font-medium;
+}
+
+.agent-status-warning {
+  background-color: var(--agent-warning-bg);
+  color: var(--agent-warning);
+  @apply px-2 py-1 rounded text-sm font-medium;
+}
+
+.agent-status-error {
+  background-color: var(--agent-error-bg);
+  color: var(--agent-error);
+  @apply px-2 py-1 rounded text-sm font-medium;
+}
+
+.agent-status-info {
+  background-color: var(--agent-info-bg);
+  color: var(--agent-info);
+  @apply px-2 py-1 rounded text-sm font-medium;
+}
+
+/* Accessibility Enhancements */
+.agent-focus-visible:focus-visible {
+  outline: 2px solid var(--agent-primary);
+  outline-offset: 2px;
+}
+
+/* Ensure all interactive elements have proper focus styles */
+.agent-btn:focus-visible,
+.agent-input:focus-visible,
+.agent-card:focus-visible {
+  outline: 2px solid var(--agent-primary);
+  outline-offset: 2px;
+}
+
+/* Skip link for screen readers */
+.agent-skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--agent-primary);
+  color: var(--agent-text-inverse);
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 1000;
+}
+
+.agent-skip-link:focus {
+  top: 6px;
+}
+
+/* Screen reader only text */
+.agent-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --agent-border: #000000;
+    --agent-text-secondary: #000000;
+    --agent-text-muted: #000000;
+    --agent-primary: #0000ff;
+    --agent-primary-hover: #0000cc;
+  }
+  
+  .dark {
+    --agent-border: #ffffff;
+    --agent-text-secondary: #ffffff;
+    --agent-text-muted: #ffffff;
+    --agent-primary: #66b3ff;
+    --agent-primary-hover: #4da6ff;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .agent-btn,
+  .agent-input,
+  .agent-card {
+    transition: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .agent-chat-user-bubble,
+  .agent-chat-agent-bubble {
+    background-color: transparent !important;
+    color: black !important;
+    border: 1px solid black;
+  }
+}

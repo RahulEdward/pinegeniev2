@@ -37,7 +37,7 @@ const sidebarItems = [
   { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
   { id: 'scripts', label: 'My Scripts', icon: Code, path: '/scripts' },
   { id: 'builder', label: 'Script Builder', icon: Zap, path: '/builder' },
-  { id: 'pinegenie-ai', label: 'Pine Genie AI', icon: Bot, path: '/pinegenie-ai' },
+  { id: 'pinegenie-ai', label: 'Pine Genie AI', icon: Bot, path: '/ai-chat' },
   { id: 'templates', label: 'Templates', icon: FileText, path: '/templates' },
   { id: 'library', label: 'Library', icon: BookOpen, path: '/library' },
   { id: 'projects', label: 'Projects', icon: Folder, path: '/projects' },
@@ -49,247 +49,7 @@ const bottomSidebarItems = [
   { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' }
 ];
 
-// Pine Genie AI Chat Component
-function PineGenieAIChat({ darkMode }: { darkMode: boolean }) {
-  const [messages, setMessages] = useState<Array<{
-    id: string;
-    role: 'user' | 'assistant';
-    content: string;
-    timestamp: Date;
-  }>>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: "Hello! I'm Pine Genie AI, your Pine Script v6 assistant. I can help you with:\n\n• Creating Pine Script indicators and strategies\n• Debugging Pine Script code\n• Explaining Pine Script concepts\n• Converting ideas to Pine Script v6 code\n• Trading strategy optimization\n\nWhat would you like to work on today?",
-      timestamp: new Date()
-    }
-  ]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const sendMessage = async () => {
-    if (!inputMessage.trim() || isLoading) return;
-
-    const userMessage = {
-      id: Date.now().toString(),
-      role: 'user' as const,
-      content: inputMessage,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('/api/ai-chat', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: inputMessage,
-          conversationHistory: messages.slice(-10) // Send last 10 messages for context
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const aiResponse = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant' as const,
-          content: data.data.response,
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, aiResponse]);
-      } else {
-        const errorData = await response.json();
-        const errorResponse = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant' as const,
-          content: `Sorry, I encountered an error: ${errorData.error || 'Unknown error'}. Please try again.`,
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, errorResponse]);
-      }
-    } catch (error) {
-      console.error('Error sending message:', error);
-      const errorResponse = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant' as const,
-        content: 'Sorry, I encountered a connection error. Please check your internet connection and try again.',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, errorResponse]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
-
-  const quickPrompts = [
-    "Create a simple RSI indicator",
-    "Help me build a moving average crossover strategy",
-    "Explain Pine Script v6 syntax",
-    "Convert my trading idea to Pine Script",
-    "Debug my Pine Script code"
-  ];
-
-  return (
-    <div className="h-[calc(100vh-200px)] flex flex-col">
-      {/* Chat Header */}
-      <div className={`backdrop-blur-xl rounded-t-2xl border-b p-4 transition-colors ${darkMode
-          ? 'bg-slate-800/50 border-slate-700/50'
-          : 'bg-white/70 border-gray-200/50'
-        }`}>
-        <div className="flex items-center space-x-3">
-          <div className="relative">
-            <Bot className="h-10 w-10 text-blue-400" />
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
-          </div>
-          <div>
-            <h2 className={`text-xl font-bold transition-colors ${darkMode ? 'text-white' : 'text-gray-900'
-              }`}>Pine Genie AI</h2>
-            <p className={`text-sm transition-colors ${darkMode ? 'text-slate-400' : 'text-gray-500'
-              }`}>Pine Script v6 Assistant • Online</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Messages Area */}
-      <div className={`flex-1 overflow-y-auto p-4 space-y-4 transition-colors ${darkMode
-          ? 'bg-slate-800/30'
-          : 'bg-white/50'
-        }`}>
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === 'user'
-                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
-                : darkMode
-                  ? 'bg-slate-700/50 text-slate-100 border border-slate-600/50'
-                  : 'bg-gray-100 text-gray-900 border border-gray-200'
-              }`}>
-              <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                {message.content}
-              </div>
-              <div className={`text-xs mt-2 opacity-70 ${message.role === 'user' ? 'text-blue-100' : darkMode ? 'text-slate-400' : 'text-gray-500'
-                }`}>
-                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </div>
-            </div>
-          </div>
-        ))}
-
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className={`max-w-[80%] rounded-2xl px-4 py-3 ${darkMode
-                ? 'bg-slate-700/50 border border-slate-600/50'
-                : 'bg-gray-100 border border-gray-200'
-              }`}>
-              <div className="flex items-center space-x-2">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                </div>
-                <span className={`text-sm ${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>
-                  Pine Genie is thinking...
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Quick Prompts */}
-      {messages.length <= 1 && (
-        <div className={`p-4 border-t transition-colors ${darkMode
-            ? 'bg-slate-800/30 border-slate-700/50'
-            : 'bg-white/50 border-gray-200/50'
-          }`}>
-          <p className={`text-sm font-medium mb-3 transition-colors ${darkMode ? 'text-slate-300' : 'text-gray-700'
-            }`}>Quick Start:</p>
-          <div className="flex flex-wrap gap-2">
-            {quickPrompts.map((prompt, index) => (
-              <button
-                key={index}
-                onClick={() => setInputMessage(prompt)}
-                className={`px-3 py-2 text-sm rounded-lg border transition-colors hover:scale-105 ${darkMode
-                    ? 'border-slate-600 bg-slate-700/50 text-slate-300 hover:bg-slate-600/50'
-                    : 'border-gray-300 bg-gray-50 text-gray-700 hover:bg-gray-100'
-                  }`}
-              >
-                {prompt}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Input Area */}
-      <div className={`backdrop-blur-xl rounded-b-2xl border-t p-4 transition-colors ${darkMode
-          ? 'bg-slate-800/50 border-slate-700/50'
-          : 'bg-white/70 border-gray-200/50'
-        }`}>
-        <div className="flex items-end space-x-3">
-          <div className="flex-1">
-            <textarea
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask Pine Genie about Pine Script v6, trading strategies, or code help..."
-              rows={1}
-              className={`w-full px-4 py-3 rounded-xl border resize-none transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${darkMode
-                  ? 'border-slate-600 bg-slate-700/50 text-white placeholder-slate-400'
-                  : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400'
-                }`}
-              style={{ minHeight: '48px', maxHeight: '120px' }}
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = 'auto';
-                target.style.height = Math.min(target.scrollHeight, 120) + 'px';
-              }}
-            />
-          </div>
-          <button
-            onClick={sendMessage}
-            disabled={!inputMessage.trim() || isLoading}
-            className="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-3 rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-blue-500/25"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
-          </button>
-        </div>
-        <div className={`flex items-center justify-between mt-2 text-xs transition-colors ${darkMode ? 'text-slate-500' : 'text-gray-400'
-          }`}>
-          <span>Press Enter to send, Shift+Enter for new line</span>
-          <span>{inputMessage.length}/2000</span>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // My Scripts Section Component
 function MyScriptsSection({ darkMode, setActivePage }: { darkMode: boolean; setActivePage: (page: string) => void }) {
@@ -924,7 +684,13 @@ export default function PineGenieDashboard() {
                 return (
                   <button
                     key={item.id}
-                    onClick={() => setActivePage(item.id)}
+                    onClick={() => {
+                      if (item.id === 'pinegenie-ai') {
+                        router.push('/ai-chat');
+                      } else {
+                        setActivePage(item.id);
+                      }
+                    }}
                     className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${isActive
                         ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                         : darkMode
@@ -951,7 +717,13 @@ export default function PineGenieDashboard() {
                 return (
                   <button
                     key={item.id}
-                    onClick={() => setActivePage(item.id)}
+                    onClick={() => {
+                  if (item.id === 'pinegenie-ai') {
+                    router.push(item.path);
+                  } else {
+                    setActivePage(item.id);
+                  }
+                }}
                     className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${isActive
                         ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                         : darkMode
@@ -1178,8 +950,7 @@ export default function PineGenieDashboard() {
               </div>
             )}
 
-            {/* Pine Genie AI Content */}
-            {activePage === 'pinegenie-ai' && <PineGenieAIChat darkMode={darkMode} />}
+
 
             {/* Other pages with similar styling... */}
             {(activePage === 'templates' || activePage === 'library' || activePage === 'projects' || activePage === 'help' || activePage === 'billing' || activePage === 'settings') && (

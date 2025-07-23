@@ -1,0 +1,63 @@
+/**
+ * Pine Genie AI Chat Page Styles
+ */
+
+/* Dark theme colors */
+:root {
+  --bg-dark: #0d1117;
+  --bg-dark-secondary: #161b22;
+  --border-dark: #30363d;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --accent-blue: #1f6feb;
+  --accent-blue-hover: #388bfd;
+  --button-bg: #21262d;
+  --button-hover: #30363d;
+}
+
+/* Global styles */
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-dark);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4d545e;
+}
+
+/* Button hover effects */
+.hover-effect:hover {
+  background-color: var(--button-hover);
+}
+
+/* Input focus styles */
+textarea:focus, input:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 1px var(--accent-blue);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+  
+  .main-content {
+    width: 100%;
+  }
+}
