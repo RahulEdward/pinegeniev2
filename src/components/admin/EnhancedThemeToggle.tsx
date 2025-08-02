@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Sun, Moon, Monitor } from 'lucide-react';
-import { ThemeMode } from '@/lib/theme-config';
+
+type ThemeMode = 'light' | 'dark' | 'system';
 
 interface EnhancedThemeToggleProps {
   variant?: 'default' | 'compact';
@@ -18,11 +19,10 @@ export default function EnhancedThemeToggle({ variant = 'default', className = '
   useEffect(() => {
     setMounted(true);
     try {
-      // Get theme from localStorage
-      const storedConfig = localStorage.getItem('theme-config');
-      if (storedConfig) {
-        const config = JSON.parse(storedConfig);
-        setMode(config.mode || 'system');
+      // Get theme from localStorage (using the main app's theme key)
+      const storedTheme = localStorage.getItem('theme');
+      if (storedTheme === 'dark' || storedTheme === 'light') {
+        setMode(storedTheme);
       } else {
         // Check if dark mode is active
         const isDark = document.documentElement.classList.contains('dark');
@@ -38,33 +38,21 @@ export default function EnhancedThemeToggle({ variant = 'default', className = '
     try {
       setMode(newMode);
       
-      // Get current config or default
-      let config;
-      try {
-        const storedConfig = localStorage.getItem('theme-config');
-        config = storedConfig ? JSON.parse(storedConfig) : { mode: 'system' };
-      } catch (error) {
-        config = { mode: 'system' };
-      }
-      
-      // Update mode
-      config.mode = newMode;
-      
-      // Save to localStorage
-      localStorage.setItem('theme-config', JSON.stringify(config));
-      
-      // Apply theme
+      // Apply theme immediately
       if (newMode === 'dark') {
         document.documentElement.classList.remove('light');
         document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
       } else if (newMode === 'light') {
         document.documentElement.classList.remove('dark');
         document.documentElement.classList.add('light');
+        localStorage.setItem('theme', 'light');
       } else {
         // System preference
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         document.documentElement.classList.remove('light', 'dark');
         document.documentElement.classList.add(prefersDark ? 'dark' : 'light');
+        localStorage.setItem('theme', prefersDark ? 'dark' : 'light');
       }
       
       setIsOpen(false);

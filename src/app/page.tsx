@@ -1535,7 +1535,7 @@ function PineGenieLanding() {
               © {new Date().getFullYear()} PineGenie. All rights reserved.
             </p>
             <p className={`${isDark ? 'text-gray-400' : colors.text.tertiary} mt-4 md:mt-0`}>
-              Built by Abhishek Software and Digital Solutions Pvt Ltd.
+              Built by Abhishek Technologies Pvt Ltd.
             </p>
           </div>
         </div>

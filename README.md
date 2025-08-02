@@ -11,7 +11,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4+-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
 [![Prisma](https://img.shields.io/badge/Prisma-5.0+-2D3748?style=flat-square&logo=prisma)](https://www.prisma.io/)
 
-[🎯 Live Demo](https://pinegenie.com) • [📖 Documentation](https://docs.pinegenie.com) • [🐛 Report Bug](https://github.com/RahulEdward/pinegeniev/issues) • [✨ Request Feature](https://github.com/RahulEdward/pinegeniev/issues)
+[🎯 Live Demo](https://pinegenie.com) • [📖 Documentation](https://docs.pinegenie.com) • [🐛 Report Bug](https://github.com/AbhishekTechnologies/pinegeniev/issues) • [✨ Request Feature](https://github.com/AbhishekTechnologies/pinegeniev/issues)
 
 </div>
 
@@ -74,7 +74,7 @@ Git
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/RahulEdward/pinegeniev.git
+   git clone https://github.com/AbhishekTechnologies/pinegeniev.git
    cd pinegeniev
    ```
 
@@ -343,7 +343,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Need help? We're here for you!**
 
-[![Email](https://img.shields.io/badge/Email-support%40pinegenie.com-red?style=for-the-badge&logo=gmail)](mailto:support@pinegenie.com)
+[![Email](https://img.shields.io/badge/Email-support%40abhishektech.com-red?style=for-the-badge&logo=gmail)](mailto:support@abhishektech.com)
 [![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord)](https://discord.gg/pinegenie)
 [![Twitter](https://img.shields.io/badge/Twitter-Follow%20Us-1da1f2?style=for-the-badge&logo=twitter)](https://twitter.com/pinegenie)
 
@@ -354,5 +354,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 <div align="center">
-  <sub>Built with ❤️ by the PineGenie Team</sub>
+  <sub>Built with ❤️ by Abhishek Technologies Pvt Ltd.</sub>
 </div>

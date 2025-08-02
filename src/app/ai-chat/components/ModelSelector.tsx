@@ -22,20 +22,12 @@ export const availableModels: AIModel[] = [
     maxTokens: 4096
   },
   {
-    id: 'gemini-1.5-flash',
-    name: 'Gemini 1.5 Flash',
-    provider: 'Google',
-    tier: 'free',
-    description: 'Fast and efficient Google AI model',
-    maxTokens: 1000000
-  },
-  {
-    id: 'gemini-1.5-pro',
-    name: 'Gemini 1.5 Pro',
-    provider: 'Google',
+    id: 'claude-3-sonnet',
+    name: 'Claude 3 Sonnet',
+    provider: 'Anthropic',
     tier: 'paid',
-    description: 'Advanced Google AI model with superior reasoning',
-    maxTokens: 2000000,
+    description: 'Balanced performance and speed from Anthropic',
+    maxTokens: 200000,
     costPer1k: 0.003
   },
   {
@@ -48,13 +40,38 @@ export const availableModels: AIModel[] = [
     costPer1k: 0.01
   },
   {
-    id: 'claude-3-sonnet',
-    name: 'Claude 3 Sonnet',
-    provider: 'Anthropic',
+    id: 'deepseek-coder',
+    name: 'DeepSeek Coder',
+    provider: 'DeepSeek',
     tier: 'paid',
-    description: 'Balanced performance and speed',
-    maxTokens: 200000,
-    costPer1k: 0.003
+    description: 'Specialized coding AI model with advanced programming capabilities',
+    maxTokens: 16000,
+    costPer1k: 0.0014
+  },
+  {
+    id: 'gemini-1.5-flash',
+    name: 'Gemini 1.5 Flash',
+    provider: 'Google',
+    tier: 'free',
+    description: 'Fast and efficient Google AI model (Free)',
+    maxTokens: 1000000
+  },
+  {
+    id: 'gemini-1.5-pro',
+    name: 'Gemini 1.5 Pro',
+    provider: 'Google',
+    tier: 'paid',
+    description: 'Advanced Google AI model with superior reasoning (Paid)',
+    maxTokens: 2000000,
+    costPer1k: 0.0025
+  },
+  {
+    id: 'ollama-mistral',
+    name: 'Mistral 7B (Local)',
+    provider: 'Ollama',
+    tier: 'free',
+    description: 'Local Mistral model running via Ollama',
+    maxTokens: 8192
   }
 ];
 
