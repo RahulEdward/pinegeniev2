@@ -280,8 +280,8 @@ model Strategy {
   name            String
   description     String?
   category        String?
-  nodes           Json              @default("[]") // Array of StrategyNode objects
-  connections     Json              @default("[]") // Array of NodeConnection objects
+  nodes           Json              // Array of StrategyNode objects
+  connections     Json              // Array of NodeConnection objects
   pineScriptCode  String?           @map("pine_script_code")
   isPublic        Boolean           @default(false) @map("is_public")
   tags            String?           // JSON array of tags
@@ -316,8 +316,8 @@ model StrategyVersion {
   version         Int
   name            String
   description     String?
-  nodes           Json     @default("[]")
-  connections     Json     @default("[]")
+  nodes           Json
+  connections     Json
   pineScriptCode  String?  @map("pine_script_code")
   changeLog       String?  @map("change_log")
   createdAt       DateTime @default(now()) @map("created_at")
@@ -354,8 +354,8 @@ model StrategyTemplate {
   name        String
   description String
   category    String
-  nodes       Json       @default("[]")
-  connections Json       @default("[]")
+  nodes       Json
+  connections Json
   tags        String?    // JSON array of tags
   difficulty  String     @default("beginner") // beginner, intermediate, advanced
   isOfficial  Boolean    @default(false) @map("is_official")
@@ -425,7 +425,7 @@ model AgentConversation {
   userId          String            @map("user_id")
   sessionId       String            @unique @map("session_id")
   agentType       String            @default("pinescript") @map("agent_type")
-  context         Json              @default("{}")
+  context         Json
   createdAt       DateTime          @default(now()) @map("created_at")
   updatedAt       DateTime          @updatedAt @map("updated_at")
   user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -447,7 +447,7 @@ model AgentMessage {
   conversationId  String            @map("conversation_id")
   role            AgentMessageRole
   content         String
-  metadata        Json?             @default("{}")
+  metadata        Json?
   createdAt       DateTime          @default(now()) @map("created_at")
   conversation    AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
@@ -466,7 +466,7 @@ model GeneratedPineCode {
   code            String            @map("pine_script_code")
   version         Int               @default(1)
   validationStatus String           @default("pending") @map("validation_status")
-  metadata        Json?             @default("{}")
+  metadata        Json?
   createdAt       DateTime          @default(now()) @map("created_at")
   conversation    AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -485,4 +485,23 @@ enum AgentMessageRole {
   USER
   AGENT
   SYSTEM
+}
+
+// Encrypted API Keys Storage
+model ApiKey {
+  id          String   @id @default(cuid())
+  provider    String   @unique // 'openai', 'anthropic', 'google', 'deepseek', 'ollama'
+  keyName     String   @map("key_name") // Display name for the key
+  encryptedKey String  @map("encrypted_key") // AES-256 encrypted API key
+  isActive    Boolean  @default(true) @map("is_active")
+  lastUsed    DateTime? @map("last_used")
+  usageCount  Int      @default(0) @map("usage_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdBy   String   @map("created_by") // Admin user ID who added the key
+
+  @@index([provider])
+  @@index([isActive])
+  @@index([createdAt])
+  @@map("api_keys")
 }

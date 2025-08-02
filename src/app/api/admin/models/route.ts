@@ -1,16 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
-import { prisma } from '@/lib/prisma';
+import { availableModels } from '@/lib/ai-models';
+
+// In-memory storage for model status (in production, use database)
+let modelStatus = new Map<string, { isActive: boolean; isDefault: boolean }>();
+
+// Initialize with default status
+if (modelStatus.size === 0) {
+  availableModels.forEach((model, index) => {
+    modelStatus.set(model.id, {
+      isActive: model.id === 'pine-genie', // Pine Genie is active by default
+      isDefault: model.id === 'pine-genie' // Pine Genie is default
+    });
+  });
+}
 
 export async function GET() {
   try {
     await requireAdmin();
 
-    const models = await prisma.lLMModel.findMany({
-      orderBy: [
-        { isDefault: 'desc' },
-        { name: 'asc' },
-      ],
+    // Convert your real models to the admin format
+    const models = availableModels.map(model => {
+      const status = modelStatus.get(model.id) || { isActive: false, isDefault: false };
+      
+      return {
+        id: model.id,
+        name: model.id,
+        provider: model.provider,
+        modelId: model.id,
+        displayName: model.name,
+        description: model.description,
+        isActive: status.isActive,
+        isDefault: status.isDefault,
+        maxTokens: model.maxTokens,
+        costPer1kTokens: model.costPer1k,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
     });
 
     return NextResponse.json(models);
@@ -36,41 +62,10 @@ export async function POST(request: NextRequest) {
   try {
     await requireAdmin();
 
-    const {
-      name,
-      provider,
-      modelId,
-      displayName,
-      description,
-      isActive,
-      isDefault,
-      maxTokens,
-      costPer1kTokens,
-    } = await request.json();
-
-    // If setting as default, unset other defaults
-    if (isDefault) {
-      await prisma.lLMModel.updateMany({
-        where: { isDefault: true },
-        data: { isDefault: false },
-      });
-    }
-
-    const model = await prisma.lLMModel.create({
-      data: {
-        name,
-        provider,
-        modelId,
-        displayName,
-        description,
-        isActive: isActive ?? true,
-        isDefault: isDefault ?? false,
-        maxTokens,
-        costPer1kTokens,
-      },
-    });
-
-    return NextResponse.json(model);
+    return NextResponse.json(
+      { error: 'Adding custom models not supported. Models are managed in src/lib/ai-models.ts' },
+      { status: 400 }
+    );
   } catch (error) {
     console.error('Create Model Error:', error);
     

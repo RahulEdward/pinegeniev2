@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import ThemeScript from '@/agents/pinegenie-agent/components/ThemeScript';
+import ThemeInitializer from '@/components/ThemeInitializer';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
         <ThemeScript />
       </head>
       <body className={inter.className}>
+        <ThemeInitializer />
         <Providers>
           {children}
         </Providers>

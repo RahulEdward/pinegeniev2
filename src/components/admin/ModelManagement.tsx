@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Settings, Check, X } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface LLMModel {
@@ -22,8 +22,7 @@ interface LLMModel {
 export default function ModelManagement() {
   const [models, setModels] = useState<LLMModel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [editingModel, setEditingModel] = useState<LLMModel | null>(null);
+
 
   useEffect(() => {
     fetchModels();
@@ -43,24 +42,7 @@ export default function ModelManagement() {
     }
   };
 
-  const handleAddModel = async (modelData: Partial<LLMModel>) => {
-    try {
-      const response = await fetch('/api/admin/models', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(modelData),
-      });
 
-      if (!response.ok) throw new Error('Failed to create model');
-      
-      toast.success('Model added successfully');
-      setShowAddModal(false);
-      fetchModels();
-    } catch (error) {
-      console.error('Add model error:', error);
-      toast.error('Failed to add model');
-    }
-  };
 
   const toggleModelStatus = async (modelId: string, isActive: boolean) => {
     try {
@@ -112,36 +94,33 @@ export default function ModelManagement() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            LLM Model Management
+            AI Model Management
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            Manage AI models for PineGenie AI chat
+            Manage your real AI models - activate/deactivate and set defaults
           </p>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-        >
-          <Plus className="w-4 h-4" />
-          Add Model
-        </button>
+        <div className="text-sm text-gray-500 dark:text-gray-400">
+          Models are defined in <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">src/lib/ai-models.ts</code>
+        </div>
       </div>
 
       {/* API Keys Status */}
-      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
         <div className="flex items-start">
-          <Settings className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5 mr-3" />
+          <Settings className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3" />
           <div>
-            <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-              API Configuration Required
+            <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
+              Real AI Models Loaded
             </h3>
-            <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-              Add your OpenAI and Anthropic API keys to .env.local to enable full AI functionality. 
-              Currently running in demo mode with mock responses.
+            <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+              These are your actual AI models from the configuration. You can activate/deactivate them and set defaults.
+              Add API keys to .env.local to enable external models.
             </p>
-            <div className="mt-2 text-xs text-yellow-600 dark:text-yellow-400">
-              <p>• OPENAI_API_KEY=your_openai_key_here</p>
-              <p>• ANTHROPIC_API_KEY=your_anthropic_key_here</p>
+            <div className="mt-2 text-xs text-blue-600 dark:text-blue-400">
+              <p>• OPENAI_API_KEY=your_openai_key_here (for GPT models)</p>
+              <p>• ANTHROPIC_API_KEY=your_anthropic_key_here (for Claude models)</p>
+              <p>• GOOGLE_AI_KEY=your_google_key_here (for Gemini models)</p>
             </div>
           </div>
         </div>
@@ -219,221 +198,17 @@ export default function ModelManagement() {
         ))}
       </div>
 
-      {/* Add Model Modal */}
-      {showAddModal && (
-        <AddModelModal
-          onClose={() => setShowAddModal(false)}
-          onAdd={handleAddModel}
-        />
-      )}
-    </div>
-  );
-}
-
-interface AddModelModalProps {
-  onClose: () => void;
-  onAdd: (model: Partial<LLMModel>) => void;
-}
-
-function AddModelModal({ onClose, onAdd }: AddModelModalProps) {
-  const [formData, setFormData] = useState({
-    name: '',
-    provider: 'openai',
-    modelId: '',
-    displayName: '',
-    description: '',
-    maxTokens: '',
-    costPer1kTokens: '',
-    isActive: true,
-    isDefault: false,
-  });
-
-  const presetModels = {
-    openai: [
-      { id: 'gpt-4', name: 'GPT-4', maxTokens: 8192 },
-      { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', maxTokens: 128000 },
-      { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', maxTokens: 4096 },
-    ],
-    claude: [
-      { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus', maxTokens: 200000 },
-      { id: 'claude-3-sonnet-20240229', name: 'Claude 3 Sonnet', maxTokens: 200000 },
-      { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku', maxTokens: 200000 },
-    ],
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onAdd({
-      ...formData,
-      maxTokens: formData.maxTokens ? parseInt(formData.maxTokens) : undefined,
-      costPer1kTokens: formData.costPer1kTokens ? parseFloat(formData.costPer1kTokens) : undefined,
-    });
-  };
-
-  const handlePresetSelect = (preset: any) => {
-    setFormData(prev => ({
-      ...prev,
-      modelId: preset.id,
-      displayName: preset.name,
-      name: preset.id,
-      maxTokens: preset.maxTokens.toString(),
-    }));
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Add New Model
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Provider
-            </label>
-            <select
-              value={formData.provider}
-              onChange={(e) => setFormData(prev => ({ ...prev, provider: e.target.value }))}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white"
-            >
-              <option value="openai">OpenAI</option>
-              <option value="claude">Claude (Anthropic)</option>
-            </select>
-          </div>
-
-          {/* Preset Models */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Quick Select
-            </label>
-            <div className="grid grid-cols-1 gap-2">
-              {presetModels[formData.provider as keyof typeof presetModels].map((preset) => (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => handlePresetSelect(preset)}
-                  className="text-left p-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  <div className="font-medium">{preset.name}</div>
-                  <div className="text-sm text-gray-500">{preset.id}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Model ID
-            </label>
-            <input
-              type="text"
-              value={formData.modelId}
-              onChange={(e) => setFormData(prev => ({ ...prev, modelId: e.target.value }))}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Display Name
-            </label>
-            <input
-              type="text"
-              value={formData.displayName}
-              onChange={(e) => setFormData(prev => ({ ...prev, displayName: e.target.value }))}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Description
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white"
-              rows={2}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Max Tokens
-              </label>
-              <input
-                type="number"
-                value={formData.maxTokens}
-                onChange={(e) => setFormData(prev => ({ ...prev, maxTokens: e.target.value }))}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Cost per 1K tokens
-              </label>
-              <input
-                type="number"
-                step="0.001"
-                value={formData.costPer1kTokens}
-                onChange={(e) => setFormData(prev => ({ ...prev, costPer1kTokens: e.target.value }))}
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-white"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.isActive}
-                onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Active</span>
-            </label>
-
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={formData.isDefault}
-                onChange={(e) => setFormData(prev => ({ ...prev, isDefault: e.target.checked }))}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">Set as Default</span>
-            </label>
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-            >
-              Add Model
-            </button>
-          </div>
-        </form>
+      {/* Note about adding models */}
+      <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+          Want to add more models?
+        </h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          To add new AI models, edit the <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">availableModels</code> array 
+          in <code className="bg-gray-200 dark:bg-gray-700 px-1 rounded">src/lib/ai-models.ts</code>
+        </p>
       </div>
     </div>
   );
 }
+

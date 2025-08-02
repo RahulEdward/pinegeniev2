@@ -1,6 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
-import { prisma } from '@/lib/prisma';
+import { availableModels } from '@/lib/ai-models';
+
+// In-memory storage for model status (in production, use database)
+let modelStatus = new Map<string, { isActive: boolean; isDefault: boolean }>();
+
+// Initialize with default status
+if (modelStatus.size === 0) {
+  availableModels.forEach((model, index) => {
+    modelStatus.set(model.id, {
+      isActive: model.id === 'pine-genie', // Pine Genie is active by default
+      isDefault: model.id === 'pine-genie' // Pine Genie is default
+    });
+  });
+}
 
 export async function PATCH(
   request: NextRequest,
@@ -11,20 +24,52 @@ export async function PATCH(
     const { id } = params;
     const data = await request.json();
 
+    // Check if model exists in our available models
+    const model = availableModels.find(m => m.id === id);
+    if (!model) {
+      return NextResponse.json(
+        { error: 'Model not found' },
+        { status: 404 }
+      );
+    }
+
+    // Get current status
+    const currentStatus = modelStatus.get(id) || { isActive: false, isDefault: false };
+
     // If setting as default, unset other defaults
     if (data.isDefault) {
-      await prisma.lLMModel.updateMany({
-        where: { isDefault: true },
-        data: { isDefault: false },
+      modelStatus.forEach((status, modelId) => {
+        if (modelId !== id) {
+          status.isDefault = false;
+        }
       });
     }
 
-    const model = await prisma.lLMModel.update({
-      where: { id },
-      data,
-    });
+    // Update status
+    const newStatus = {
+      isActive: data.isActive !== undefined ? data.isActive : currentStatus.isActive,
+      isDefault: data.isDefault !== undefined ? data.isDefault : currentStatus.isDefault
+    };
 
-    return NextResponse.json(model);
+    modelStatus.set(id, newStatus);
+
+    // Return updated model
+    const updatedModel = {
+      id: model.id,
+      name: model.id,
+      provider: model.provider,
+      modelId: model.id,
+      displayName: model.name,
+      description: model.description,
+      isActive: newStatus.isActive,
+      isDefault: newStatus.isDefault,
+      maxTokens: model.maxTokens,
+      costPer1kTokens: model.costPer1k,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    return NextResponse.json(updatedModel);
   } catch (error) {
     console.error('Update Model Error:', error);
     
@@ -49,25 +94,11 @@ export async function DELETE(
 ) {
   try {
     await requireAdmin();
-    const { id } = params;
 
-    // Check if model is default
-    const model = await prisma.lLMModel.findUnique({
-      where: { id },
-    });
-
-    if (model?.isDefault) {
-      return NextResponse.json(
-        { error: 'Cannot delete default model' },
-        { status: 400 }
-      );
-    }
-
-    await prisma.lLMModel.delete({
-      where: { id },
-    });
-
-    return NextResponse.json({ success: true });
+    return NextResponse.json(
+      { error: 'Cannot delete predefined models. Models are managed in src/lib/ai-models.ts' },
+      { status: 400 }
+    );
   } catch (error) {
     console.error('Delete Model Error:', error);
     

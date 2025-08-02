@@ -33,6 +33,23 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# API keys storage (development)
+.api-keys.json
+.api-keys.*.json
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Security and encryption keys
+encryption.key
+secrets.json
+.secrets/
+
+# Kiro IDE documentation and specs
+.kiro/
+*.kiro
+
 # vercel
 .vercel
 

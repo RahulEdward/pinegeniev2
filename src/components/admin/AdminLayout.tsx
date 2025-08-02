@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import LogoutButton from './LogoutButton';
 import EnhancedThemeToggle from './EnhancedThemeToggle';
+import React from 'react';
 
 const iconMap = {
   LayoutDashboard,
@@ -69,10 +70,22 @@ const navigationItems: NavigationItem[] = [
     href: '/admin/users',
   },
   {
+    id: 'ai-control',
+    label: 'AI Control',
+    icon: Bot,
+    href: '/admin/ai-control',
+  },
+  {
     id: 'models',
     label: 'AI Models',
     icon: Bot,
     href: '/admin/models',
+  },
+  {
+    id: 'api-keys',
+    label: 'API Keys',
+    icon: Shield,
+    href: '/admin/api-keys',
   },
   {
     id: 'analytics',
@@ -104,8 +117,20 @@ export default function AdminLayout({ children, title, breadcrumbs, actions, adm
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
 
+  // Apply admin theme class to the layout
+  React.useEffect(() => {
+    document.body.classList.add('admin-layout');
+    // Initialize theme manager
+    if (typeof window !== 'undefined') {
+      import('@/lib/theme-manager').then(({ getThemeManager }) => {
+        getThemeManager();
+      });
+    }
+    return () => document.body.classList.remove('admin-layout');
+  }, []);
+
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="admin-layout flex min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
@@ -115,7 +140,7 @@ export default function AdminLayout({ children, title, breadcrumbs, actions, adm
       )}
 
       {/* Enhanced Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-800 shadow-xl border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out ${
+      <div className={`admin-sidebar fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-gray-800 shadow-xl border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } lg:translate-x-0 lg:static lg:flex-shrink-0`}>
         {/* Sidebar Header */}
@@ -148,16 +173,16 @@ export default function AdminLayout({ children, title, breadcrumbs, actions, adm
                 <Link
                   key={item.id}
                   href={item.href}
-                  className={`group flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
+                  className={`admin-nav-item group flex items-center px-4 py-3 text-sm font-medium admin-rounded-xl transition-all duration-200 ${
                     isActive
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200 shadow-sm dark:bg-blue-900/50 dark:text-blue-200 dark:border-blue-800'
+                      ? 'active admin-bg-primary-50 admin-text-primary-700 border admin-border-primary-200 shadow-sm dark:bg-blue-900/50 dark:text-blue-200 dark:border-blue-800'
                       : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white'
                   }`}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <Icon className={`w-5 h-5 mr-4 transition-colors ${
+                  <Icon className={`admin-nav-icon w-5 h-5 mr-4 transition-colors ${
                     isActive 
-                      ? 'text-blue-600 dark:text-blue-400' 
+                      ? 'admin-text-primary-600 dark:text-blue-400' 
                       : 'text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-200'
                   }`} />
                   <span className="flex-1">{item.label}</span>
@@ -167,7 +192,7 @@ export default function AdminLayout({ children, title, breadcrumbs, actions, adm
                     </span>
                   )}
                   {isActive && (
-                    <div className="w-1 h-6 bg-blue-600 rounded-full ml-2"></div>
+                    <div className="w-1 h-6 admin-bg-primary-600 admin-rounded ml-2"></div>
                   )}
                 </Link>
               );

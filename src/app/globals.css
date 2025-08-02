@@ -3,6 +3,9 @@
 /* Import agent theme styles */
 @import "../agents/pinegenie-agent/styles/agent-theme.css";
 
+/* Import admin theme styles */
+@import "../styles/admin-theme.css";
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

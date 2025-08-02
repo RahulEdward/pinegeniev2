@@ -2,78 +2,9 @@
 
 import React, { useState } from 'react';
 
-export interface AIModel {
-  id: string;
-  name: string;
-  provider: string;
-  tier: 'free' | 'paid';
-  description: string;
-  maxTokens: number;
-  costPer1k?: number;
-}
+import { availableModels, type AIModel } from '@/lib/ai-models';
 
-export const availableModels: AIModel[] = [
-  {
-    id: 'pine-genie',
-    name: 'Pine Genie AI',
-    provider: 'Custom',
-    tier: 'free',
-    description: 'Specialized Pine Script AI assistant',
-    maxTokens: 4096
-  },
-  {
-    id: 'claude-3-sonnet',
-    name: 'Claude 3 Sonnet',
-    provider: 'Anthropic',
-    tier: 'paid',
-    description: 'Balanced performance and speed from Anthropic',
-    maxTokens: 200000,
-    costPer1k: 0.003
-  },
-  {
-    id: 'gpt-4-turbo',
-    name: 'GPT-4 Turbo',
-    provider: 'OpenAI',
-    tier: 'paid',
-    description: 'Latest GPT-4 model with improved performance',
-    maxTokens: 128000,
-    costPer1k: 0.01
-  },
-  {
-    id: 'deepseek-coder',
-    name: 'DeepSeek Coder',
-    provider: 'DeepSeek',
-    tier: 'paid',
-    description: 'Specialized coding AI model with advanced programming capabilities',
-    maxTokens: 16000,
-    costPer1k: 0.0014
-  },
-  {
-    id: 'gemini-1.5-flash',
-    name: 'Gemini 1.5 Flash',
-    provider: 'Google',
-    tier: 'free',
-    description: 'Fast and efficient Google AI model (Free)',
-    maxTokens: 1000000
-  },
-  {
-    id: 'gemini-1.5-pro',
-    name: 'Gemini 1.5 Pro',
-    provider: 'Google',
-    tier: 'paid',
-    description: 'Advanced Google AI model with superior reasoning (Paid)',
-    maxTokens: 2000000,
-    costPer1k: 0.0025
-  },
-  {
-    id: 'ollama-mistral',
-    name: 'Mistral 7B (Local)',
-    provider: 'Ollama',
-    tier: 'free',
-    description: 'Local Mistral model running via Ollama',
-    maxTokens: 8192
-  }
-];
+export { availableModels, type AIModel };
 
 interface ModelSelectorProps {
   selectedModel: string;
