@@ -58,16 +58,11 @@ export function ChatSidebar({
   const [editTitle, setEditTitle] = useState('');
   const [hoveredChatId, setHoveredChatId] = useState<string | null>(null);
 
-  // Navigation items - can be passed as props if needed
-  const navItems = [
-    {
-      id: 'new-chat',
-      label: 'New Chat',
-      icon: Plus,
-      action: onNewChat,
-      highlight: true
-    }
-  ];
+  // Handle new chat click
+  const handleNewChatClick = () => {
+    console.log('New Chat clicked in sidebar');
+    onNewChat();
+  };
 
   const handleRenameStart = (chatId: string, currentTitle: string) => {
     setEditingChatId(chatId);
@@ -132,41 +127,21 @@ export function ChatSidebar({
           )}
         </div>
 
-        {/* Navigation */}
-        <div className="p-4 space-y-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={item.action}
-                className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${item.highlight ? 'hover:scale-105' : ''
-                  }`}
-                style={{
-                  backgroundColor: item.highlight ? colors.accent.blue : 'transparent',
-                  color: item.highlight ? '#ffffff' : colors.text.primary,
-                  ':hover': {
-                    backgroundColor: item.highlight ? colors.accent.blue : colors.bg.tertiary
-                  }
-                }}
-                onMouseEnter={(e) => {
-                  if (!item.highlight) {
-                    e.currentTarget.style.backgroundColor = colors.bg.tertiary;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!item.highlight) {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }
-                }}
-              >
-                <Icon className={`h-5 w-5 ${item.highlight ? 'text-white' : ''}`} />
-                {isOpen && (
-                  <span className="font-medium">{item.label}</span>
-                )}
-              </button>
-            );
-          })}
+        {/* New Chat Button */}
+        <div className="p-4">
+          <button
+            onClick={handleNewChatClick}
+            className="w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 cursor-pointer hover:scale-105"
+            style={{
+              backgroundColor: colors.accent.blue,
+              color: '#ffffff'
+            }}
+          >
+            <Plus className="h-5 w-5 text-white" />
+            {isOpen && (
+              <span className="font-medium">New Chat</span>
+            )}
+          </button>
         </div>
 
         {/* Chat History */}

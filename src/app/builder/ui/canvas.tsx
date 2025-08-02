@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { ThemeProvider, useTheme } from './ThemeProvider';
 import Sidebar from './Sidebar';
 import Toolbar from './toolbar';
@@ -6,46 +6,133 @@ import N8nNode, { N8nNodeData } from './N8nNode';
 import ConnectionLine from './ConnectionLine';
 import ValidationStatus from './ValidationStatus';
 import UserManual from './UserManual';
-
-interface Connection {
-  id: string;
-  source: string;
-  target: string;
-  sourceType: 'input' | 'output';
-  targetType: 'input' | 'output';
-}
+import { getHandleScreenPosition, screenToCanvas, DEFAULT_NODE_DIMENSIONS } from '../utils/coordinate-system';
+import {
+  ConnectionNode,
+  Connection,
+  getConnectionManager
+} from '../utils/connection-manager';
+import {
+  MouseEventManager,
+  MouseEventHandlers,
+  InteractionMode,
+  getMouseEventManager,
+  resetMouseEventManager
+} from '../utils/mouse-event-manager';
 
 const initialNodes: N8nNodeData[] = [];
-const initialConnections: Connection[] = [];
 
 const Canvas: React.FC = () => {
   const { colors, isDark, toggleTheme } = useTheme();
   const [nodes, setNodes] = useState<N8nNodeData[]>(initialNodes);
-  const [connections, setConnections] = useState<Connection[]>(initialConnections);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
-  const [isPanning, setIsPanning] = useState(false);
-  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
-  const [connecting, setConnecting] = useState<{
-    sourceId: string;
-    sourceType: 'input' | 'output';
-    startPosition: { x: number; y: number };
-  } | null>(null);
-  const [tempConnection, setTempConnection] = useState<{
-    start: { x: number; y: number };
-    end: { x: number; y: number };
-  } | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [backgroundType, setBackgroundType] = useState<'grid' | 'dots' | 'lines' | 'clean'>('grid');
   const [isManualOpen, setIsManualOpen] = useState(false);
+  const [currentInteractionMode, setCurrentInteractionMode] = useState<InteractionMode>('idle');
   const canvasRef = useRef<HTMLDivElement>(null);
+
+  // Enhanced connection management
+  const connectionManager = getConnectionManager();
+  const [connections, setConnections] = useState<Connection[]>([]);
+  const [activeConnection, setActiveConnection] = useState<{
+    start: { x: number; y: number };
+    end: { x: number; y: number };
+    isValid: boolean;
+  } | null>(null);
+
+  // Enhanced mouse event management
+  const mouseEventHandlers: MouseEventHandlers = {
+    onNodeDragStart: (nodeId: string, position, offset) => {
+      setSelectedNode(nodeId);
+    },
+    onNodeDragMove: (nodeId: string, position) => {
+      onNodeMove(nodeId, position);
+    },
+    onNodeDragEnd: (nodeId: string) => {
+      // Node drag completed
+    },
+    onConnectionStart: (nodeId: string, handleType, position) => {
+      connectionManager.startConnection(nodeId, handleType, position);
+    },
+    onConnectionMove: (position) => {
+      connectionManager.updateConnectionPosition(position);
+    },
+    onConnectionEnd: (nodeId?: string, handleType?: 'input' | 'output') => {
+      if (nodeId && handleType) {
+        connectionManager.completeConnection(nodeId, handleType);
+      } else {
+        connectionManager.cancelConnection();
+      }
+    },
+    onCanvasPanStart: (position) => {
+      setSelectedNode(null);
+    },
+    onCanvasPanMove: (delta) => {
+      setCanvasOffset(prev => ({
+        x: prev.x + delta.x,
+        y: prev.y + delta.y
+      }));
+    },
+    onCanvasPanEnd: () => {
+      // Canvas panning completed
+    },
+    onModeChange: (mode: InteractionMode) => {
+      setCurrentInteractionMode(mode);
+    }
+  };
+
+  const mouseEventManager = getMouseEventManager(
+    { zoom, offset: canvasOffset },
+    mouseEventHandlers
+  );
+
+  // Initialize connection manager and subscribe to changes
+  useEffect(() => {
+    const unsubscribe = connectionManager.subscribe((state) => {
+      setConnections(state.connections);
+
+      // Update active connection display
+      if (state.activeConnection) {
+        setActiveConnection({
+          start: state.activeConnection.startPosition,
+          end: state.activeConnection.currentPosition,
+          isValid: state.activeConnection.isValid
+        });
+      } else {
+        setActiveConnection(null);
+      }
+    });
+
+    // Update canvas state in connection manager and mouse event manager
+    connectionManager.updateCanvasState({ zoom, offset: canvasOffset });
+    mouseEventManager.updateCanvasState({ zoom, offset: canvasOffset });
+
+    return unsubscribe;
+  }, [connectionManager, mouseEventManager, zoom, canvasOffset]);
+
+  // Update connection manager when nodes change
+  useEffect(() => {
+    const connectionNodes: ConnectionNode[] = nodes.map(node => ({
+      id: node.id,
+      type: node.type,
+      position: node.position,
+      data: {
+        ...node,
+        label: node.label
+      }
+    }));
+
+    connectionManager.updateNodes(connectionNodes);
+  }, [nodes, connectionManager]);
 
   // Node operations
   const onNodeAdd = (nodeTemplate: { type: string; label: string; description: string }) => {
     // Create proper configuration based on node type
     let nodeConfig = {};
-    
+
     // Configure based on node type for zero-error system
     switch (nodeTemplate.type) {
       case 'data':
@@ -89,19 +176,63 @@ const Canvas: React.FC = () => {
         nodeConfig = {};
     }
 
+    // Simple and reliable positioning - center of visible area
+    let newNodePosition = { x: 0, y: 0 };
+    
+    if (canvasRef.current) {
+      const canvasRect = canvasRef.current.getBoundingClientRect();
+      
+      // Calculate center position in canvas coordinates
+      // This accounts for zoom and canvas offset properly
+      const viewportCenterX = canvasRect.width / 2;
+      const viewportCenterY = canvasRect.height / 2;
+      
+      // Convert screen coordinates to canvas coordinates
+      const canvasCenterX = (viewportCenterX - canvasOffset.x) / zoom;
+      const canvasCenterY = (viewportCenterY - canvasOffset.y) / zoom;
+      
+      // Position node at center
+      newNodePosition = {
+        x: canvasCenterX - DEFAULT_NODE_DIMENSIONS.width / 2,
+        y: canvasCenterY - DEFAULT_NODE_DIMENSIONS.height / 2
+      };
+      
+      // Add small offset for each new node to prevent overlap
+      const offsetAmount = 40;
+      const offsetIndex = nodes.length % 8; // Cycle through 8 positions
+      const angle = (offsetIndex * Math.PI * 2) / 8; // Distribute in circle
+      
+      newNodePosition.x += Math.cos(angle) * offsetAmount;
+      newNodePosition.y += Math.sin(angle) * offsetAmount;
+      
+    } else {
+      // Fallback positioning
+      newNodePosition = {
+        x: 300 + (nodes.length * 40),
+        y: 200 + (nodes.length * 40)
+      };
+    }
+
     const newNode: N8nNodeData = {
       id: `${nodeTemplate.type}-${Date.now()}`,
       type: nodeTemplate.type,
       label: nodeTemplate.label,
       description: nodeTemplate.description,
       props: nodeConfig,
-      position: { x: 150 + Math.random() * 100, y: 100 + nodes.length * 80 }
+      position: newNodePosition
     };
+    
     setNodes(prev => [...prev, newNode]);
   };
 
   const onNodeMove = (nodeId: string, newPosition: { x: number; y: number }) => {
-    setNodes(prev => prev.map(node => node.id === nodeId ? { ...node, position: newPosition } : node));
+    // Update node position directly without boundary restrictions for smooth movement
+    setNodes(prev => prev.map(node => 
+      node.id === nodeId ? { ...node, position: newPosition } : node
+    ));
+
+    // Update connection manager with new position
+    connectionManager.updateConnectionsForNodeMove(nodeId, newPosition);
   };
 
   const onNodeUpdate = (nodeId: string, updatedNode: N8nNodeData) => {
@@ -110,75 +241,147 @@ const Canvas: React.FC = () => {
 
   const onNodeDelete = (nodeId: string) => {
     setNodes(prev => prev.filter(node => node.id !== nodeId));
-    setConnections(prev => prev.filter(conn => conn.source !== nodeId && conn.target !== nodeId));
+
+    // Delete all connections involving this node
+    connectionManager.deleteConnectionsForNode(nodeId);
+
     if (selectedNode === nodeId) setSelectedNode(null);
   };
 
   const onNodeSelect = (nodeId: string) => setSelectedNode(nodeId);
 
-  // Connection operations
+  // Enhanced connection operations using connection manager
   const onConnectionStart = (nodeId: string, type: 'input' | 'output', position: { x: number; y: number }) => {
-    setConnecting({ sourceId: nodeId, sourceType: type, startPosition: position });
+    if (!canvasRef.current) return;
+    mouseEventManager.handleHandleMouseDown(nodeId, type, {
+      preventDefault: () => {},
+      stopPropagation: () => {},
+      clientX: position.x,
+      clientY: position.y
+    } as React.MouseEvent, canvasRef.current);
   };
 
   const onConnectionEnd = (nodeId: string, type: 'input' | 'output') => {
-    if (connecting && connecting.sourceId !== nodeId) {
-      const newConnection: Connection = {
-        id: `${connecting.sourceId}-${nodeId}`,
-        source: connecting.sourceId,
-        target: nodeId,
-        sourceType: connecting.sourceType,
-        targetType: type
-      };
-      setConnections(prev => [...prev, newConnection]);
-    }
-    setConnecting(null);
-    setTempConnection(null);
+    mouseEventManager.handleHandleMouseUp(nodeId, type, {
+      preventDefault: () => {},
+      stopPropagation: () => {}
+    } as React.MouseEvent);
   };
 
-  // Canvas panning
+  // Connection deletion with enhanced cleanup
+  const onConnectionDelete = (connectionId: string) => {
+    connectionManager.deleteConnection(connectionId);
+  };
+
+  // Enhanced canvas mouse down using mouse event manager
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
-    if (e.target === canvasRef.current) {
-      setIsPanning(true);
-      setPanStart({ x: e.clientX, y: e.clientY });
-      setSelectedNode(null);
-    }
+    if (!canvasRef.current) return;
+    mouseEventManager.handleCanvasMouseDown(e, canvasRef.current);
   };
 
-  const handleCanvasMouseMove = useCallback((e: MouseEvent) => {
-    if (isPanning) {
-      const deltaX = e.clientX - panStart.x;
-      const deltaY = e.clientY - panStart.y;
-      setCanvasOffset(prev => ({ x: prev.x + deltaX, y: prev.y + deltaY }));
-      setPanStart({ x: e.clientX, y: e.clientY });
-    }
-    if (connecting) {
-      setTempConnection({
-        start: connecting.startPosition,
-        end: { x: e.clientX, y: e.clientY }
-      });
-    }
-  }, [isPanning, panStart, connecting]);
-
-  const handleCanvasMouseUp = useCallback(() => {
-    setIsPanning(false);
-    setConnecting(null);
-    setTempConnection(null);
+  // Cleanup mouse event manager on unmount
+  useEffect(() => {
+    return () => {
+      resetMouseEventManager();
+    };
   }, []);
 
-  React.useEffect(() => {
-    document.addEventListener('mousemove', handleCanvasMouseMove);
-    document.addEventListener('mouseup', handleCanvasMouseUp);
-    return () => {
-      document.removeEventListener('mousemove', handleCanvasMouseMove);
-      document.removeEventListener('mouseup', handleCanvasMouseUp);
-    };
-  }, [handleCanvasMouseMove, handleCanvasMouseUp]);
+  // Canvas clear with enhanced connection cleanup
+  // Enhanced multiple node addition with automatic spacing
+  const onMultipleNodesAdd = (nodeTemplates: Array<{ type: string; label: string; description: string }>) => {
+    if (!canvasRef.current || nodeTemplates.length === 0) return;
 
-  // Canvas clear
+    // Import positioning utilities dynamically
+    import('../utils/node-positioning').then(({ calculateMultipleNodePositions }) => {
+      const existingNodes = nodes.map(node => ({
+        id: node.id,
+        position: node.position,
+        dimensions: DEFAULT_NODE_DIMENSIONS
+      }));
+
+      const newPositions = calculateMultipleNodePositions(
+        nodeTemplates.length,
+        canvasRef.current!,
+        { zoom, offset: canvasOffset },
+        existingNodes,
+        DEFAULT_NODE_DIMENSIONS
+      );
+
+      const newNodes: N8nNodeData[] = nodeTemplates.map((template, index) => {
+        // Create proper configuration based on node type
+        let nodeConfig = {};
+        switch (template.type) {
+          case 'data':
+            nodeConfig = { symbol: 'BTCUSDT', timeframe: '1h', source: 'close' };
+            break;
+          case 'indicator':
+            nodeConfig = { indicatorId: 'sma', parameters: { period: 20, source: 'close' } };
+            break;
+          case 'condition':
+            nodeConfig = { operator: 'greater_than', threshold: 50 };
+            break;
+          case 'action':
+            nodeConfig = { orderType: 'market', quantity: '25%' };
+            break;
+          case 'risk':
+            nodeConfig = { stopLoss: 2, takeProfit: 5, maxRisk: 1 };
+            break;
+          default:
+            nodeConfig = {};
+        }
+
+        return {
+          id: `${template.type}-${Date.now()}-${index}`,
+          type: template.type,
+          label: template.label,
+          description: template.description,
+          props: nodeConfig,
+          position: newPositions[index] || { x: 100 + index * 50, y: 100 + index * 50 }
+        };
+      });
+
+      setNodes(prev => [...prev, ...newNodes]);
+    }).catch(() => {
+      // Fallback to simple positioning
+      const newNodes: N8nNodeData[] = nodeTemplates.map((template, index) => {
+        let nodeConfig = {};
+        switch (template.type) {
+          case 'data':
+            nodeConfig = { symbol: 'BTCUSDT', timeframe: '1h', source: 'close' };
+            break;
+          case 'indicator':
+            nodeConfig = { indicatorId: 'sma', parameters: { period: 20, source: 'close' } };
+            break;
+          case 'condition':
+            nodeConfig = { operator: 'greater_than', threshold: 50 };
+            break;
+          case 'action':
+            nodeConfig = { orderType: 'market', quantity: '25%' };
+            break;
+          case 'risk':
+            nodeConfig = { stopLoss: 2, takeProfit: 5, maxRisk: 1 };
+            break;
+          default:
+            nodeConfig = {};
+        }
+
+        return {
+          id: `${template.type}-${Date.now()}-${index}`,
+          type: template.type,
+          label: template.label,
+          description: template.description,
+          props: nodeConfig,
+          position: { x: 100 + (nodes.length + index) * 50, y: 100 + (nodes.length + index) * 50 }
+        };
+      });
+
+      setNodes(prev => [...prev, ...newNodes]);
+    });
+  };
+
   const clearCanvas = () => {
     setNodes([]);
-    setConnections([]);
+    connectionManager.clearAllConnections();
     setSelectedNode(null);
   };
 
@@ -193,7 +396,7 @@ const Canvas: React.FC = () => {
         if (node.type === 'data') {
           nodeType = 'data-source'; // Fix the type mismatch
         }
-        
+
         return {
           id: node.id,
           type: nodeType as 'data-source' | 'indicator' | 'condition' | 'action' | 'risk',
@@ -220,11 +423,11 @@ const Canvas: React.FC = () => {
 
       // Generate enhanced Pine Script
       const result = generateEnhancedPineScript(convertedNodes, convertedEdges);
-      
+
       if (result.success) {
         navigator.clipboard.writeText(result.code);
         alert(`✅ Zero-Error Pine Script Generated!\n\n📋 Code copied to clipboard\n🎯 ${result.metadata?.codeLines} lines of perfect Pine Script v6\n⚡ ${result.warnings.length} warnings (if any)`);
-        
+
         // Log success details
         console.log('✅ Pine Script Generation Success:', {
           codeLines: result.metadata?.codeLines,
@@ -235,7 +438,7 @@ const Canvas: React.FC = () => {
         // Show detailed error information
         const errorDetails = result.errors.join('\n• ');
         alert(`❌ Pine Script Generation Failed\n\nErrors found:\n• ${errorDetails}\n\nPlease fix these issues and try again.`);
-        
+
         // Still copy the error script for debugging
         navigator.clipboard.writeText(result.code);
         console.error('❌ Pine Script Generation Errors:', result.errors);
@@ -246,17 +449,36 @@ const Canvas: React.FC = () => {
     });
   };
 
-  // Save strategy (placeholder)
+  // Enhanced strategy saving with connection export
   const saveStrategy = () => {
-    const data = { nodes, connections, timestamp: new Date().toISOString() };
+    const connectionData = connectionManager.exportConnections();
+    const data = {
+      nodes,
+      connections: connectionData.connections,
+      metadata: connectionData.metadata,
+      timestamp: new Date().toISOString()
+    };
     localStorage.setItem('pinegenie_strategy', JSON.stringify(data));
     alert('Strategy saved to localStorage!');
   };
 
   const getNodeById = (id: string) => nodes.find(n => n.id === id);
 
+  // Helper function to convert mouse events to canvas coordinates
+  const getCanvasCoordinatesFromMouse = (e: MouseEvent | React.MouseEvent) => {
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return { x: 0, y: 0 };
+
+    const screenPoint = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+
+    return screenToCanvas(screenPoint, { zoom, offset: canvasOffset });
+  };
+
   return (
-    <div className={`flex h-screen bg-gradient-to-br ${colors.bg.primary}`}> 
+    <div className={`flex h-screen bg-gradient-to-br ${colors.bg.primary}`}>
       <Sidebar onNodeAdd={onNodeAdd} isCollapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
       <div className="flex-1 flex flex-col">
         <Toolbar
@@ -274,8 +496,13 @@ const Canvas: React.FC = () => {
         <div className="flex-1 relative overflow-hidden">
           <div
             ref={canvasRef}
-            className="w-full h-full cursor-move relative"
+            className={`w-full h-full relative ${
+              currentInteractionMode === 'creating-connection' ? 'cursor-crosshair' : 
+              currentInteractionMode === 'panning-canvas' ? 'cursor-grabbing' :
+              currentInteractionMode === 'dragging-node' ? 'cursor-grabbing' : 'cursor-move'
+            }`}
             onMouseDown={handleCanvasMouseDown}
+            data-canvas
             style={{
               backgroundImage: isDark ? `
                 radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
@@ -291,7 +518,7 @@ const Canvas: React.FC = () => {
           >
             {/* Dynamic Background */}
             {backgroundType === 'grid' && (
-              <div 
+              <div
                 className="absolute inset-0 opacity-20"
                 style={{
                   backgroundImage: `
@@ -304,7 +531,7 @@ const Canvas: React.FC = () => {
               />
             )}
             {backgroundType === 'dots' && (
-              <div 
+              <div
                 className="absolute inset-0 opacity-40"
                 style={{
                   backgroundImage: `radial-gradient(circle, ${isDark ? 'rgba(148, 163, 184, 0.6)' : 'rgba(71, 85, 105, 0.4)'} 1.5px, transparent 1.5px)`,
@@ -314,7 +541,7 @@ const Canvas: React.FC = () => {
               />
             )}
             {backgroundType === 'lines' && (
-              <div 
+              <div
                 className="absolute inset-0 opacity-15"
                 style={{
                   backgroundImage: `
@@ -326,36 +553,57 @@ const Canvas: React.FC = () => {
                 }}
               />
             )}
-            {/* SVG for connections */}
+            {/* Enhanced SVG for connections with coordinate system integration */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
               {connections.map(conn => {
                 const sourceNode = getNodeById(conn.source);
                 const targetNode = getNodeById(conn.target);
                 if (!sourceNode || !targetNode) return null;
-                const start = {
-                  x: (sourceNode.position.x + 240) * zoom + canvasOffset.x,
-                  y: (sourceNode.position.y + 60) * zoom + canvasOffset.y
-                };
-                const end = {
-                  x: targetNode.position.x * zoom + canvasOffset.x,
-                  y: (targetNode.position.y + 60) * zoom + canvasOffset.y
-                };
+
+                // Use coordinate system utilities for accurate handle positions
+                const canvasState = { zoom, offset: canvasOffset };
+                const start = getHandleScreenPosition(
+                  sourceNode.position,
+                  'output',
+                  canvasState,
+                  DEFAULT_NODE_DIMENSIONS
+                );
+                const end = getHandleScreenPosition(
+                  targetNode.position,
+                  'input',
+                  canvasState,
+                  DEFAULT_NODE_DIMENSIONS
+                );
+
                 return (
                   <ConnectionLine
                     key={conn.id}
                     start={start}
                     end={end}
                     isActive={selectedNode === conn.source || selectedNode === conn.target}
+                    isValid={true}
                     isDarkMode={isDark}
+                    connectionId={conn.id}
+                    onConnectionClick={(connectionId) => {
+                      // Delete connection on click (with confirmation in production)
+                      onConnectionDelete(connectionId);
+                    }}
+                    onConnectionHover={(connectionId, isHovering) => {
+                      // Add hover effects or tooltips
+                      if (isHovering) {
+                        console.log('Connection hovered:', connectionId);
+                      }
+                    }}
                   />
                 );
               })}
-              {/* Temporary connection */}
-              {tempConnection && (
+              {/* Active connection with enhanced visual feedback */}
+              {activeConnection && (
                 <ConnectionLine
-                  start={tempConnection.start}
-                  end={tempConnection.end}
+                  start={activeConnection.start}
+                  end={activeConnection.end}
                   isTemporary={true}
+                  isValid={activeConnection.isValid}
                   isDarkMode={isDark}
                 />
               )}
@@ -374,6 +622,15 @@ const Canvas: React.FC = () => {
                 isSelected={selectedNode === node.id}
                 zoom={zoom}
                 canvasOffset={canvasOffset}
+                mouseEventManager={mouseEventManager}
+                isValidConnectionTarget={
+                  currentInteractionMode === 'creating-connection' && 
+                  mouseEventManager.getState().activeNodeId !== node.id
+                }
+                isConnectionActive={
+                  currentInteractionMode === 'creating-connection' ||
+                  connections.some(conn => conn.source === node.id || conn.target === node.id)
+                }
               />
             ))}
             {/* Welcome screen */}
@@ -391,7 +648,7 @@ const Canvas: React.FC = () => {
                       Welcome to PineGenie Pro
                     </h3>
                     <p className={`${colors.text.secondary} mb-6 leading-relaxed`}>
-                      Build sophisticated trading strategies with our visual drag-and-drop interface. 
+                      Build sophisticated trading strategies with our visual drag-and-drop interface.
                       No coding required - just pure strategy creation.
                     </p>
                     <div className={`flex items-center justify-center gap-3 text-sm ${colors.text.tertiary}`}>
@@ -424,14 +681,14 @@ const Canvas: React.FC = () => {
                       <span className={colors.text.secondary}>Links: {connections.length}</span>
                     </div>
                   </div>
-                  
+
                   {/* Strategy Validation Status */}
                   <div className={`${colors.border.secondary} border-t pt-3`}>
                     <div className="flex items-center justify-between mb-2">
                       <span className={`text-sm font-medium ${colors.text.primary}`}>Strategy Status</span>
                       <ValidationStatus nodes={nodes} connections={connections} />
                     </div>
-                    
+
                     {/* Node Type Breakdown */}
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div className="flex items-center gap-1">
@@ -492,11 +749,11 @@ const Canvas: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       {/* User Manual Modal */}
-      <UserManual 
-        isOpen={isManualOpen} 
-        onClose={() => setIsManualOpen(false)} 
+      <UserManual
+        isOpen={isManualOpen}
+        onClose={() => setIsManualOpen(false)}
       />
     </div>
   );

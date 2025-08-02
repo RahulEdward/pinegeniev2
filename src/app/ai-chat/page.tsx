@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import { Metadata } from 'next';
-import PineGenieInterface from './components/PineGenieInterface';
+import ClaudeStyleInterface from './components/ClaudeStyleInterface';
 
 export const metadata: Metadata = {
   title: 'Pine Genie AI',
@@ -16,5 +16,10 @@ export default async function PineGenieAIPage() {
     redirect('/login');
   }
 
-  return <PineGenieInterface />;
+  return (
+    <ClaudeStyleInterface 
+      userId={session.user?.id || 'default-user'}
+      initialConversation={null}
+    />
+  );
 }

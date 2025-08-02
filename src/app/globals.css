@@ -27,3 +27,59 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+/* Enhanced Connection Line Styles */
+.connection-line {
+  transition: stroke 0.2s ease, stroke-width 0.2s ease;
+}
+
+.connection-line:hover {
+  stroke-width: 3;
+}
+
+.connection-active {
+  stroke-width: 3 !important;
+  stroke: #00d4aa !important;
+}
+
+.connection-temporary {
+  opacity: 0.9 !important;
+  stroke-width: 3 !important;
+  stroke: #ff6d5a !important;
+}
+
+.connection-invalid {
+  stroke: #ff4757 !important;
+}
+
+.connection-interaction-area:hover + path {
+  stroke-width: 3;
+  filter: brightness(1.2);
+}
+
+.connection-handle {
+  transition: all 0.2s ease;
+}
+
+.connection-handle:hover {
+  transform: scale(1.2);
+}
+
+/* Connection Flow Animation */
+@keyframes connection-flow {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* N8N-style dash flow animation for temporary connections */
+@keyframes n8n-dash-flow {
+  0% {
+    stroke-dashoffset: 12;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}

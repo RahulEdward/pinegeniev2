@@ -130,6 +130,7 @@ export interface BuilderState {
  getEdgeById: (id: string) => BuilderEdge | undefined;
  getConnectedNodes: (nodeId: string) => BuilderNode[];
  validateConnection: (connection: Connection) => boolean;
+ checkCircularDependency: (sourceId: string, targetId: string) => boolean;
 }
 
 // Initial state
@@ -374,9 +375,24 @@ const useBuilderStore = create<BuilderState>()(
          set({ backgroundType });
        },
        
-       // Connection Handling
+       // Enhanced Connection Handling with validation
        onConnect: (connection) => {
-         get().addEdge(connection);
+         const state = get();
+         
+         // Enhanced validation using connection manager principles
+         if (!state.validateConnection(connection)) {
+           console.warn('Invalid connection attempt:', connection);
+           return;
+         }
+         
+         // Check for circular dependencies
+         const wouldCreateCycle = state.checkCircularDependency(connection.source, connection.target);
+         if (wouldCreateCycle) {
+           console.warn('Connection would create circular dependency:', connection);
+           return;
+         }
+         
+         state.addEdge(connection);
        },
        
        // History Operations
@@ -561,22 +577,60 @@ const useBuilderStore = create<BuilderState>()(
          const targetNode = state.getNodeById(connection.target);
          if (!sourceNode || !targetNode) return false;
          
-         // Check for circular dependencies (basic)
-         const isCircular = (sourceId: string, targetId: string, visited = new Set<string>()): boolean => {
-           if (visited.has(sourceId)) return true;
-           visited.add(sourceId);
+         // Check for duplicate connections
+         const existingConnection = state.edges.find(edge =>
+           (edge.source === connection.source && edge.target === connection.target) ||
+           (edge.source === connection.target && edge.target === connection.source)
+         );
+         if (existingConnection) return false;
+         
+         return true;
+       },
+       
+       // Enhanced circular dependency detection
+       checkCircularDependency: (sourceId: string, targetId: string): boolean => {
+         const state = get();
+         
+         // Use depth-first search to detect cycles
+         const visited = new Set<string>();
+         const recursionStack = new Set<string>();
+         
+         const hasCycle = (nodeId: string): boolean => {
+           if (recursionStack.has(nodeId)) {
+             return true; // Back edge found, cycle detected
+           }
            
-           const outgoingEdges = state.edges.filter(edge => edge.source === sourceId);
+           if (visited.has(nodeId)) {
+             return false; // Already processed this node
+           }
+           
+           visited.add(nodeId);
+           recursionStack.add(nodeId);
+           
+           // Get all nodes that this node connects to
+           const outgoingEdges = state.edges.filter(edge => edge.source === nodeId);
+           
+           // Add the potential new connection
+           if (nodeId === sourceId) {
+             outgoingEdges.push({
+               id: 'temp',
+               source: sourceId,
+               target: targetId,
+               animated: false
+             });
+           }
+           
            for (const edge of outgoingEdges) {
-             if (edge.target === targetId || isCircular(edge.target, targetId, visited)) {
+             if (hasCycle(edge.target)) {
                return true;
              }
            }
            
+           recursionStack.delete(nodeId);
            return false;
          };
          
-         return !isCircular(connection.target, connection.source);
+         return hasCycle(sourceId);
        }
      }),
      {

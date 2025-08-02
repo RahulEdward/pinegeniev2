@@ -35,6 +35,7 @@ function PineGenieInterfaceContent() {
   // Initialize empty chat history - no auto-creation
 
   const handleNewChat = () => {
+    console.log('handleNewChat called'); // Debug log
     const newChatId = Date.now().toString();
     const newChat: ChatHistory = {
       id: newChatId,
@@ -43,7 +44,10 @@ function PineGenieInterfaceContent() {
       preview: '',
       messages: []
     };
-    setChatHistory(prev => [newChat, ...prev]);
+    setChatHistory(prev => {
+      console.log('Adding new chat to history'); // Debug log
+      return [newChat, ...prev];
+    });
     setCurrentChatId(newChatId);
     setMessages([]);
     setShowWelcome(true);

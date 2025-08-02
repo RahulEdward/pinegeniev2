@@ -50,8 +50,8 @@
     - _Requirements: 2.3, 2.4, 8.1, 8.2_
 
 - [ ] 3. Implement Subscription and Billing System
-  - [ ] 3.1 Set up Razor pay integration    
-    - Configure Stripe webhook handlers for subscription events
+  - [ ] 3.1 Set up Pay U integration    
+    - Configure Pay U webhook handlers for subscription events
     - Implement subscription creation, upgrade, and cancellation flows
     - Create billing portal integration for users to manage their subscriptions
     - Add invoice generation and payment history tracking

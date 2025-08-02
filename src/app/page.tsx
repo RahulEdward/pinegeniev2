@@ -2,13 +2,13 @@
 
 import { useState, useEffect, createContext, useContext } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Menu, 
-  X, 
-  Sun, 
-  Moon, 
-  Play, 
-  ChevronDown, 
+import {
+  Menu,
+  X,
+  Sun,
+  Moon,
+  Play,
+  ChevronDown,
   ChevronUp,
   Zap,
   Bot,
@@ -76,11 +76,11 @@ interface ThemeProviderProps {
 
 const ThemeProvider = ({ children }: ThemeProviderProps) => {
   const [isDark, setIsDark] = useState<boolean>(true);
-  
+
   const toggleTheme = () => {
     setIsDark(!isDark);
   };
-  
+
   const theme: ThemeContextType = {
     isDark,
     toggleTheme,
@@ -90,7 +90,7 @@ const ThemeProvider = ({ children }: ThemeProviderProps) => {
         secondary: isDark ? 'bg-slate-800/80' : 'bg-white/90',
         tertiary: isDark ? 'bg-slate-700/50' : 'bg-gray-100/80',
         card: isDark ? 'bg-slate-800/30' : 'bg-white/60',
-        glass: isDark ? 'bg-slate-800/80 backdrop-blur-xl' : 'bg-white/80 backdrop-blur-xl',
+        glass: isDark ? 'bg-slate-800/80 backdrop-blur-xl' : 'bg-white/95 backdrop-blur-xl',
       },
       text: {
         primary: isDark ? 'text-white' : 'text-gray-900',
@@ -113,7 +113,7 @@ const ThemeProvider = ({ children }: ThemeProviderProps) => {
       }
     }
   };
-  
+
   return (
     <ThemeContext.Provider value={theme}>
       {children}
@@ -154,59 +154,64 @@ const DashboardPreview = () => {
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const [nodePositions, setNodePositions] = useState<NodePosition>({});
   const [dragOffset, setDragOffset] = useState<Position>({ x: 0, y: 0 });
-  
+
+  // Reset node positions on component mount to show updated positions
+  useEffect(() => {
+    setNodePositions({});
+  }, []);
+
   const theme = useTheme();
   if (!theme) return null;
   const { colors } = theme;
 
   const initialNodes = [
-    { 
-      id: 'data-1', 
-      type: 'data', 
-      label: 'Market Data', 
-      icon: Database, 
-      position: { x: 50, y: 150 },
-      color: colors.accent.purple 
+    {
+      id: 'data-1',
+      type: 'data',
+      label: 'Market Data',
+      icon: Database,
+      position: { x: 60, y: 150 },
+      color: colors.accent.purple
     },
-    { 
-      id: 'indicator-1', 
-      type: 'indicator', 
-      label: 'RSI', 
-      icon: TrendingUp, 
-      position: { x: 200, y: 100 },
-      color: colors.accent.blue 
+    {
+      id: 'indicator-1',
+      type: 'indicator',
+      label: 'RSI',
+      icon: TrendingUp,
+      position: { x: 250, y: 90 },
+      color: colors.accent.blue
     },
-    { 
-      id: 'indicator-2', 
-      type: 'indicator', 
-      label: 'MACD', 
-      icon: BarChart3, 
-      position: { x: 200, y: 200 },
-      color: colors.accent.blue 
+    {
+      id: 'indicator-2',
+      type: 'indicator',
+      label: 'MACD',
+      icon: BarChart3,
+      position: { x: 250, y: 210 },
+      color: colors.accent.blue
     },
-    { 
-      id: 'condition-1', 
-      type: 'condition', 
-      label: 'Crossover', 
-      icon: GitBranch, 
-      position: { x: 380, y: 150 },
-      color: colors.accent.orange 
+    {
+      id: 'condition-1',
+      type: 'condition',
+      label: 'Crossover',
+      icon: GitBranch,
+      position: { x: 440, y: 150 },
+      color: colors.accent.orange
     },
-    { 
-      id: 'action-1', 
-      type: 'action', 
-      label: 'Buy Signal', 
-      icon: Zap, 
-      position: { x: 550, y: 120 },
-      color: colors.accent.green 
+    {
+      id: 'action-1',
+      type: 'action',
+      label: 'Buy Signal',
+      icon: Zap,
+      position: { x: 630, y: 110 },
+      color: colors.accent.green
     },
-    { 
-      id: 'risk-1', 
-      type: 'risk', 
-      label: 'Stop Loss', 
-      icon: Shield, 
-      position: { x: 550, y: 180 },
-      color: colors.accent.red 
+    {
+      id: 'risk-1',
+      type: 'risk',
+      label: 'Stop Loss',
+      icon: Shield,
+      position: { x: 630, y: 190 },
+      color: colors.accent.red
     }
   ];
 
@@ -229,27 +234,27 @@ const DashboardPreview = () => {
   const getConnectionPath = (from: string, to: string) => {
     const fromNode = nodes.find(n => n.id === from);
     const toNode = nodes.find(n => n.id === to);
-    
+
     if (!fromNode || !toNode) return '';
-    
+
     const x1 = fromNode.position.x + 60;
     const y1 = fromNode.position.y + 30;
     const x2 = toNode.position.x;
     const y2 = toNode.position.y + 30;
-    
+
     const midX = (x1 + x2) / 2;
-    
+
     return `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
   };
 
   const handleNodeMouseDown = (e: React.MouseEvent, nodeId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const nodeWidth = 140;
-    
+
     if (x > nodeWidth - 20) {
       setIsConnecting(true);
       setDraggedNode(nodeId);
@@ -258,7 +263,7 @@ const DashboardPreview = () => {
       setIsDragging(true);
       setDraggedNode(nodeId);
       setSelectedNode(nodeId);
-      
+
       const nodeRect = e.currentTarget.getBoundingClientRect();
       setDragOffset({
         x: e.clientX - nodeRect.left,
@@ -272,7 +277,7 @@ const DashboardPreview = () => {
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      
+
       setTempConnection({
         from: draggedNode,
         to: { x, y }
@@ -281,7 +286,7 @@ const DashboardPreview = () => {
       const rect = e.currentTarget.getBoundingClientRect();
       const x = Math.max(0, Math.min(rect.width - 140, e.clientX - rect.left - dragOffset.x));
       const y = Math.max(0, Math.min(rect.height - 60, e.clientY - rect.top - dragOffset.y));
-      
+
       setNodePositions(prev => ({
         ...prev,
         [draggedNode]: { x, y }
@@ -296,17 +301,17 @@ const DashboardPreview = () => {
         to: nodeId,
         id: `user-${Date.now()}`
       };
-      
+
       const exists = connections.some(
         conn => (conn.from === draggedNode && conn.to === nodeId) ||
-                (conn.from === nodeId && conn.to === draggedNode)
+          (conn.from === nodeId && conn.to === draggedNode)
       );
-      
+
       if (!exists) {
         setUserConnections(prev => [...prev, newConnection]);
       }
     }
-    
+
     setIsDragging(false);
     setIsConnecting(false);
     setDraggedNode(null);
@@ -336,13 +341,13 @@ const DashboardPreview = () => {
           </div>
         </div>
 
-        <div 
+        <div
           className="relative h-80 bg-gradient-to-br from-slate-900/20 to-slate-800/20 rounded-2xl border border-slate-700/30 overflow-hidden select-none"
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
         >
-          <div 
+          <div
             className="absolute inset-0 opacity-10"
             style={{
               backgroundImage: `
@@ -370,7 +375,7 @@ const DashboardPreview = () => {
                 <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.8" />
               </linearGradient>
             </defs>
-            
+
             {connections.map((conn, index) => (
               <g key={conn.id || index}>
                 <path
@@ -389,8 +394,8 @@ const DashboardPreview = () => {
                   markerEnd="url(#arrowhead-preview)"
                   className="animate-pulse"
                 />
-                <circle 
-                  r="3" 
+                <circle
+                  r="3"
                   fill={conn.id?.startsWith('user-') ? "#10b981" : "#60a5fa"}
                   opacity="0.8"
                 >
@@ -403,7 +408,7 @@ const DashboardPreview = () => {
                 </circle>
               </g>
             ))}
-            
+
             {tempConnection && nodes.find(n => n.id === tempConnection.from) && (
               <g>
                 <path
@@ -424,11 +429,9 @@ const DashboardPreview = () => {
             return (
               <div
                 key={node.id}
-                className={`absolute transition-all duration-200 ${
-                  selectedNode === node.id ? 'scale-110 z-10' : 'z-0'
-                } ${isDragging && draggedNode === node.id ? 'opacity-75 cursor-grabbing' : 'cursor-grab hover:scale-105'} ${
-                  isConnecting && draggedNode === node.id ? 'opacity-50' : ''
-                }`}
+                className={`absolute transition-all duration-200 ${selectedNode === node.id ? 'scale-110 z-10' : 'z-0'
+                  } ${isDragging && draggedNode === node.id ? 'opacity-75 cursor-grabbing' : 'cursor-grab hover:scale-105'} ${isConnecting && draggedNode === node.id ? 'opacity-50' : ''
+                  }`}
                 style={{
                   left: node.position.x,
                   top: node.position.y,
@@ -442,7 +445,7 @@ const DashboardPreview = () => {
                 {selectedNode === node.id && (
                   <div className={`absolute inset-0 bg-gradient-to-r ${node.color} rounded-xl blur-lg opacity-50 scale-110 animate-pulse`} />
                 )}
-                
+
                 <div className={`relative ${colors.bg.glass} ${colors.border.primary} border rounded-xl p-3 shadow-lg min-w-[140px] backdrop-blur-lg`}>
                   <div className={`bg-gradient-to-r ${node.color} rounded-lg p-2 mb-2`}>
                     <div className="flex items-center gap-2 text-white">
@@ -450,7 +453,7 @@ const DashboardPreview = () => {
                       <span className="text-xs font-semibold">{node.label}</span>
                     </div>
                   </div>
-                  
+
                   <div className={`text-xs ${colors.text.tertiary}`}>
                     {node.type === 'data' && 'Real-time feed'}
                     {node.type === 'indicator' && 'Period: 14'}
@@ -460,12 +463,12 @@ const DashboardPreview = () => {
                   </div>
                 </div>
 
-                <div 
-                  className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg hover:scale-125 transition-transform cursor-pointer" 
+                <div
+                  className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg hover:scale-125 transition-transform cursor-pointer"
                   title="Input"
                 />
-                <div 
-                  className="absolute -right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-lg hover:scale-125 transition-transform cursor-crosshair" 
+                <div
+                  className="absolute -right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 bg-green-500 rounded-full border-2 border-white shadow-lg hover:scale-125 transition-transform cursor-crosshair"
                   title="Output - Drag to connect"
                 />
               </div>
@@ -491,7 +494,7 @@ const DashboardPreview = () => {
           )}
 
           <div className="absolute bottom-4 right-4 flex gap-2">
-            <button 
+            <button
               onClick={() => {
                 setUserConnections([]);
                 setNodePositions({});
@@ -552,12 +555,11 @@ const AnimatedText = ({ children, delay = 0, className = "" }: AnimatedTextProps
   }, [delay]);
 
   return (
-    <div 
-      className={`transition-all duration-1000 ease-out ${
-        isVisible 
-          ? 'opacity-100 translate-y-0 blur-0' 
-          : 'opacity-0 translate-y-8 blur-sm'
-      } ${className}`}
+    <div
+      className={`transition-all duration-1000 ease-out ${isVisible
+        ? 'opacity-100 translate-y-0 blur-0'
+        : 'opacity-0 translate-y-8 blur-sm'
+        } ${className}`}
     >
       {children}
     </div>
@@ -581,10 +583,9 @@ const GradientText = ({ children, delay = 0 }: GradientTextProps) => {
   }, [delay]);
 
   return (
-    <span 
-      className={`bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent transition-all duration-1000 ${
-        isVisible ? 'animate-gradient-x opacity-100' : 'opacity-0'
-      }`}
+    <span
+      className={`bg-gradient-to-r from-blue-400 via-purple-500 to-cyan-400 bg-clip-text text-transparent transition-all duration-1000 ${isVisible ? 'animate-gradient-x opacity-100' : 'opacity-0'
+        }`}
       style={{
         backgroundSize: '200% 200%',
         animation: isVisible ? 'gradient-x 3s ease infinite' : 'none'
@@ -622,9 +623,9 @@ const RotatingWords = ({ words, interval = 4500 }: RotatingWordsProps) => {
   const dynamicWidth = Math.max(350, maxWordLength * 20); // Very generous 20px per character
 
   return (
-    <span 
+    <span
       className="relative inline-block h-16 overflow-visible text-center"
-      style={{ 
+      style={{
         minWidth: `${dynamicWidth}px`,
         width: `${dynamicWidth}px`
       }}
@@ -632,15 +633,14 @@ const RotatingWords = ({ words, interval = 4500 }: RotatingWordsProps) => {
       {words.map((word, index) => (
         <span
           key={`${word}-${index}`}
-          className={`absolute left-0 top-0 w-full whitespace-nowrap text-center transition-all duration-1000 ease-in-out transform ${
-            index === currentIndex && !isAnimating
-              ? 'translate-y-0 opacity-100 scale-100'
-              : index === currentIndex && isAnimating
+          className={`absolute left-0 top-0 w-full whitespace-nowrap text-center transition-all duration-1000 ease-in-out transform ${index === currentIndex && !isAnimating
+            ? 'translate-y-0 opacity-100 scale-100'
+            : index === currentIndex && isAnimating
               ? '-translate-y-2 opacity-0 scale-98'
               : index === (currentIndex - 1 + words.length) % words.length && isAnimating
-              ? 'translate-y-2 opacity-0 scale-98'
-              : 'translate-y-4 opacity-0 scale-95'
-          }`}
+                ? 'translate-y-2 opacity-0 scale-98'
+                : 'translate-y-4 opacity-0 scale-95'
+            }`}
         >
           <span className="bg-gradient-to-r from-indigo-400 via-blue-500 to-cyan-400 bg-clip-text text-transparent font-bold block w-full">
             {word}
@@ -660,7 +660,7 @@ interface FloatingElementProps {
 
 const FloatingElement = ({ children, delay = 0, intensity = 10 }: FloatingElementProps) => {
   return (
-    <div 
+    <div
       className="animate-float-smooth"
       style={{
         animationDelay: `${delay}ms`,
@@ -678,9 +678,9 @@ function PineGenieLanding() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState('landing');
   const router = useRouter();
-  
+
   const theme = useTheme();
-  
+
   // All useEffect hooks must be called before any early returns
   useEffect(() => {
     if (theme?.isDark) {
@@ -689,7 +689,7 @@ function PineGenieLanding() {
       document.documentElement.classList.remove('dark');
     }
   }, [theme?.isDark]);
-  
+
   if (!theme) return null;
   const { colors, isDark, toggleTheme } = theme;
 
@@ -798,7 +798,7 @@ function PineGenieLanding() {
       description: "Simply tell our AI what kind of trading strategy you want to build using natural language."
     },
     {
-      number: "02", 
+      number: "02",
       title: "Visual Builder Magic",
       description: "Use our drag-and-drop interface to customize and fine-tune your strategy components."
     },
@@ -817,7 +817,7 @@ function PineGenieLanding() {
       rating: 5
     },
     {
-      name: "Mike Rodriguez", 
+      name: "Mike Rodriguez",
       role: "Crypto Analyst",
       content: "The AI strategy generator is incredible. It understood my complex requirements and generated perfect Pine Script code.",
       rating: 5
@@ -868,7 +868,7 @@ function PineGenieLanding() {
           <div className={`${colors.bg.glass} ${colors.border.primary} border rounded-3xl p-8 shadow-2xl text-center`}>
             <h1 className={`text-2xl font-bold ${colors.text.primary} mb-4`}>Login Page</h1>
             <p className={`${colors.text.secondary} mb-6`}>Login functionality will be implemented here</p>
-            <button 
+            <button
               onClick={() => setCurrentPage('register')}
               className={`${colors.text.primary} hover:text-blue-400 font-semibold transition-colors`}
             >
@@ -894,7 +894,7 @@ function PineGenieLanding() {
           <div className={`${colors.bg.glass} ${colors.border.primary} border rounded-3xl p-8 shadow-2xl text-center`}>
             <h1 className={`text-2xl font-bold ${colors.text.primary} mb-4`}>Register Page</h1>
             <p className={`${colors.text.secondary} mb-6`}>Registration functionality will be implemented here</p>
-            <button 
+            <button
               onClick={() => setCurrentPage('login')}
               className={`${colors.text.primary} hover:text-blue-400 font-semibold transition-colors`}
             >
@@ -912,7 +912,7 @@ function PineGenieLanding() {
         <div className="text-center">
           <h1 className={`text-3xl font-bold ${colors.text.primary} mb-4`}>Strategy Builder Canvas</h1>
           <p className={`${colors.text.secondary} mb-8`}>Full canvas implementation will be integrated here</p>
-          <button 
+          <button
             onClick={() => setCurrentPage('landing')}
             className={`px-6 py-3 bg-gradient-to-r ${colors.accent.blue} text-white rounded-lg transition-colors`}
           >
@@ -927,7 +927,7 @@ function PineGenieLanding() {
     <div className={`min-h-screen transition-colors duration-300 bg-gradient-to-br ${colors.bg.primary}`}>
       {/* Inject custom CSS */}
       <style dangerouslySetInnerHTML={{ __html: customAnimations }} />
-      
+
       {/* Header */}
       <nav className={`${colors.bg.glass} ${colors.border.primary} border-b backdrop-blur-md sticky top-0 z-50`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -951,7 +951,7 @@ function PineGenieLanding() {
                 <a href="#faq" className={`${colors.text.secondary} hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors`}>
                   FAQ
                 </a>
-                <button 
+                <button
                   onClick={() => setCurrentPage('canvas')}
                   className={`${colors.text.secondary} hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors`}
                 >
@@ -959,7 +959,7 @@ function PineGenieLanding() {
                 </button>
               </div>
             </div>
-            
+
             <div className="hidden md:flex md:items-center md:space-x-4">
               <button
                 onClick={toggleTheme}
@@ -967,13 +967,13 @@ function PineGenieLanding() {
               >
                 {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </button>
-              <button 
+              <button
                 onClick={handleLogin}
                 className={`${colors.text.secondary} hover:text-indigo-600 px-4 py-2 text-sm font-medium transition-colors`}
               >
                 Login
               </button>
-              <button 
+              <button
                 onClick={handleSignUp}
                 className={`bg-gradient-to-r ${colors.accent.blue} text-white px-6 py-2 rounded-lg font-medium hover:opacity-90 transition-all`}
               >
@@ -1005,20 +1005,20 @@ function PineGenieLanding() {
               <a href="#features" className={`block px-3 py-2 ${colors.text.secondary}`}>Features</a>
               <a href="#pricing" className={`block px-3 py-2 ${colors.text.secondary}`}>Pricing</a>
               <a href="#faq" className={`block px-3 py-2 ${colors.text.secondary}`}>FAQ</a>
-              <button 
+              <button
                 onClick={() => setCurrentPage('canvas')}
                 className={`block w-full text-left px-3 py-2 ${colors.text.secondary}`}
               >
                 Try Builder
               </button>
               <div className={`pt-4 pb-2 border-t ${colors.border.primary}`}>
-                <button 
+                <button
                   onClick={handleLogin}
                   className={`block w-full text-left px-3 py-2 ${colors.text.secondary}`}
                 >
                   Login
                 </button>
-                <button 
+                <button
                   onClick={handleSignUp}
                   className={`block w-full text-left px-3 py-2 text-indigo-600 dark:text-indigo-400 font-medium`}
                 >
@@ -1053,8 +1053,8 @@ function PineGenieLanding() {
 
               <AnimatedText delay={600}>
                 <h1 className={`text-4xl sm:text-5xl lg:text-6xl font-bold ${colors.text.primary} mb-6 leading-tight`}>
-                  <RotatingWords 
-                    words={['AI-Powered', 'Visual', 'No-Code', 'Smart', 'Advanced']} 
+                  <RotatingWords
+                    words={['AI-Powered', 'Visual', 'No-Code', 'Smart', 'Advanced']}
                     interval={6000}
                   />{' '}
                   Builder for{' '}
@@ -1064,7 +1064,7 @@ function PineGenieLanding() {
                   </GradientText>
                 </h1>
               </AnimatedText>
-              
+
               <AnimatedText delay={1200}>
                 <div className={`text-xl ${colors.text.tertiary} mb-8 max-w-3xl mx-auto leading-relaxed`}>
                   Create professional Pine Script strategies without coding. Our AI-powered visual builder transforms your trading ideas into production-ready code in minutes.
@@ -1073,7 +1073,7 @@ function PineGenieLanding() {
 
               <AnimatedText delay={1600}>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-                  <button 
+                  <button
                     onClick={handleSignUp}
                     className={`group px-8 py-4 bg-gradient-to-r ${colors.accent.blue} text-white rounded-xl hover:opacity-90 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl flex items-center justify-center gap-3 font-semibold animate-pulse-glow text-shadow-glow`}
                   >
@@ -1081,8 +1081,8 @@ function PineGenieLanding() {
                     Start Building Free
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
                   </button>
-                  
-                  <button 
+
+                  <button
                     onClick={() => setCurrentPage('canvas')}
                     className={`px-8 py-4 ${colors.bg.glass} ${colors.border.primary} border ${colors.text.primary} rounded-xl hover:${colors.bg.tertiary} transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center justify-center gap-3 font-semibold backdrop-blur-lg`}
                   >
@@ -1128,7 +1128,7 @@ function PineGenieLanding() {
               Drag and drop nodes to create your custom trading strategy
             </p>
           </div>
-          
+
           <div className="relative mx-auto max-w-4xl">
 
             <AnimatedText delay={1000}>
@@ -1136,7 +1136,7 @@ function PineGenieLanding() {
                 <DashboardPreview />
               </FloatingElement>
             </AnimatedText>
-              
+
             {/* Floating Action Cards with enhanced animation */}
             <AnimatedText delay={1600}>
               <FloatingElement delay={800} intensity={8}>
@@ -1184,7 +1184,7 @@ function PineGenieLanding() {
               Everything you need to build, test, and deploy professional trading strategies
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <div key={index} className={`group relative ${colors.bg.card} p-8 rounded-2xl border ${colors.border.primary} hover:${colors.border.accent} transition-all hover:scale-105`}>
@@ -1211,7 +1211,7 @@ function PineGenieLanding() {
               From idea to implementation in three simple steps
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             {steps.map((step, index) => (
               <div key={index} className="relative">
@@ -1244,7 +1244,7 @@ function PineGenieLanding() {
               See what our users are saying about Pine Genie
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
               <div key={index} className={`${colors.bg.card} p-8 rounded-2xl shadow-lg border ${colors.border.primary}`}>
@@ -1275,7 +1275,7 @@ function PineGenieLanding() {
               Start free and upgrade as you scale. All plans include our core features.
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Free Plan */}
             <div className={`${colors.bg.card} rounded-2xl p-8 border ${colors.border.primary} relative`}>
@@ -1303,7 +1303,7 @@ function PineGenieLanding() {
                     AI assistant (limited)
                   </li>
                 </ul>
-                <button 
+                <button
                   onClick={handleSignUp}
                   className={`w-full py-3 px-6 border-2 ${colors.border.primary} ${colors.text.primary} rounded-lg font-semibold hover:${colors.bg.tertiary} transition-all`}
                 >
@@ -1351,7 +1351,7 @@ function PineGenieLanding() {
                     Custom indicators
                   </li>
                 </ul>
-                <button 
+                <button
                   onClick={handleSignUp}
                   className={`w-full py-3 px-6 bg-gradient-to-r ${colors.accent.blue} text-white rounded-lg font-semibold hover:opacity-90 transition-all transform hover:scale-105`}
                 >
@@ -1394,7 +1394,7 @@ function PineGenieLanding() {
                     API access
                   </li>
                 </ul>
-                <button 
+                <button
                   onClick={handleSignUp}
                   className={`w-full py-3 px-6 border-2 ${colors.border.primary} ${colors.text.primary} rounded-lg font-semibold hover:${colors.bg.tertiary} transition-all`}
                 >
@@ -1438,7 +1438,7 @@ function PineGenieLanding() {
               Everything you need to know about Pine Genie
             </p>
           </div>
-          
+
           <div className="space-y-4">
             {faqs.map((faq, index) => (
               <div key={index} className={`border ${colors.border.primary} rounded-lg`}>
@@ -1475,7 +1475,7 @@ function PineGenieLanding() {
           <p className={`text-xl ${colors.text.tertiary} mb-8`}>
             Join thousands of traders who are already using Pine Genie to create winning strategies.
           </p>
-          <button 
+          <button
             onClick={handleSignUp}
             className={`bg-gradient-to-r ${colors.accent.blue} text-white px-8 py-4 rounded-lg font-semibold hover:opacity-90 transition-all transform hover:scale-105`}
           >
@@ -1502,7 +1502,7 @@ function PineGenieLanding() {
                 <Github className={`h-5 w-5 ${isDark ? 'text-gray-400 hover:text-white' : `${colors.text.tertiary} hover:${colors.text.primary}`} cursor-pointer transition-colors`} />
               </div>
             </div>
-            
+
             <div>
               <h3 className={`font-semibold mb-4 ${isDark ? 'text-white' : colors.text.primary}`}>Product</h3>
               <ul className={`space-y-2 ${isDark ? 'text-gray-400' : colors.text.tertiary}`}>
@@ -1511,7 +1511,7 @@ function PineGenieLanding() {
                 <li><a href="#" className={`${isDark ? 'hover:text-white' : `hover:${colors.text.primary}`} transition-colors`}>Documentation</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className={`font-semibold mb-4 ${isDark ? 'text-white' : colors.text.primary}`}>Company</h3>
               <ul className={`space-y-2 ${isDark ? 'text-gray-400' : colors.text.tertiary}`}>
@@ -1520,7 +1520,7 @@ function PineGenieLanding() {
                 <li><a href="#" className={`${isDark ? 'hover:text-white' : `hover:${colors.text.primary}`} transition-colors`}>Contact</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className={`font-semibold mb-4 ${isDark ? 'text-white' : colors.text.primary}`}>Legal</h3>
               <ul className={`space-y-2 ${isDark ? 'text-gray-400' : colors.text.tertiary}`}>
@@ -1529,7 +1529,7 @@ function PineGenieLanding() {
               </ul>
             </div>
           </div>
-          
+
           <div className={`border-t ${isDark ? 'border-gray-800' : colors.border.primary} mt-12 pt-8 flex flex-col md:flex-row justify-between items-center`}>
             <p className={`${isDark ? 'text-gray-400' : colors.text.tertiary}`}>
               © {new Date().getFullYear()} PineGenie. All rights reserved.

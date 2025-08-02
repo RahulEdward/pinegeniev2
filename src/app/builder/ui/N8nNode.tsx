@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Settings, X } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
+import { getHandleScreenPosition, DEFAULT_NODE_DIMENSIONS } from '../utils/coordinate-system';
 
 export interface N8nNodeData {
   id: string;
@@ -22,6 +23,9 @@ interface N8nNodeProps {
   onNodeUpdate: (nodeId: string, updatedNode: N8nNodeData) => void;
   zoom: number;
   canvasOffset: { x: number; y: number };
+  isValidConnectionTarget?: boolean;
+  isConnectionActive?: boolean;
+  mouseEventManager?: any; // Will be passed from Canvas
 }
 
 const NODE_TYPES = {
@@ -65,63 +69,108 @@ const N8nNode: React.FC<N8nNodeProps> = ({
   onConnectionEnd,
   onNodeUpdate,
   zoom,
-  canvasOffset
+  canvasOffset,
+  isValidConnectionTarget = false,
+  isConnectionActive = false,
+  mouseEventManager
 }) => {
   const { colors } = useTheme();
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [inputHandleHovered, setInputHandleHovered] = useState(false);
+  const [outputHandleHovered, setOutputHandleHovered] = useState(false);
   const nodeRef = useRef<HTMLDivElement>(null);
+
+  // Get interaction state from mouse event manager
+  const isDragging = mouseEventManager?.getState().mode === 'dragging-node' && 
+                    mouseEventManager?.getState().activeNodeId === node.id;
+  const isConnecting = mouseEventManager?.getState().mode === 'creating-connection';
+  const handlesInteractive = mouseEventManager?.areHandlesInteractive() ?? true;
+  const nodeDraggingAllowed = mouseEventManager?.isNodeDraggingAllowed() ?? true;
 
   const nodeType = NODE_TYPES[node.type as keyof typeof NODE_TYPES] || NODE_TYPES.data;
   const accentColor = colors.accent[nodeType.color as keyof typeof colors.accent];
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.node-control')) return;
-    const rect = nodeRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    setDragOffset({
-      x: (e.clientX - rect.left) / zoom,
-      y: (e.clientY - rect.top) / zoom
-    });
-    setIsDragging(true);
+    // Prevent node dragging if clicking on controls or connection handles
+    if ((e.target as HTMLElement).closest('.node-control') || 
+        (e.target as HTMLElement).closest('.connection-handle') ||
+        !nodeDraggingAllowed) {
+      return;
+    }
+    
+    // Use mouse event manager for node dragging
+    if (mouseEventManager && nodeRef.current) {
+      const canvasElement = document.querySelector('[data-canvas]') as HTMLElement;
+      if (canvasElement) {
+        mouseEventManager.handleNodeMouseDown(node.id, e, canvasElement);
+      }
+    }
+    
     onNodeSelect(node.id);
   };
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isDragging) return;
-    const newX = (e.clientX - canvasOffset.x) / zoom - dragOffset.x;
-    const newY = (e.clientY - canvasOffset.y) / zoom - dragOffset.y;
-    onNodeMove(node.id, { x: newX, y: newY });
-  }, [isDragging, dragOffset, onNodeMove, node.id, zoom, canvasOffset]);
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
-
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragging, handleMouseMove, handleMouseUp]);
-
+  // Enhanced connection handle event handlers with proper coordinate calculations
   const handleConnectionStart = (e: React.MouseEvent, type: 'input' | 'output') => {
     e.stopPropagation();
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    onConnectionStart(node.id, type, { x: centerX, y: centerY });
+    e.preventDefault();
+    
+    if (!handlesInteractive) return;
+    
+    // Use mouse event manager for connection handling
+    if (mouseEventManager) {
+      const canvasElement = document.querySelector('[data-canvas]') as HTMLElement;
+      if (canvasElement) {
+        mouseEventManager.handleHandleMouseDown(node.id, type, e, canvasElement);
+      }
+    } else {
+      // Fallback to direct connection handling
+      const canvasState = { zoom, offset: canvasOffset };
+      const handlePosition = getHandleScreenPosition(
+        node.position,
+        type,
+        canvasState,
+        DEFAULT_NODE_DIMENSIONS
+      );
+      
+      onConnectionStart(node.id, type, handlePosition);
+    }
   };
 
   const handleConnectionEnd = (e: React.MouseEvent, type: 'input' | 'output') => {
     e.stopPropagation();
-    onConnectionEnd(node.id, type);
+    e.preventDefault();
+    
+    if (!handlesInteractive) return;
+    
+    // Use mouse event manager for connection handling
+    if (mouseEventManager) {
+      mouseEventManager.handleHandleMouseUp(node.id, type, e);
+    } else {
+      // Fallback to direct connection handling
+      onConnectionEnd(node.id, type);
+    }
+  };
+
+  // Handle mouse enter/leave for connection handles
+  const handleInputHandleMouseEnter = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setInputHandleHovered(true);
+  };
+
+  const handleInputHandleMouseLeave = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setInputHandleHovered(false);
+  };
+
+  const handleOutputHandleMouseEnter = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOutputHandleHovered(true);
+  };
+
+  const handleOutputHandleMouseLeave = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOutputHandleHovered(false);
   };
 
   const handleParameterChange = (paramName: string, value: string | number | boolean) => {
@@ -137,13 +186,17 @@ const N8nNode: React.FC<N8nNodeProps> = ({
   return (
     <div
       ref={nodeRef}
-      className={`absolute cursor-move select-none transition-all duration-300 transform-gpu ${
-        isSelected ? 'z-40 scale-105' : 'z-20'
-      } ${isHovered ? 'scale-102' : ''}`}
+      className={`absolute ${
+        isDragging ? 'cursor-grabbing' : 'cursor-grab'
+      } select-none ${
+        isDragging ? '' : 'transition-all duration-300'
+      } transform-gpu ${
+        isSelected ? 'z-40' : 'z-20'
+      }`}
       style={{
-        left: node.position.x,
-        top: node.position.y,
-        transform: `scale(${zoom}) ${isSelected ? 'scale(1.05)' : ''} ${isHovered ? 'scale(1.02)' : ''}`,
+        left: node.position.x * zoom + canvasOffset.x,
+        top: node.position.y * zoom + canvasOffset.y,
+        transform: isDragging ? 'none' : `${isSelected ? 'scale(1.05)' : ''} ${isHovered ? 'scale(1.02)' : ''}`,
         transformOrigin: 'top left'
       }}
       onMouseDown={handleMouseDown}
@@ -154,9 +207,13 @@ const N8nNode: React.FC<N8nNodeProps> = ({
       {isSelected && (
         <div className={`absolute inset-0 bg-gradient-to-r ${accentColor} rounded-2xl blur-lg opacity-30 scale-110 animate-pulse`} />
       )}
-      {/* Main node container */}
+      {/* Main node container with connection feedback */}
       <div className={`relative ${colors.bg.glass} ${colors.border.primary} border shadow-2xl rounded-2xl min-w-[240px] overflow-hidden ${
         isSelected ? `ring-2 ${colors.border.accent} shadow-blue-500/20` : ''
+      } ${
+        isValidConnectionTarget ? 'ring-2 ring-green-400 shadow-green-400/30 animate-pulse' : ''
+      } ${
+        isConnectionActive ? 'ring-2 ring-blue-400 shadow-blue-400/30' : ''
       }`}>
         {/* Header */}
         <div className={`bg-gradient-to-r ${accentColor} p-4`}>
@@ -216,18 +273,46 @@ const N8nNode: React.FC<N8nNodeProps> = ({
           )}
         </div>
       </div>
-      {/* Connection handles */}
+      {/* N8N-style Connection Handles - Simple and Clean */}
+      
+      {/* Input Handle */}
       <div
-        className="absolute -left-3 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full cursor-crosshair hover:scale-125 transition-all duration-200 shadow-lg border-2 border-white"
-        onMouseEnter={e => handleConnectionEnd(e, 'input')}
+        className="connection-handle absolute w-4 h-4 cursor-crosshair z-50"
+        style={{
+          left: -8,
+          top: '50%',
+          transform: 'translateY(-50%)',
+        }}
+        onMouseDown={(e) => handleConnectionStart(e, 'input')}
+        onMouseUp={(e) => handleConnectionEnd(e, 'input')}
+        onMouseEnter={handleInputHandleMouseEnter}
+        onMouseLeave={handleInputHandleMouseLeave}
       >
-        <div className="absolute inset-1 bg-white rounded-full" />
+        <div className={`w-full h-full rounded-full border-2 border-white transition-all duration-200 ${
+          inputHandleHovered || isValidConnectionTarget
+            ? 'bg-orange-500 scale-125 shadow-lg' 
+            : 'bg-gray-400 hover:bg-gray-500'
+        }`} />
       </div>
+
+      {/* Output Handle */}
       <div
-        className="absolute -right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-gradient-to-r from-green-400 to-blue-500 rounded-full cursor-crosshair hover:scale-125 transition-all duration-200 shadow-lg border-2 border-white"
-        onMouseDown={e => handleConnectionStart(e, 'output')}
+        className="connection-handle absolute w-4 h-4 cursor-crosshair z-50"
+        style={{
+          right: -8,
+          top: '50%',
+          transform: 'translateY(-50%)',
+        }}
+        onMouseDown={(e) => handleConnectionStart(e, 'output')}
+        onMouseUp={(e) => handleConnectionEnd(e, 'output')}
+        onMouseEnter={handleOutputHandleMouseEnter}
+        onMouseLeave={handleOutputHandleMouseLeave}
       >
-        <div className="absolute inset-1 bg-white rounded-full" />
+        <div className={`w-full h-full rounded-full border-2 border-white transition-all duration-200 ${
+          outputHandleHovered || isConnectionActive
+            ? 'bg-orange-500 scale-125 shadow-lg' 
+            : 'bg-gray-400 hover:bg-gray-500'
+        }`} />
       </div>
     </div>
   );
