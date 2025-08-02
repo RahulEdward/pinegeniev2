@@ -35,9 +35,10 @@ export class AIService {
 
     const isClient = typeof window !== 'undefined';
 
-    // Try to load from simple storage first (server-side)
-    if (!isClient) {
+    // Try to load from simple storage first (server-side only)
+    if (!isClient && typeof process !== 'undefined') {
       try {
+        // Only import on server side
         const { simpleApiKeys } = await import('@/lib/simple-api-keys');
         
         this.apiKeys = {
@@ -59,13 +60,13 @@ export class AIService {
         };
       }
     } else {
-      // Client-side fallback to localStorage and environment
+      // Client-side fallback to localStorage only
       this.apiKeys = {
-        'google': process.env.NEXT_PUBLIC_GOOGLE_AI_KEY || localStorage.getItem('google_ai_key') || '',
-        'openai': process.env.NEXT_PUBLIC_OPENAI_API_KEY || localStorage.getItem('openai_api_key') || '',
-        'anthropic': process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY || localStorage.getItem('anthropic_api_key') || '',
-        'deepseek': process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY || localStorage.getItem('deepseek_api_key') || '',
-        'ollama': process.env.NEXT_PUBLIC_OLLAMA_URL || localStorage.getItem('ollama_url') || 'http://localhost:11434'
+        'google': (typeof localStorage !== 'undefined' ? localStorage.getItem('google_ai_key') : null) || '',
+        'openai': (typeof localStorage !== 'undefined' ? localStorage.getItem('openai_api_key') : null) || '',
+        'anthropic': (typeof localStorage !== 'undefined' ? localStorage.getItem('anthropic_api_key') : null) || '',
+        'deepseek': (typeof localStorage !== 'undefined' ? localStorage.getItem('deepseek_api_key') : null) || '',
+        'ollama': (typeof localStorage !== 'undefined' ? localStorage.getItem('ollama_url') : null) || 'http://localhost:11434'
       };
     }
 

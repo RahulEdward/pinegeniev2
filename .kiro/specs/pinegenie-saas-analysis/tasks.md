@@ -4,8 +4,8 @@
   - Implement comprehensive user profile management with avatar upload and preferences
   - Add email verification system for new user registrations
   - Create password reset functionality with secure token-based flow
-  - Implement 2FA (Two-Factor Authentication) for premium users
-  - Add OAuth integration for Google and GitHub login options
+  
+  - Add OAuth integration for Google  login options
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
 - [-] 2. Build Strategy Management and Persistence System
@@ -42,7 +42,12 @@
     - Create strategy search and filtering capabilities
     - _Requirements: 2.1, 2.2, 2.3_
 
-  - [ ] 2.3 Add strategy organization features
+  - [x] 2.3 Add strategy organization features
+
+
+
+
+
     - Implement folder/category system for organizing strategies
     - Add tagging system for better strategy classification
     - Create strategy templates and starter packs for new users

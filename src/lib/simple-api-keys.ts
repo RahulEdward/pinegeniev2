@@ -1,9 +1,23 @@
-// Simple API Key Storage for Development
-import fs from 'fs';
-import path from 'path';
+// Simple API Key Storage for Development - SERVER ONLY
 import { encryptApiKey, decryptApiKey, maskApiKey } from './simple-encryption';
 
-const API_KEYS_FILE = path.join(process.cwd(), '.api-keys.json');
+// Dynamically import fs and path only on server side
+let fs: any = null;
+let path: any = null;
+
+if (typeof window === 'undefined' && typeof process !== 'undefined') {
+  try {
+    fs = require('fs');
+    path = require('path');
+  } catch (error) {
+    console.warn('Failed to load fs/path modules:', error);
+  }
+}
+
+const getApiKeysFile = () => {
+  if (!path || typeof process === 'undefined') return null;
+  return path.join(process.cwd(), '.api-keys.json');
+};
 
 export interface StoredApiKey {
   id: string;
@@ -34,8 +48,9 @@ class SimpleApiKeyManager {
     if (this.loaded) return;
 
     try {
-      if (fs.existsSync(API_KEYS_FILE)) {
-        const data = fs.readFileSync(API_KEYS_FILE, 'utf8');
+      const apiKeysFile = getApiKeysFile();
+      if (fs && apiKeysFile && fs.existsSync(apiKeysFile)) {
+        const data = fs.readFileSync(apiKeysFile, 'utf8');
         this.keys = JSON.parse(data);
       }
     } catch (error) {
@@ -48,7 +63,10 @@ class SimpleApiKeyManager {
 
   private saveKeys(): void {
     try {
-      fs.writeFileSync(API_KEYS_FILE, JSON.stringify(this.keys, null, 2));
+      const apiKeysFile = getApiKeysFile();
+      if (fs && apiKeysFile) {
+        fs.writeFileSync(apiKeysFile, JSON.stringify(this.keys, null, 2));
+      }
     } catch (error) {
       console.error('Error saving API keys:', error);
     }
