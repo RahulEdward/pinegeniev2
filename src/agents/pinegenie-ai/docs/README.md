@@ -1,119 +1,180 @@
 # PineGenie AI System Documentation
 
-## Overview
+Welcome to the comprehensive documentation for the PineGenie AI System - an intelligent trading strategy builder that uses natural language processing and AI to help users create, optimize, and understand trading strategies.
 
-PineGenie AI is a revolutionary custom intelligence system that transforms natural language trading requests into complete visual strategies through automated node placement and connection. The system operates entirely offline using custom JavaScript logic, ensuring fast response times and complete control over functionality.
+## 📚 **Documentation Structure**
 
-## Architecture
+### **API Documentation**
+- [`nlp.md`](./api/nlp.md) - Natural Language Processing API
+- [`interpreter.md`](./api/interpreter.md) - Strategy Interpretation API
+- [`builder.md`](./api/builder.md) - AI Builder Integration API
+- [`chat.md`](./api/chat.md) - Chat Interface API
+- [`animations.md`](./api/animations.md) - Educational Animations API
+- [`optimization.md`](./api/optimization.md) - Strategy Optimization API
+- [`templates.md`](./api/templates.md) - Template Integration API
+- [`utils.md`](./api/utils.md) - Utilities and Helpers API
 
-The PineGenie AI system is built with a modular architecture that ensures complete isolation from existing application functionality:
+### **Usage Guides**
+- [`getting-started.md`](./guides/getting-started.md) - Quick start guide
+- [`extending-ai.md`](./guides/extending-ai.md) - Extending the AI system
+- [`debugging.md`](./guides/debugging.md) - Debugging and troubleshooting
+- [`best-practices.md`](./guides/best-practices.md) - Development best practices
 
-```
-src/agents/pinegenie-ai/
-├── core/                 # Core AI engine and configuration
-├── nlp/                  # Natural Language Processing
-├── knowledge/            # Trading knowledge base
-├── interpreter/          # Strategy interpretation
-├── builder/              # AI strategy builder
-├── chat/                 # Chat interface
-├── animations/           # Educational animations
-├── optimization/         # Strategy optimization
-├── templates/            # Template integration
-├── utils/                # AI utilities
-├── types/                # TypeScript definitions
-├── tests/                # Comprehensive tests
-└── docs/                 # Documentation
-```
+### **Code Examples**
+- [`basic-usage.ts`](./examples/basic-usage.ts) - Basic AI system usage
+- [`custom-patterns.ts`](./examples/custom-patterns.ts) - Custom pattern creation
+- [`advanced-integration.ts`](./examples/advanced-integration.ts) - Advanced integration examples
 
-## Key Features
-
-- **Natural Language Processing**: Understands trading requests in plain English
-- **Automated Strategy Building**: Places and connects nodes automatically
-- **Educational Animations**: Step-by-step visual explanations
-- **Real-time Optimization**: Suggests improvements and optimizations
-- **Template Integration**: Works with existing strategy templates
-- **Complete Isolation**: Zero interference with existing functionality
-
-## Getting Started
-
-### Basic Usage
+## 🚀 **Quick Start**
 
 ```typescript
-import { PineGenieAI } from './agents/pinegenie-ai';
+import { PineGenieAI } from '@/agents/pinegenie-ai';
 
 // Initialize the AI system
 const ai = new PineGenieAI({
-  config: {
-    nlp: {
-      confidenceThreshold: 0.8
-    }
-  }
+  enableAnimations: true,
+  enableEducationalMode: true,
+  performanceMode: 'optimized'
 });
 
-await ai.initialize();
-
-// Process a natural language request
-const response = await ai.processRequest(
-  "Create a RSI strategy that buys when RSI is below 30"
+// Process user input
+const result = await ai.processUserInput(
+  "Create an RSI strategy that buys when RSI is below 30"
 );
 
-if (response.success) {
-  console.log('Strategy created successfully!');
-} else {
-  console.error('Failed to create strategy:', response.error);
+// Build the strategy visually
+const strategy = await ai.buildStrategy(result.blueprint);
+```
+
+## 🏗 **System Architecture**
+
+The PineGenie AI System is built with a modular architecture:
+
+```
+PineGenie AI System
+├── 🧠 NLP Engine          # Natural language understanding
+├── 🎯 Strategy Interpreter # Convert intents to blueprints
+├── 🔧 AI Builder          # Visual strategy construction
+├── 💬 Chat Interface      # Conversational UI
+├── 🎬 Animations          # Educational step-by-step guides
+├── ⚡ Optimization        # Strategy analysis and improvement
+├── 📋 Templates           # Template integration and generation
+└── 🛠 Utilities           # Performance, caching, helpers
+```
+
+## 🎯 **Core Features**
+
+### **Natural Language Processing**
+- **Intent Recognition**: Understands trading strategy requests
+- **Parameter Extraction**: Extracts indicators, thresholds, timeframes
+- **Context Management**: Maintains conversation history
+- **Multi-turn Conversations**: Handles follow-up questions
+
+### **Strategy Building**
+- **Visual Generation**: Creates node-based strategies automatically
+- **Intelligent Placement**: Optimizes node layout and connections
+- **Real-time Validation**: Ensures strategy correctness
+- **Animation Support**: Step-by-step construction visualization
+
+### **Educational Features**
+- **Interactive Tutorials**: Guided strategy building
+- **Contextual Help**: Smart tooltips and explanations
+- **Progress Tracking**: User learning advancement
+- **Replay System**: Review strategy construction steps
+
+### **Performance & Optimization**
+- **Strategy Analysis**: Identifies improvement opportunities
+- **Parameter Optimization**: AI-powered parameter tuning
+- **Performance Monitoring**: Real-time system metrics
+- **Caching System**: Optimized response times
+
+## 🔧 **Configuration**
+
+### **Environment Variables**
+```bash
+# AI System Configuration
+PINEGENIE_AI_ENABLED=true
+PINEGENIE_AI_PERFORMANCE_MODE=optimized
+PINEGENIE_AI_ANIMATIONS_ENABLED=true
+PINEGENIE_AI_EDUCATIONAL_MODE=true
+
+# NLP Configuration
+PINEGENIE_NLP_CONFIDENCE_THRESHOLD=0.7
+PINEGENIE_NLP_MAX_TOKENS=1000
+
+# Performance Configuration
+PINEGENIE_CACHE_TTL=3600
+PINEGENIE_MAX_CONCURRENT_REQUESTS=10
+```
+
+### **TypeScript Configuration**
+```typescript
+interface PineGenieAIConfig {
+  enableAnimations?: boolean;
+  enableEducationalMode?: boolean;
+  performanceMode?: 'fast' | 'balanced' | 'optimized';
+  nlpConfidenceThreshold?: number;
+  maxConcurrentRequests?: number;
+  cacheConfig?: {
+    ttl: number;
+    maxSize: number;
+  };
 }
 ```
 
-### Advanced Usage
+## 🧪 **Testing**
 
-```typescript
-// Analyze existing strategy
-const analysis = await ai.analyzeStrategy(existingNodes, existingEdges);
+The system includes comprehensive testing:
 
-// Get system status
-const status = ai.getSystemStatus();
-console.log('AI System Status:', status);
+- **Unit Tests**: Individual component testing
+- **Integration Tests**: End-to-end workflow testing
+- **User Acceptance Tests**: Real user scenario testing
+- **Performance Tests**: Load and stress testing
+
+```bash
+# Run all tests
+npm test src/agents/pinegenie-ai/
+
+# Run specific test suites
+npm test src/agents/pinegenie-ai/tests/unit/
+npm test src/agents/pinegenie-ai/tests/integration/
+npm test src/agents/pinegenie-ai/tests/user-acceptance/
 ```
 
-## Module Documentation
+## 🔒 **Security & Privacy**
 
-- [Core System](./api/core.md) - Main AI engine and configuration
-- [Natural Language Processing](./api/nlp.md) - Text parsing and understanding
-- [Knowledge Base](./api/knowledge.md) - Trading patterns and indicators
-- [Strategy Interpreter](./api/interpreter.md) - Blueprint generation
-- [AI Builder](./api/builder.md) - Automated node placement
-- [Chat Interface](./api/chat.md) - Conversational interface
-- [Animations](./api/animations.md) - Educational animations
-- [Optimization](./api/optimization.md) - Strategy improvements
-- [Templates](./api/templates.md) - Template integration
-- [Utilities](./api/utils.md) - Helper functions and tools
+- **Input Validation**: All user inputs are validated and sanitized
+- **Rate Limiting**: Prevents abuse and ensures fair usage
+- **Error Handling**: Graceful error recovery without data exposure
+- **Privacy Protection**: No sensitive data is logged or stored
 
-## Development Guides
+## 📊 **Monitoring & Analytics**
 
-- [Getting Started](./guides/getting-started.md) - Setup and basic usage
-- [Extending the AI](./guides/extending-ai.md) - Adding new features
-- [Debugging Guide](./guides/debugging.md) - Troubleshooting and debugging
-- [Performance Optimization](./guides/performance.md) - Optimizing AI performance
-- [Testing Guide](./guides/testing.md) - Writing and running tests
+- **Performance Metrics**: Response times, memory usage, success rates
+- **User Analytics**: Feature usage, error patterns, learning progress
+- **System Health**: Component status, error rates, resource utilization
 
-## Examples
+## 🤝 **Contributing**
 
-- [Basic Usage](./examples/basic-usage.ts) - Simple AI interactions
-- [Custom Patterns](./examples/custom-patterns.ts) - Adding custom trading patterns
-- [Advanced Integration](./examples/advanced-integration.ts) - Complex integrations
+See the [Contributing Guide](./guides/contributing.md) for information on:
+- Code style and standards
+- Testing requirements
+- Pull request process
+- Development workflow
 
-## API Reference
+## 📄 **License**
 
-Complete API documentation is available in the [API Reference](./api/) directory.
+This project is part of the PineGenie platform. See the main project license for details.
 
-## Contributing
+## 🆘 **Support**
 
-Please read the [Contributing Guide](./guides/contributing.md) for information on how to contribute to the PineGenie AI system.
+- **Documentation Issues**: Create an issue in the main repository
+- **Bug Reports**: Use the bug report template
+- **Feature Requests**: Use the feature request template
+- **Questions**: Check the FAQ or create a discussion
 
-## License
+---
 
-This project is part of the PineGenie application and follows the same licensing terms.
-
-## Support
-
-For support and questions, please refer to the main PineGenie documentation or contact the development team.
+**Last Updated**: February 2025  
+**Version**: 1.0.0  
+**Maintainers**: PineGenie Development Team

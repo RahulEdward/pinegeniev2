@@ -172,10 +172,11 @@ export interface SaveGeneratedCodeOptions {
    * The code metadata
    */
   metadata?: any;
-}/
-  **
+}
+
+/**
  * Conversation repository class that provides database access for agent conversations
-  */
+ */
 export class ConversationRepository {
     /**
      * Creates a new instance of the ConversationRepository

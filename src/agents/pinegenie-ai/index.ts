@@ -36,7 +36,7 @@ export {
 
 // AI Builder Integration
 export { 
-  AIStrategyBuilder,
+  AIBuilderSystem,
   type BuildResult,
   type AnimationStep 
 } from './builder';
