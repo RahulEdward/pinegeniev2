@@ -12,7 +12,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Layers, Sun, Moon, Trash2, Code, Save, ZoomIn, ZoomOut, RotateCcw, ArrowLeft, Book } from 'lucide-react';
+import { Layers, Sun, Moon, Trash2, Code, Save, ZoomIn, ZoomOut, RotateCcw, ArrowLeft, Book, Bot, Sparkles } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 
 export interface ToolbarProps {
@@ -26,6 +26,7 @@ export interface ToolbarProps {
   backgroundType: 'grid' | 'dots' | 'lines' | 'clean';
   setBackgroundType: (type: 'grid' | 'dots' | 'lines' | 'clean') => void;
   openUserManual: () => void;
+  openAIAssistant: () => void;
 }
 
 const Toolbar: React.FC<ToolbarProps> = ({
@@ -38,7 +39,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
   saveStrategy,
   backgroundType,
   setBackgroundType,
-  openUserManual
+  openUserManual,
+  openAIAssistant
 }) => {
   const { colors } = useTheme();
 
@@ -148,6 +150,15 @@ const Toolbar: React.FC<ToolbarProps> = ({
             <RotateCcw className="w-4 h-4" />
           </button>
         </div>
+        {/* PineGenie AI Button */}
+        <button
+          onClick={openAIAssistant}
+          className={`flex items-center gap-2 px-4 py-2 text-sm bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white rounded-xl transition-all duration-200 shadow-lg animate-pulse`}
+          title="Open PineGenie AI - Create strategies with natural language"
+        >
+          <Sparkles className="w-4 h-4" />
+          PineGenie AI
+        </button>
         {/* User Manual Button */}
         <button
           onClick={openUserManual}

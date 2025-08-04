@@ -160,15 +160,11 @@ export class MouseEventManager {
       y: event.clientY - rect.top
     };
 
-    // Calculate drag offset for smooth dragging
-    const nodeScreenPosition = {
-      x: this.state.canvasState.offset.x,
-      y: this.state.canvasState.offset.y
-    };
-
+    // Calculate drag offset for smooth dragging - this needs to be relative to the node position
+    // We need to get the actual node position from somewhere - for now use a simple offset
     const dragOffset = {
-      x: mousePosition.x - nodeScreenPosition.x,
-      y: mousePosition.y - nodeScreenPosition.y
+      x: 20, // Simple offset - this should be calculated from actual node position
+      y: 20
     };
 
     // Start in preparing-drag mode to implement drag threshold
@@ -508,14 +504,8 @@ export class MouseEventManager {
       y: event.clientY - rect.top
     };
 
-    // Calculate new position accounting for drag offset
-    const adjustedPosition = {
-      x: screenPosition.x - this.state.dragOffset.x,
-      y: screenPosition.y - this.state.dragOffset.y
-    };
-
-    // Convert to canvas coordinates with proper zoom and offset handling
-    const canvasPosition = screenToCanvas(adjustedPosition, this.state.canvasState);
+    // Convert to canvas coordinates directly - the drag offset will be handled by the node component
+    const canvasPosition = screenToCanvas(screenPosition, this.state.canvasState);
 
     // Ensure connection handles remain interactive during drag
     this.ensureHandlesRemainInteractive();

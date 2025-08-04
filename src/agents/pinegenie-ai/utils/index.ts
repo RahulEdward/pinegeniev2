@@ -1,29 +1,31 @@
 /**
- * AI Utilities Module
- * 
- * This module contains utility functions, performance optimizations,
- * and helper functions for the AI system.
+ * Utils Index
+ * Main export file for all PineGenie AI utilities
  */
 
-// Re-export core utilities
-export { AILogger } from '../core/logger';
-export { AIErrorHandler } from '../core/error-handler';
+// Performance utilities
+export * from './performance';
 
-// Performance utilities (to be implemented in task 10)
-export { PatternCache } from './performance/pattern-cache';
-export { MemoryManager } from './performance/memory-manager';
+// Algorithm utilities
+export * from './algorithms';
 
-// Algorithm utilities (to be implemented in task 10)
-export { PatternMatching } from './algorithms/pattern-matching';
-export { OptimizationAlgorithms } from './algorithms/optimization';
+// Helper utilities
+export * from './helpers';
 
-// Helper utilities (to be implemented in task 10)
-export { ValidationHelpers } from './helpers/validation';
-export { FormattingHelpers } from './helpers/formatting';
+// Convenience re-exports for commonly used utilities
+export {
+  patternCache,
+  memoryManager,
+  patternMatcher,
+  strategyOptimizer
+} from './performance';
 
-// Types
-export type {
-  AIError,
-  LogLevel,
-  PerformanceMetrics
-} from '../types';
+export {
+  validateIntent,
+  validateBlueprint,
+  formatIntent,
+  formatBlueprint,
+  percent,
+  currency,
+  duration
+} from './helpers';

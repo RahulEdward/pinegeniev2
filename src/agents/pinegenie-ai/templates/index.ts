@@ -1,21 +1,66 @@
 /**
- * Template Integration Module
+ * Template Integration System
  * 
- * This module handles integration with existing templates and
- * generation of custom templates.
+ * Provides AI-enhanced template functionality while safely integrating
+ * with the existing template system without any modifications.
  */
 
-// Main template integrator (to be implemented in task 9)
+// Template Integration
 export { TemplateIntegrator } from './template-integrator';
+export type {
+  TemplateIntegrationConfig,
+  TemplateAnalysis,
+  TemplateSuitability,
+  PerformanceExpectation,
+  TemplateImprovement
+} from './template-integrator';
 
-// Template components (to be implemented in task 9)
-export { CustomGenerator } from './custom-generator';
+// Custom Template Generation
+export { CustomTemplateGenerator } from './custom-generator';
+export type {
+  StrategyAnalysis,
+  StrategyNode,
+  StrategyConnection,
+  PerformanceMetrics,
+  RiskProfile,
+  TemplateGenerationConfig,
+  GenerationCriteria
+} from './custom-generator';
+
+// Template Customization
 export { TemplateCustomizer } from './template-customizer';
-export { SuggestionEngine } from './suggestion-engine';
+export type {
+  CustomizationSession,
+  CustomizationRule,
+  ValidationResult
+} from './template-customizer';
 
-// Types
+// Template Suggestions
+export { TemplateSuggestionEngine } from './suggestion-engine';
+export type {
+  UserProfile,
+  MarketContext,
+  SuggestionContext,
+  TemplateSuggestion,
+  SuggestionEngineConfig
+} from './suggestion-engine';
+
+// Re-export template types for convenience
 export type {
   AITemplate,
   TemplateCustomization,
-  AISuggestion
+  AISuggestion,
+  TemplateSearchCriteria,
+  TemplateSearchResult,
+  TemplateCategory,
+  DifficultyLevel,
+  TemplateComponent,
+  TemplateParameterSet,
+  TemplateParameters,
+  TemplateParameter,
+  AITemplateMetadata,
+  TemplateBacktestResults,
+  TemplateEducationalContent,
+  ParameterCustomization,
+  CustomizationPreferences
 } from '../types/template-types';

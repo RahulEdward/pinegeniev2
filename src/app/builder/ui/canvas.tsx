@@ -6,12 +6,19 @@ import N8nNode, { N8nNodeData } from './N8nNode';
 import ConnectionLine from './ConnectionLine';
 import ValidationStatus from './ValidationStatus';
 import UserManual from './UserManual';
+
+import ConnectionInstructions from './ConnectionInstructions';
+import AIAssistant from './AIAssistant';
 import { getHandleScreenPosition, screenToCanvas, DEFAULT_NODE_DIMENSIONS } from '../utils/coordinate-system';
 import {
   ConnectionNode,
   Connection,
   getConnectionManager
 } from '../utils/connection-manager';
+import { 
+  SimpleConnection, 
+  getSimpleConnectionHandler 
+} from '../utils/simple-connection-handler';
 import {
   MouseEventManager,
   MouseEventHandlers,
@@ -31,12 +38,14 @@ const Canvas: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [backgroundType, setBackgroundType] = useState<'grid' | 'dots' | 'lines' | 'clean'>('grid');
   const [isManualOpen, setIsManualOpen] = useState(false);
+  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const [currentInteractionMode, setCurrentInteractionMode] = useState<InteractionMode>('idle');
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // Enhanced connection management
   const connectionManager = getConnectionManager();
-  const [connections, setConnections] = useState<Connection[]>([]);
+  const simpleConnectionHandler = getSimpleConnectionHandler();
+  const [connections, setConnections] = useState<SimpleConnection[]>([]);
   const [activeConnection, setActiveConnection] = useState<{
     start: { x: number; y: number };
     end: { x: number; y: number };
@@ -89,21 +98,31 @@ const Canvas: React.FC = () => {
     mouseEventHandlers
   );
 
-  // Initialize connection manager and subscribe to changes
+  // Initialize simple connection handler and subscribe to changes
   useEffect(() => {
-    const unsubscribe = connectionManager.subscribe((state) => {
-      setConnections(state.connections);
+    const unsubscribe = simpleConnectionHandler.subscribe((connections, state) => {
+      setConnections(connections);
 
       // Update active connection display
-      if (state.activeConnection) {
+      if (state.tempConnection) {
         setActiveConnection({
-          start: state.activeConnection.startPosition,
-          end: state.activeConnection.currentPosition,
-          isValid: state.activeConnection.isValid
+          start: state.tempConnection.start,
+          end: state.tempConnection.end,
+          isValid: true
         });
       } else {
         setActiveConnection(null);
       }
+    });
+
+    return unsubscribe;
+  }, [simpleConnectionHandler]);
+
+  // Also keep the original connection manager for compatibility
+  useEffect(() => {
+    const unsubscribe = connectionManager.subscribe((state) => {
+      // Keep this for any existing functionality that depends on it
+      // This is just for compatibility, main connections use simpleConnectionHandler
     });
 
     // Update canvas state in connection manager and mouse event manager
@@ -250,22 +269,25 @@ const Canvas: React.FC = () => {
 
   const onNodeSelect = (nodeId: string) => setSelectedNode(nodeId);
 
-  // Enhanced connection operations using connection manager
+  // Simplified connection operations using simple connection handler
   const onConnectionStart = (nodeId: string, type: 'input' | 'output', position: { x: number; y: number }) => {
-    if (!canvasRef.current) return;
-    mouseEventManager.handleHandleMouseDown(nodeId, type, {
-      preventDefault: () => {},
-      stopPropagation: () => {},
-      clientX: position.x,
-      clientY: position.y
-    } as React.MouseEvent, canvasRef.current);
+    try {
+      simpleConnectionHandler.startConnection(nodeId, type, position);
+    } catch (error) {
+      console.error('Error starting connection:', error);
+    }
   };
 
   const onConnectionEnd = (nodeId: string, type: 'input' | 'output') => {
-    mouseEventManager.handleHandleMouseUp(nodeId, type, {
-      preventDefault: () => {},
-      stopPropagation: () => {}
-    } as React.MouseEvent);
+    try {
+      const connectionState = simpleConnectionHandler.getState();
+      
+      if (connectionState.isConnecting) {
+        simpleConnectionHandler.completeConnection(nodeId, type);
+      }
+    } catch (error) {
+      console.error('Error ending connection:', error);
+    }
   };
 
   // Connection deletion with enhanced cleanup
@@ -275,8 +297,33 @@ const Canvas: React.FC = () => {
 
   // Enhanced canvas mouse down using mouse event manager
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
+    // Only handle canvas clicks if we're clicking directly on the canvas
+    if (e.target !== canvasRef.current) {
+      return;
+    }
+    
+    // Cancel any active connection when clicking on empty canvas
+    const connectionState = simpleConnectionHandler.getState();
+    if (connectionState.isConnecting) {
+      simpleConnectionHandler.cancelConnection();
+      return;
+    }
+    
     if (!canvasRef.current) return;
     mouseEventManager.handleCanvasMouseDown(e, canvasRef.current);
+  };
+
+  // Handle mouse move for connection preview
+  const handleCanvasMouseMove = (e: React.MouseEvent) => {
+    const connectionState = simpleConnectionHandler.getState();
+    if (connectionState.isConnecting && canvasRef.current) {
+      const rect = canvasRef.current.getBoundingClientRect();
+      const position = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+      simpleConnectionHandler.updateConnection(position);
+    }
   };
 
   // Cleanup mouse event manager on unmount
@@ -382,6 +429,7 @@ const Canvas: React.FC = () => {
   const clearCanvas = () => {
     setNodes([]);
     connectionManager.clearAllConnections();
+    simpleConnectionHandler.clearConnections();
     setSelectedNode(null);
   };
 
@@ -492,6 +540,7 @@ const Canvas: React.FC = () => {
           backgroundType={backgroundType}
           setBackgroundType={setBackgroundType}
           openUserManual={() => setIsManualOpen(true)}
+          openAIAssistant={() => setIsAIAssistantOpen(true)}
         />
         <div className="flex-1 relative overflow-hidden">
           <div
@@ -502,6 +551,7 @@ const Canvas: React.FC = () => {
               currentInteractionMode === 'dragging-node' ? 'cursor-grabbing' : 'cursor-move'
             }`}
             onMouseDown={handleCanvasMouseDown}
+            onMouseMove={handleCanvasMouseMove}
             data-canvas
             style={{
               backgroundImage: isDark ? `
@@ -585,8 +635,8 @@ const Canvas: React.FC = () => {
                     isDarkMode={isDark}
                     connectionId={conn.id}
                     onConnectionClick={(connectionId) => {
-                      // Delete connection on click (with confirmation in production)
-                      onConnectionDelete(connectionId);
+                      // Delete connection using simple handler
+                      simpleConnectionHandler.deleteConnection(connectionId);
                     }}
                     onConnectionHover={(connectionId, isHovering) => {
                       // Add hover effects or tooltips
@@ -750,10 +800,42 @@ const Canvas: React.FC = () => {
         </div>
       </div>
 
+      {/* AI Assistant Modal */}
+      <AIAssistant
+        isOpen={isAIAssistantOpen}
+        onClose={() => setIsAIAssistantOpen(false)}
+        onStrategyGenerated={(aiNodes, aiConnections) => {
+          // Add AI-generated nodes to canvas
+          setNodes(prev => [...prev, ...aiNodes]);
+          
+          // Add AI-generated connections using simple handler
+          const currentConnections = simpleConnectionHandler.getConnections();
+          aiConnections.forEach(conn => {
+            // Use the proper method to add connections
+            if (!currentConnections.find(existing => existing.id === conn.id)) {
+              simpleConnectionHandler.connections.push(conn);
+            }
+          });
+          
+          // Trigger update
+          simpleConnectionHandler['notifyListeners']?.();
+          
+          // Close AI assistant
+          setIsAIAssistantOpen(false);
+        }}
+      />
+
       {/* User Manual Modal */}
       <UserManual
         isOpen={isManualOpen}
         onClose={() => setIsManualOpen(false)}
+      />
+
+      {/* Connection Instructions - show only when user might need help */}
+      <ConnectionInstructions 
+        isVisible={nodes.length >= 2 && connections.length === 0}
+        connectionCount={connections.length}
+        isConnecting={simpleConnectionHandler.getState().isConnecting}
       />
     </div>
   );

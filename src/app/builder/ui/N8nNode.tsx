@@ -99,6 +99,9 @@ const N8nNode: React.FC<N8nNodeProps> = ({
       return;
     }
     
+    // Select the node first
+    onNodeSelect(node.id);
+    
     // Use mouse event manager for node dragging
     if (mouseEventManager && nodeRef.current) {
       const canvasElement = document.querySelector('[data-canvas]') as HTMLElement;
@@ -106,50 +109,32 @@ const N8nNode: React.FC<N8nNodeProps> = ({
         mouseEventManager.handleNodeMouseDown(node.id, e, canvasElement);
       }
     }
-    
-    onNodeSelect(node.id);
   };
 
-  // Enhanced connection handle event handlers with proper coordinate calculations
+  // Simplified connection handle event handlers
   const handleConnectionStart = (e: React.MouseEvent, type: 'input' | 'output') => {
     e.stopPropagation();
     e.preventDefault();
     
-    if (!handlesInteractive) return;
+    // Calculate handle position in screen coordinates
+    const canvasState = { zoom, offset: canvasOffset };
+    const handlePosition = getHandleScreenPosition(
+      node.position,
+      type,
+      canvasState,
+      DEFAULT_NODE_DIMENSIONS
+    );
     
-    // Use mouse event manager for connection handling
-    if (mouseEventManager) {
-      const canvasElement = document.querySelector('[data-canvas]') as HTMLElement;
-      if (canvasElement) {
-        mouseEventManager.handleHandleMouseDown(node.id, type, e, canvasElement);
-      }
-    } else {
-      // Fallback to direct connection handling
-      const canvasState = { zoom, offset: canvasOffset };
-      const handlePosition = getHandleScreenPosition(
-        node.position,
-        type,
-        canvasState,
-        DEFAULT_NODE_DIMENSIONS
-      );
-      
-      onConnectionStart(node.id, type, handlePosition);
-    }
+    // Start connection directly
+    onConnectionStart(node.id, type, handlePosition);
   };
 
   const handleConnectionEnd = (e: React.MouseEvent, type: 'input' | 'output') => {
     e.stopPropagation();
     e.preventDefault();
     
-    if (!handlesInteractive) return;
-    
-    // Use mouse event manager for connection handling
-    if (mouseEventManager) {
-      mouseEventManager.handleHandleMouseUp(node.id, type, e);
-    } else {
-      // Fallback to direct connection handling
-      onConnectionEnd(node.id, type);
-    }
+    // End connection directly
+    onConnectionEnd(node.id, type);
   };
 
   // Handle mouse enter/leave for connection handles
@@ -275,11 +260,11 @@ const N8nNode: React.FC<N8nNodeProps> = ({
       </div>
       {/* N8N-style Connection Handles - Simple and Clean */}
       
-      {/* Input Handle */}
+      {/* Input Handle - Left side (blue) */}
       <div
-        className="connection-handle absolute w-4 h-4 cursor-crosshair z-50"
+        className="connection-handle absolute w-8 h-8 cursor-crosshair z-50 flex items-center justify-center"
         style={{
-          left: -8,
+          left: -16,
           top: '50%',
           transform: 'translateY(-50%)',
         }}
@@ -287,19 +272,20 @@ const N8nNode: React.FC<N8nNodeProps> = ({
         onMouseUp={(e) => handleConnectionEnd(e, 'input')}
         onMouseEnter={handleInputHandleMouseEnter}
         onMouseLeave={handleInputHandleMouseLeave}
+        title="🔵 INPUT - Click to start connection FROM another node"
       >
-        <div className={`w-full h-full rounded-full border-2 border-white transition-all duration-200 ${
+        <div className={`w-5 h-5 rounded-full border-3 border-white transition-all duration-200 shadow-lg ${
           inputHandleHovered || isValidConnectionTarget
-            ? 'bg-orange-500 scale-125 shadow-lg' 
-            : 'bg-gray-400 hover:bg-gray-500'
+            ? 'bg-green-400 scale-150 shadow-green-400/70 animate-pulse' 
+            : 'bg-blue-500 hover:bg-blue-400 hover:scale-125'
         }`} />
       </div>
 
-      {/* Output Handle */}
+      {/* Output Handle - Right side (purple) */}
       <div
-        className="connection-handle absolute w-4 h-4 cursor-crosshair z-50"
+        className="connection-handle absolute w-8 h-8 cursor-crosshair z-50 flex items-center justify-center"
         style={{
-          right: -8,
+          right: -16,
           top: '50%',
           transform: 'translateY(-50%)',
         }}
@@ -307,11 +293,12 @@ const N8nNode: React.FC<N8nNodeProps> = ({
         onMouseUp={(e) => handleConnectionEnd(e, 'output')}
         onMouseEnter={handleOutputHandleMouseEnter}
         onMouseLeave={handleOutputHandleMouseLeave}
+        title="🟣 OUTPUT - Click to start connection TO another node"
       >
-        <div className={`w-full h-full rounded-full border-2 border-white transition-all duration-200 ${
+        <div className={`w-5 h-5 rounded-full border-3 border-white transition-all duration-200 shadow-lg ${
           outputHandleHovered || isConnectionActive
-            ? 'bg-orange-500 scale-125 shadow-lg' 
-            : 'bg-gray-400 hover:bg-gray-500'
+            ? 'bg-orange-400 scale-150 shadow-orange-400/70 animate-pulse' 
+            : 'bg-purple-500 hover:bg-purple-400 hover:scale-125'
         }`} />
       </div>
     </div>
