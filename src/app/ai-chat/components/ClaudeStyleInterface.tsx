@@ -38,6 +38,14 @@ export default function ClaudeStyleInterface({
   // Initialize responsive behavior - hydration safe
   useResponsiveLayout();
 
+  // State for hydration
+  const [isClient, setIsClient] = useState(false);
+
+  // Handle hydration
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   // Empty conversation data - no hard-coded chat history
   const [conversations] = useState<Conversation[]>([]);
 
@@ -335,26 +343,76 @@ export default function ClaudeStyleInterface({
         className="claude-main-chat"
         data-testid="main-chat-area"
       >
-        {/* Clean Top Controls - Only Theme Toggle */}
-        <div className="chat-controls">
-          <button
-            className="theme-toggle-btn"
-            onClick={toggleTheme}
-            title={`Switch to ${settings.theme === 'dark' ? 'light' : 'dark'} mode`}
-            data-testid="theme-toggle"
-          >
-            {settings.theme === 'dark' ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="5" />
-                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        {/* Back Button - Only render on client side */}
+        {isClient && (
+          <div style={{ 
+            position: 'absolute', 
+            top: '20px', 
+            left: '20px', 
+            zIndex: 1000 
+          }}>
+            <button
+              onClick={() => window.location.href = '/dashboard'}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 16px',
+                backgroundColor: '#1f6feb',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}
+              title="Back to Dashboard"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            )}
-          </button>
-        </div>
+              Back
+            </button>
+          </div>
+        )}
+
+        {/* Theme Toggle - Only render on client side */}
+        {isClient && (
+          <div style={{ 
+            position: 'absolute', 
+            top: '20px', 
+            right: '20px', 
+            zIndex: 1000 
+          }}>
+            <button
+              onClick={toggleTheme}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '40px',
+                height: '40px',
+                backgroundColor: 'transparent',
+                color: settings.theme === 'dark' ? '#e6edf3' : '#24292f',
+                border: '1px solid #30363d',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+              title={`Switch to ${settings.theme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              {settings.theme === 'dark' ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="5" />
+                  <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+              )}
+            </button>
+          </div>
+        )}
 
         <div className="chat-content">
           {/* Message Container - Always show, handles empty state internally */}

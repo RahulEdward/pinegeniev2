@@ -1282,7 +1282,7 @@ function PineGenieLanding() {
               <div className="text-center">
                 <h3 className={`text-xl font-semibold ${colors.text.primary} mb-2`}>Free</h3>
                 <div className="mb-6">
-                  <span className={`text-4xl font-bold ${colors.text.primary}`}>$0</span>
+                  <span className={`text-4xl font-bold ${colors.text.primary}`}>₹0</span>
                   <span className={`${colors.text.tertiary} ml-2`}>/month</span>
                 </div>
                 <ul className={`text-left space-y-3 mb-8 ${colors.text.tertiary}`}>
@@ -1322,7 +1322,7 @@ function PineGenieLanding() {
               <div className="text-center">
                 <h3 className={`text-xl font-semibold ${colors.text.primary} mb-2`}>Pro</h3>
                 <div className="mb-6">
-                  <span className={`text-4xl font-bold bg-gradient-to-r ${colors.accent.blue} bg-clip-text text-transparent`}>$29</span>
+                  <span className={`text-4xl font-bold bg-gradient-to-r ${colors.accent.blue} bg-clip-text text-transparent`}>₹2,499</span>
                   <span className={`${colors.text.tertiary} ml-2`}>/month</span>
                 </div>
                 <ul className={`text-left space-y-3 mb-8 ${colors.text.tertiary}`}>
@@ -1360,12 +1360,12 @@ function PineGenieLanding() {
               </div>
             </div>
 
-            {/* Enterprise Plan */}
+            {/* Premium Plan */}
             <div className={`${colors.bg.card} rounded-2xl p-8 border ${colors.border.primary} relative`}>
               <div className="text-center">
-                <h3 className={`text-xl font-semibold ${colors.text.primary} mb-2`}>Enterprise</h3>
+                <h3 className={`text-xl font-semibold ${colors.text.primary} mb-2`}>Premium</h3>
                 <div className="mb-6">
-                  <span className={`text-4xl font-bold bg-gradient-to-r ${colors.accent.purple} bg-clip-text text-transparent`}>$99</span>
+                  <span className={`text-4xl font-bold bg-gradient-to-r ${colors.accent.purple} bg-clip-text text-transparent`}>₹8,299</span>
                   <span className={`${colors.text.tertiary} ml-2`}>/month</span>
                 </div>
                 <ul className={`text-left space-y-3 mb-8 ${colors.text.tertiary}`}>

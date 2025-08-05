@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -28,6 +29,10 @@ model User {
   sharedWithStrategies SharedStrategy[] @relation("SharedWithUser")
   agentConversations AgentConversation[]
   generatedPineCode GeneratedPineCode[]
+  subscriptions Subscription[]
+  payments Payment[]
+  invoices Invoice[]
+  usageMetrics UsageMetric[]
 
   @@map("users")
 }
@@ -504,4 +509,182 @@ model ApiKey {
   @@index([isActive])
   @@index([createdAt])
   @@map("api_keys")
+}
+
+// Payment System Models
+
+// Subscription Plans
+model SubscriptionPlan {
+  id            String         @id @default(cuid())
+  name          String         @unique // 'free', 'pro', 'enterprise'
+  displayName   String         @map("display_name")
+  description   String
+  monthlyPrice  Decimal        @map("monthly_price") @db.Decimal(10,2)
+  annualPrice   Decimal        @map("annual_price") @db.Decimal(10,2)
+  currency      String         @default("USD") @db.VarChar(3)
+  features      Json           // Array of PlanFeature objects
+  limits        Json           // PlanLimits object
+  isPopular     Boolean        @default(false) @map("is_popular")
+  trialDays     Int            @default(0) @map("trial_days")
+  payuPlanId    String?        @map("payu_plan_id") @db.VarChar(100)
+  isActive      Boolean        @default(true) @map("is_active")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  subscriptions Subscription[]
+
+  @@index([name])
+  @@index([isActive])
+  @@map("subscription_plans")
+}
+
+// User Subscriptions
+model Subscription {
+  id                   String           @id @default(cuid())
+  userId               String           @map("user_id")
+  planId               String           @map("plan_id")
+  status               SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart   DateTime         @map("current_period_start")
+  currentPeriodEnd     DateTime         @map("current_period_end")
+  cancelAtPeriodEnd    Boolean          @default(false) @map("cancel_at_period_end")
+  trialEnd             DateTime?        @map("trial_end")
+  payuSubscriptionId   String?          @map("payu_subscription_id")
+  createdAt            DateTime         @default(now()) @map("created_at")
+  updatedAt            DateTime         @updatedAt @map("updated_at")
+  user                 User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                 SubscriptionPlan @relation(fields: [planId], references: [id])
+  payments             Payment[]
+  usageMetrics         UsageMetric[]
+
+  @@unique([userId, status], name: "unique_active_subscription")
+  @@index([userId])
+  @@index([status])
+  @@index([planId])
+  @@index([currentPeriodEnd])
+  @@map("subscriptions")
+}
+
+// Payments
+model Payment {
+  id                  String        @id @default(cuid())
+  userId              String        @map("user_id")
+  subscriptionId      String?       @map("subscription_id")
+  payuTransactionId   String?       @unique @map("payu_transaction_id") @db.VarChar(100)
+  referenceCode       String        @unique @map("reference_code") @db.VarChar(100)
+  amount              Decimal       @db.Decimal(10,2)
+  currency            String        @db.VarChar(3)
+  status              PaymentStatus @default(PENDING)
+  paymentMethod       String?       @map("payment_method") @db.VarChar(50)
+  description         String?
+  customerInfo        Json?         @map("customer_info")
+  payuResponse        Json?         @map("payu_response")
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription        Subscription? @relation(fields: [subscriptionId], references: [id])
+  invoices            Invoice[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([payuTransactionId])
+  @@index([referenceCode])
+  @@index([subscriptionId])
+  @@index([createdAt])
+  @@map("payments")
+}
+
+// Invoices
+model Invoice {
+  id             String        @id @default(cuid())
+  invoiceNumber  String        @unique @map("invoice_number") @db.VarChar(50)
+  userId         String        @map("user_id")
+  paymentId      String        @map("payment_id")
+  amount         Decimal       @db.Decimal(10,2)
+  tax            Decimal       @default(0) @db.Decimal(10,2)
+  total          Decimal       @db.Decimal(10,2)
+  currency       String        @db.VarChar(3)
+  status         InvoiceStatus @default(DRAFT)
+  dueDate        DateTime?     @map("due_date")
+  items          Json          // Array of InvoiceItem objects
+  billingAddress Json?         @map("billing_address")
+  pdfPath        String?       @map("pdf_path")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payment        Payment       @relation(fields: [paymentId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([invoiceNumber])
+  @@index([paymentId])
+  @@index([createdAt])
+  @@map("invoices")
+}
+
+// Webhook Events
+model WebhookEvent {
+  id                String    @id @default(cuid())
+  eventType         String    @map("event_type") @db.VarChar(50)
+  payuTransactionId String?   @map("payu_transaction_id") @db.VarChar(100)
+  payload           Json
+  signature         String?   @db.VarChar(255)
+  processed         Boolean   @default(false)
+  processingResult  Json?     @map("processing_result")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  processedAt       DateTime? @map("processed_at")
+
+  @@index([processed])
+  @@index([eventType])
+  @@index([payuTransactionId])
+  @@index([createdAt])
+  @@map("webhook_events")
+}
+
+// Usage Metrics
+model UsageMetric {
+  id             String       @id @default(cuid())
+  userId         String       @map("user_id")
+  subscriptionId String       @map("subscription_id")
+  metricType     String       @map("metric_type")
+  metricValue    Int          @default(1) @map("metric_value")
+  periodStart    DateTime     @map("period_start")
+  periodEnd      DateTime     @map("period_end")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, metricType, periodStart, periodEnd])
+  @@index([userId])
+  @@index([subscriptionId])
+  @@index([metricType])
+  @@index([periodStart, periodEnd])
+  @@map("usage_metrics")
+}
+
+// Payment System Enums
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  UNPAID
+  TRIALING
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  APPROVED
+  DECLINED
+  ERROR
+  EXPIRED
+  REFUNDED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELED
 }

@@ -27,8 +27,11 @@ import {
   Edit,
   Trash2,
   Eye,
+  Crown,
+  AlertTriangle,
 
 } from 'lucide-react';
+import { useSubscription } from '@/hooks/useSubscription';
 
 
 
@@ -54,9 +57,11 @@ const bottomSidebarItems = [
 // My Scripts Section Component
 function MyScriptsSection({ darkMode, setActivePage }: { darkMode: boolean; setActivePage: (page: string) => void }) {
   const { data: session } = useSession();
+  const { subscription, checkScriptStorageLimit } = useSubscription();
   const [scripts, setScripts] = useState<Array<Record<string, unknown>>>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [scriptLimitInfo, setScriptLimitInfo] = useState<any>({});
   const [filters, setFilters] = useState({
     search: '',
     type: '',
@@ -72,8 +77,18 @@ function MyScriptsSection({ darkMode, setActivePage }: { darkMode: boolean; setA
     console.log('Session in MyScriptsSection:', session);
     if (session) {
       fetchScripts();
+      checkScriptLimits();
     }
   }, [filters, session]);
+
+  const checkScriptLimits = async () => {
+    try {
+      const limitInfo = await checkScriptStorageLimit();
+      setScriptLimitInfo(limitInfo);
+    } catch (error) {
+      console.error('Error checking script limits:', error);
+    }
+  };
 
   const fetchScripts = async () => {
     setLoading(true);
@@ -112,6 +127,12 @@ function MyScriptsSection({ darkMode, setActivePage }: { darkMode: boolean; setA
   };
 
   const createScript = async () => {
+    // Check script storage limit first
+    if (!scriptLimitInfo.hasAccess) {
+      alert('You have reached your script storage limit. Please upgrade to create more scripts.');
+      return;
+    }
+
     try {
       const scriptData = {
         ...newScript,
@@ -136,6 +157,7 @@ function MyScriptsSection({ darkMode, setActivePage }: { darkMode: boolean; setA
         setShowCreateModal(false);
         setNewScript({ title: '', description: '', type: 'INDICATOR' });
         fetchScripts();
+        checkScriptLimits(); // Refresh limits
 
         // If no code, redirect to builder
         if (!newScript.code) {
@@ -220,13 +242,74 @@ function MyScriptsSection({ darkMode, setActivePage }: { darkMode: boolean; setA
             </div>
           </div>
           <button
-            onClick={() => setShowCreateModal(true)}
-            className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-lg hover:from-blue-600 hover:to-purple-600 transition-all shadow-lg flex items-center space-x-2"
+            onClick={() => {
+              if (scriptLimitInfo.hasAccess) {
+                setShowCreateModal(true);
+              } else {
+                window.open('/billing', '_blank');
+              }
+            }}
+            className={`px-6 py-2 rounded-lg transition-all shadow-lg flex items-center space-x-2 ${
+              scriptLimitInfo.hasAccess
+                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600'
+                : 'bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600'
+            }`}
           >
-            <Plus className="h-4 w-4" />
-            <span>New Script</span>
+            {scriptLimitInfo.hasAccess ? (
+              <>
+                <Plus className="h-4 w-4" />
+                <span>New Script</span>
+              </>
+            ) : (
+              <>
+                <Crown className="h-4 w-4" />
+                <span>Upgrade to Create</span>
+              </>
+            )}
           </button>
         </div>
+
+        {/* Script Limit Warning */}
+        {scriptLimitInfo.limit !== 'unlimited' && (
+          <div className={`mb-4 p-4 border rounded-lg transition-colors ${
+            scriptLimitInfo.remaining === 0
+              ? 'bg-red-500/10 border-red-500/20'
+              : scriptLimitInfo.remaining <= 1
+              ? 'bg-yellow-500/10 border-yellow-500/20'
+              : 'bg-blue-500/10 border-blue-500/20'
+          }`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                {scriptLimitInfo.remaining === 0 ? (
+                  <AlertTriangle className="h-5 w-5 text-red-400" />
+                ) : (
+                  <Crown className="h-5 w-5 text-blue-400" />
+                )}
+                <div>
+                  <p className={`font-medium ${
+                    scriptLimitInfo.remaining === 0 ? 'text-red-400' : 'text-white'
+                  }`}>
+                    {scriptLimitInfo.remaining === 0 
+                      ? 'Script limit reached' 
+                      : `${scriptLimitInfo.remaining} script${scriptLimitInfo.remaining === 1 ? '' : 's'} remaining`
+                    }
+                  </p>
+                  <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-gray-600'}`}>
+                    {subscription?.planDisplayName || 'Free'} plan: {scriptLimitInfo.currentCount}/{scriptLimitInfo.limit} scripts used
+                  </p>
+                </div>
+              </div>
+              {scriptLimitInfo.remaining <= 1 && (
+                <button
+                  onClick={() => window.open('/billing', '_blank')}
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-lg text-sm hover:from-blue-600 hover:to-purple-600 transition-all"
+                >
+                  Upgrade Plan
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4">
@@ -685,8 +768,8 @@ export default function PineGenieDashboard() {
                   <button
                     key={item.id}
                     onClick={() => {
-                      if (item.id === 'pinegenie-ai') {
-                        router.push('/ai-chat');
+                      if (item.path && (item.id === 'builder' || item.id === 'pinegenie-ai')) {
+                        router.push(item.path);
                       } else {
                         setActivePage(item.id);
                       }
@@ -700,7 +783,14 @@ export default function PineGenieDashboard() {
                     title={!sidebarOpen ? item.label : ''}
                   >
                     <Icon className={`h-5 w-5 ${sidebarOpen ? 'mr-3' : 'mx-auto'}`} />
-                    {sidebarOpen && <span>{item.label}</span>}
+                    {sidebarOpen && (
+                      <div className="flex items-center justify-between w-full">
+                        <span>{item.label}</span>
+                        {item.id === 'pinegenie-ai' && (
+                          <Crown className="h-3 w-3 text-yellow-400" />
+                        )}
+                      </div>
+                    )}
                   </button>
                 );
               })}
@@ -718,12 +808,12 @@ export default function PineGenieDashboard() {
                   <button
                     key={item.id}
                     onClick={() => {
-                  if (item.id === 'pinegenie-ai') {
-                    router.push(item.path);
-                  } else {
-                    setActivePage(item.id);
-                  }
-                }}
+                      if (item.path && (item.id === 'billing' || item.id === 'help' || item.id === 'settings')) {
+                        router.push(item.path);
+                      } else {
+                        setActivePage(item.id);
+                      }
+                    }}
                     className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${isActive
                         ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                         : darkMode

@@ -166,7 +166,7 @@ export const PINE_SCRIPT_TEMPLATES: Record<string, StrategyTemplate> = {
         position: { x: 350, y: 200 },
         config: {
           indicatorId: 'rsi',
-          parameters: { period: 14, source: 'close', overbought: 70, oversold: 30 }
+          parameters: { length: 14, source: 'close', overbought: 70, oversold: 30 }
         },
         category: 'Technical Analysis',
         isCustomizable: true,
@@ -381,7 +381,7 @@ plotshape(overbought_condition, title="Sell Signal", location=location.abovebar,
         label: 'Fast MA (10)',
         description: 'Fast moving average',
         position: { x: 350, y: 150 },
-        config: { indicatorId: 'sma', parameters: { period: 10, source: 'close' } },
+        config: { indicatorId: 'sma', parameters: { length: 10, source: 'close' } },
         category: 'Technical Analysis',
         isCustomizable: true
       },
@@ -391,7 +391,7 @@ plotshape(overbought_condition, title="Sell Signal", location=location.abovebar,
         label: 'Slow MA (20)',
         description: 'Slow moving average',
         position: { x: 350, y: 250 },
-        config: { indicatorId: 'sma', parameters: { period: 20, source: 'close' } },
+        config: { indicatorId: 'sma', parameters: { length: 20, source: 'close' } },
         category: 'Technical Analysis',
         isCustomizable: true
       },
@@ -563,7 +563,7 @@ plotshape(crossunder_condition, title="Sell Signal", location=location.abovebar,
         label: 'Bollinger Bands',
         description: 'Bollinger Bands with 20 period and 2 std dev',
         position: { x: 350, y: 200 },
-        config: { indicatorId: 'bb', parameters: { period: 20, stddev: 2, source: 'close' } },
+        config: { indicatorId: 'bb', parameters: { length: 20, stddev: 2, source: 'close' } },
         category: 'Technical Analysis',
         isCustomizable: true
       },

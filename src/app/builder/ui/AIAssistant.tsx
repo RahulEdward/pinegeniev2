@@ -156,7 +156,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           type: 'data',
           label: 'Market Data',
           description: 'BTCUSDT 1h data',
-          props: { symbol: 'BTCUSDT', timeframe: '1h' },
+          config: { symbol: 'BTCUSDT', timeframe: '1h', source: 'close' },
           position: { x: 100, y: 100 }
         },
         {
@@ -164,7 +164,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           type: 'indicator',
           label: 'RSI (14)',
           description: 'Relative Strength Index',
-          props: { indicatorId: 'rsi', length: 14, source: 'close' },
+          config: { indicatorId: 'rsi', parameters: { length: 14, source: 'close' } },
           position: { x: 350, y: 100 }
         },
         {
@@ -172,7 +172,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           type: 'condition',
           label: 'RSI < 30',
           description: 'Buy when oversold',
-          props: { operator: 'less_than', value: 30 },
+          config: { operator: 'less_than', threshold: 30 },
           position: { x: 600, y: 50 }
         },
         {
@@ -180,7 +180,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           type: 'condition',
           label: 'RSI > 70',
           description: 'Sell when overbought',
-          props: { operator: 'greater_than', value: 70 },
+          config: { operator: 'greater_than', threshold: 70 },
           position: { x: 600, y: 150 }
         },
         {
@@ -188,7 +188,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           type: 'action',
           label: 'Buy Order',
           description: 'Execute buy order',
-          props: { orderType: 'market', quantity: '25%' },
+          config: { orderType: 'market', quantity: '25%' },
           position: { x: 850, y: 50 }
         },
         {
@@ -196,7 +196,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           type: 'action',
           label: 'Sell Order',
           description: 'Execute sell order',
-          props: { orderType: 'market', quantity: '100%' },
+          config: { orderType: 'market', quantity: '100%' },
           position: { x: 850, y: 150 }
         }
       ];
@@ -215,7 +215,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           type: 'data',
           label: 'Market Data',
           description: 'BTCUSDT 1h data',
-          props: { symbol: 'BTCUSDT', timeframe: '1h' },
+          config: { symbol: 'BTCUSDT', timeframe: '1h', source: 'close' },
           position: { x: 100, y: 100 }
         },
         {
@@ -223,7 +223,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           type: 'indicator',
           label: 'SMA (10)',
           description: 'Fast moving average',
-          props: { indicatorId: 'sma', length: 10, source: 'close' },
+          config: { indicatorId: 'sma', parameters: { length: 10, source: 'close' } },
           position: { x: 350, y: 50 }
         },
         {
@@ -231,7 +231,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           type: 'indicator',
           label: 'SMA (20)',
           description: 'Slow moving average',
-          props: { indicatorId: 'sma', length: 20, source: 'close' },
+          config: { indicatorId: 'sma', parameters: { length: 20, source: 'close' } },
           position: { x: 350, y: 150 }
         },
         {
@@ -239,7 +239,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           type: 'condition',
           label: 'MA Crossover Up',
           description: 'Fast MA crosses above slow MA',
-          props: { type: 'crossover_up' },
+          config: { operator: 'crosses_above' },
           position: { x: 600, y: 50 }
         },
         {
@@ -247,7 +247,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           type: 'condition',
           label: 'MA Crossover Down',
           description: 'Fast MA crosses below slow MA',
-          props: { type: 'crossover_down' },
+          config: { operator: 'crosses_below' },
           position: { x: 600, y: 150 }
         },
         {
@@ -255,7 +255,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           type: 'action',
           label: 'Buy Order',
           description: 'Execute buy order',
-          props: { orderType: 'market', quantity: '50%' },
+          config: { orderType: 'market', quantity: '50%' },
           position: { x: 850, y: 50 }
         },
         {
@@ -263,7 +263,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           type: 'action',
           label: 'Sell Order',
           description: 'Execute sell order',
-          props: { orderType: 'market', quantity: '100%' },
+          config: { orderType: 'market', quantity: '100%' },
           position: { x: 850, y: 150 }
         }
       ];
@@ -286,7 +286,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           type: 'data',
           label: 'Market Data',
           description: 'BTCUSDT 1h data',
-          props: { symbol: 'BTCUSDT', timeframe: '1h' },
+          config: { symbol: 'BTCUSDT', timeframe: '1h', source: 'close' },
           position: { x: 100, y: 100 }
         },
         {
@@ -294,7 +294,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           type: 'indicator',
           label: 'SMA (20)',
           description: 'Simple moving average',
-          props: { indicatorId: 'sma', length: 20, source: 'close' },
+          config: { indicatorId: 'sma', parameters: { length: 20, source: 'close' } },
           position: { x: 350, y: 100 }
         },
         {
@@ -302,7 +302,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           type: 'condition',
           label: 'Entry Condition',
           description: 'Entry condition',
-          props: {},
+          config: { operator: 'greater_than', threshold: 50 },
           position: { x: 600, y: 100 }
         },
         {
@@ -310,7 +310,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           type: 'action',
           label: 'Trade Action',
           description: 'Execute trade',
-          props: {},
+          config: { orderType: 'market', quantity: '25%' },
           position: { x: 850, y: 100 }
         }
       ];

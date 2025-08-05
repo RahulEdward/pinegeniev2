@@ -9,6 +9,7 @@ export interface N8nNodeData {
   label: string;
   description?: string;
   props?: Record<string, string | number | boolean>;
+  config?: Record<string, any>;
   position: { x: number; y: number };
 }
 

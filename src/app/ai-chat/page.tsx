@@ -1,8 +1,9 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { authOptions } from '@/lib/auth';
+import { authOptions } from '@/lib/auth-options';
 import { Metadata } from 'next';
 import ClaudeStyleInterface from './components/ClaudeStyleInterface';
+import SubscriptionGate from '@/components/SubscriptionGate';
 
 export const metadata: Metadata = {
   title: 'Pine Genie AI',
@@ -17,9 +18,11 @@ export default async function PineGenieAIPage() {
   }
 
   return (
-    <ClaudeStyleInterface 
-      userId={session.user?.id || 'default-user'}
-      initialConversation={null}
-    />
+    <SubscriptionGate feature="ai_chat">
+      <ClaudeStyleInterface 
+        userId={session.user?.id || 'default-user'}
+        initialConversation={null}
+      />
+    </SubscriptionGate>
   );
 }

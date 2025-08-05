@@ -132,7 +132,7 @@ export const NODE_TEMPLATES = {
      description: 'Relative Strength Index',
      config: {
        indicatorId: 'rsi',
-       parameters: getIndicatorById('rsi')?.defaultParams || { period: 14, overbought: 70, oversold: 30 }
+       parameters: { length: 14, source: 'close', overbought: 70, oversold: 30 }
      }
    },
    {
@@ -141,7 +141,7 @@ export const NODE_TEMPLATES = {
      description: 'Simple Moving Average',
      config: {
        indicatorId: 'sma',
-       parameters: { period: 20, source: 'close' }
+       parameters: { length: 20, source: 'close' }
      }
    },
    {
@@ -150,7 +150,7 @@ export const NODE_TEMPLATES = {
      description: 'Moving Average Convergence Divergence',
      config: {
        indicatorId: 'macd',
-       parameters: { fastPeriod: 12, slowPeriod: 26, signalPeriod: 9 }
+       parameters: { fastlen: 12, slowlen: 26, siglen: 9, source: 'close' }
      }
    },
    {
@@ -159,7 +159,7 @@ export const NODE_TEMPLATES = {
      description: 'Volatility indicator with upper and lower bands',
      config: {
        indicatorId: 'bb',
-       parameters: { period: 20, stddev: 2 }
+       parameters: { length: 20, stddev: 2, source: 'close' }
      }
    }
  ],
@@ -381,7 +381,7 @@ export const STRATEGY_TEMPLATES = {
        type: 'indicator',
        label: 'RSI (14)',
        position: { x: 300, y: 100 },
-       config: { indicatorId: 'rsi', parameters: { period: 14 } }
+       config: { indicatorId: 'rsi', parameters: { length: 14, source: 'close' } }
      },
      {
        type: 'condition',
@@ -422,13 +422,13 @@ export const STRATEGY_TEMPLATES = {
        type: 'indicator',
        label: 'SMA (10)',
        position: { x: 300, y: 50 },
-       config: { indicatorId: 'sma', parameters: { period: 10 } }
+       config: { indicatorId: 'sma', parameters: { length: 10, source: 'close' } }
      },
      {
        type: 'indicator',
        label: 'SMA (20)',
        position: { x: 300, y: 150 },
-       config: { indicatorId: 'sma', parameters: { period: 20 } }
+       config: { indicatorId: 'sma', parameters: { length: 20, source: 'close' } }
      },
      {
        type: 'condition',

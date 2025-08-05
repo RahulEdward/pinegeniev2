@@ -164,13 +164,13 @@ const Canvas: React.FC = () => {
       case 'indicator':
         // Map indicator labels to proper IDs
         const indicatorMap: Record<string, { indicatorId: string; parameters: Record<string, number | string> }> = {
-          'Moving Average': { indicatorId: 'sma', parameters: { period: 20, source: 'close' } },
-          'RSI': { indicatorId: 'rsi', parameters: { period: 14, source: 'close', overbought: 70, oversold: 30 } },
-          'MACD': { indicatorId: 'macd', parameters: { fastPeriod: 12, slowPeriod: 26, signalPeriod: 9, source: 'close' } },
-          'Bollinger Bands': { indicatorId: 'bb', parameters: { period: 20, stddev: 2, source: 'close' } },
-          'Stochastic': { indicatorId: 'stoch', parameters: { period: 14, source: 'close' } }
+          'Moving Average': { indicatorId: 'sma', parameters: { length: 20, source: 'close' } },
+          'RSI': { indicatorId: 'rsi', parameters: { length: 14, source: 'close', overbought: 70, oversold: 30 } },
+          'MACD': { indicatorId: 'macd', parameters: { fastlen: 12, slowlen: 26, siglen: 9, source: 'close' } },
+          'Bollinger Bands': { indicatorId: 'bb', parameters: { length: 20, stddev: 2, source: 'close' } },
+          'Stochastic': { indicatorId: 'stoch', parameters: { length: 14, source: 'close' } }
         };
-        nodeConfig = indicatorMap[nodeTemplate.label] || { indicatorId: 'sma', parameters: { period: 20, source: 'close' } };
+        nodeConfig = indicatorMap[nodeTemplate.label] || { indicatorId: 'sma', parameters: { length: 20, source: 'close' } };
         break;
       case 'condition':
         nodeConfig = {
@@ -362,7 +362,7 @@ const Canvas: React.FC = () => {
             nodeConfig = { symbol: 'BTCUSDT', timeframe: '1h', source: 'close' };
             break;
           case 'indicator':
-            nodeConfig = { indicatorId: 'sma', parameters: { period: 20, source: 'close' } };
+            nodeConfig = { indicatorId: 'sma', parameters: { length: 20, source: 'close' } };
             break;
           case 'condition':
             nodeConfig = { operator: 'greater_than', threshold: 50 };
@@ -397,7 +397,7 @@ const Canvas: React.FC = () => {
             nodeConfig = { symbol: 'BTCUSDT', timeframe: '1h', source: 'close' };
             break;
           case 'indicator':
-            nodeConfig = { indicatorId: 'sma', parameters: { period: 20, source: 'close' } };
+            nodeConfig = { indicatorId: 'sma', parameters: { length: 20, source: 'close' } };
             break;
           case 'condition':
             nodeConfig = { operator: 'greater_than', threshold: 50 };
@@ -453,7 +453,7 @@ const Canvas: React.FC = () => {
             label: node.label,
             type: nodeType as 'data-source' | 'indicator' | 'condition' | 'action' | 'risk',
             description: node.description,
-            config: node.props || {},
+            config: node.config || node.props || {},
             category: 'Generated'
           },
           position: node.position

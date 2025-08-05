@@ -46,7 +46,10 @@ export const authOptions: AuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        console.log('🔐 Authorization attempt:', { email: credentials?.email });
+        console.log('🔐 Authorization attempt:', { 
+          email: credentials?.email,
+          hasPassword: !!credentials?.password 
+        });
         
         if (!credentials?.email || !credentials?.password) {
           console.log('❌ Missing credentials');
@@ -54,26 +57,36 @@ export const authOptions: AuthOptions = {
         }
 
         try {
+          console.log('🔍 Looking for user with email:', credentials.email);
+          
           const user = await prisma.user.findUnique({
             where: { email: credentials.email as string },
           });
 
-          console.log('👤 User found:', !!user, user?.email);
+          console.log('👤 User found:', !!user);
+          if (user) {
+            console.log('   - ID:', user.id);
+            console.log('   - Email:', user.email);
+            console.log('   - Name:', user.name);
+            console.log('   - Role:', user.role);
+            console.log('   - Has password:', !!user.password);
+          }
 
           if (!user) {
-            console.log('❌ User not found');
+            console.log('❌ User not found in database');
             throw new Error('Invalid email or password');
           }
 
+          console.log('🔑 Comparing passwords...');
           const isPasswordValid = await compare(credentials.password as string, user.password);
-          console.log('🔑 Password valid:', isPasswordValid);
+          console.log('🔑 Password comparison result:', isPasswordValid);
 
           if (!isPasswordValid) {
-            console.log('❌ Invalid password');
+            console.log('❌ Password does not match');
             throw new Error('Invalid email or password');
           }
 
-          console.log('✅ Authentication successful');
+          console.log('✅ Authentication successful for user:', user.email);
           return {
             id: user.id,
             email: user.email,
