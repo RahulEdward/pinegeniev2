@@ -1,13 +1,15 @@
 /**
  * PineGenie AI Assistant Component for Strategy Builder
  * 
- * Enhanced AI assistant using the professional chat UI components
- * from the ai-chat system for a consistent user experience.
+ * Enhanced AI assistant with subscription-based access control.
+ * Free users see upgrade prompts, paid users get full AI functionality.
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Sparkles, Zap, X } from 'lucide-react';
+import { Send, Bot, User, Sparkles, Zap, X, Crown, Lock } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
+import { useSubscription } from '@/hooks/useSubscription';
+import { FeatureAccessGate } from '@/components/subscription';
 import AIMessage from '../../ai-chat/components/AIMessage';
 import UserMessage from '../../ai-chat/components/UserMessage';
 import '../../ai-chat/styles/claude-interface.css';
@@ -36,6 +38,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
   onStrategyGenerated
 }) => {
   const { colors } = useTheme();
+  const { checkAIChatAccess, isFreePlan, loading } = useSubscription();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -325,6 +328,112 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
   };
 
   if (!isOpen) return null;
+
+  // Show loading state while subscription data is being fetched
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className={`${colors.bg.primary} ${colors.border.primary} border rounded-3xl shadow-2xl w-full max-w-2xl h-[600px] flex flex-col overflow-hidden`}>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className={`${colors.text.secondary}`}>Loading AI Assistant...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user has AI access
+  const hasAIAccess = checkAIChatAccess();
+
+  // Show upgrade prompt for free users
+  if (!hasAIAccess) {
+    return (
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className={`${colors.bg.primary} ${colors.border.primary} border rounded-3xl shadow-2xl w-full max-w-2xl h-[600px] flex flex-col overflow-hidden`}>
+          {/* Header */}
+          <div className={`${colors.bg.secondary} ${colors.border.primary} border-b px-6 py-4 flex items-center justify-between`}>
+            <div className="flex items-center gap-3">
+              <div className={`p-2 bg-gradient-to-r ${colors.accent.blue} rounded-xl relative`}>
+                <Bot className="w-5 h-5 text-white" />
+                <Lock className="w-3 h-3 text-white absolute -top-1 -right-1 bg-red-500 rounded-full p-0.5" />
+              </div>
+              <div>
+                <h3 className={`font-semibold ${colors.text.primary}`}>PineGenie AI Assistant</h3>
+                <p className={`text-sm ${colors.text.tertiary}`}>Premium Feature</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className={`p-2 ${colors.text.tertiary} hover:${colors.text.primary} rounded-lg transition-colors`}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Upgrade Prompt Content */}
+          <div className="flex-1 flex items-center justify-center p-8">
+            <div className="text-center max-w-md">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <Crown className="h-10 w-10 text-white" />
+              </div>
+              
+              <h3 className={`text-2xl font-bold ${colors.text.primary} mb-4`}>
+                Unlock AI Assistant
+              </h3>
+              
+              <p className={`${colors.text.secondary} mb-6 leading-relaxed`}>
+                Get unlimited AI-powered assistance for your Pine Script development. 
+                Transform your trading ideas into professional strategies with natural language.
+              </p>
+
+              <div className="space-y-3 mb-8 text-left">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className={`text-sm ${colors.text.secondary}`}>Unlimited AI conversations</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className={`text-sm ${colors.text.secondary}`}>Advanced strategy optimization</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className={`text-sm ${colors.text.secondary}`}>Real-time Pine Script assistance</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className={`text-sm ${colors.text.secondary}`}>Custom indicator suggestions</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => window.open('/billing', '_blank')}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium py-4 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
+                >
+                  <Crown className="h-5 w-5" />
+                  <span>Upgrade to Pro - ₹24.99/month</span>
+                </button>
+                
+                <button
+                  onClick={onClose}
+                  className={`w-full ${colors.text.tertiary} hover:${colors.text.primary} py-2 transition-colors`}
+                >
+                  Maybe Later
+                </button>
+              </div>
+
+              <div className={`mt-6 text-xs ${colors.text.tertiary}`}>
+                <p>✨ 14-day free trial • Cancel anytime • No hidden fees</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">

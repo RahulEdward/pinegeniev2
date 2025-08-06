@@ -3,8 +3,8 @@
 import { useState } from 'react';
 
 export default function AdminLoginTestPage() {
-  const [email, setEmail] = useState('admin@pinegenie.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

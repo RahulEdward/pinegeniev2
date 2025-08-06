@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth-options';
 import { Metadata } from 'next';
 import ClaudeStyleInterface from './components/ClaudeStyleInterface';
-import SubscriptionGate from '@/components/SubscriptionGate';
+import { AIAccessGuard } from './components/AIAccessGuard';
 
 export const metadata: Metadata = {
   title: 'Pine Genie AI',
@@ -18,11 +18,11 @@ export default async function PineGenieAIPage() {
   }
 
   return (
-    <SubscriptionGate feature="ai_chat">
+    <AIAccessGuard>
       <ClaudeStyleInterface 
         userId={session.user?.id || 'default-user'}
         initialConversation={null}
       />
-    </SubscriptionGate>
+    </AIAccessGuard>
   );
 }

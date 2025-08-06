@@ -283,11 +283,10 @@ export class SubscriptionPlanManager {
         };
       }
 
-      // Get current script count from database
-      const currentCount = await prisma.script.count({
+      // Get current strategy count from database
+      const currentCount = await prisma.strategy.count({
         where: { 
-          userId: userId,
-          status: { not: 'DELETED' }
+          userId: userId
         }
       });
 

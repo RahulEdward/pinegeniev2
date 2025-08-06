@@ -38,20 +38,58 @@ export async function GET(request: NextRequest) {
 
     let hasAccess = false;
     let additionalInfo = {};
+    let reason = '';
 
     switch (feature) {
       case 'ai_chat':
         hasAccess = await subscriptionPlanManager.checkAIChatAccess(session.user.id);
+        if (!hasAccess) {
+          reason = 'AI Chat access requires a paid subscription plan';
+        }
         break;
       
       case 'script_storage':
         const storageInfo = await subscriptionPlanManager.checkScriptStorageLimit(session.user.id);
         hasAccess = storageInfo.hasAccess;
         additionalInfo = storageInfo;
+        if (!hasAccess) {
+          reason = 'Strategy storage limit reached. Upgrade to save more strategies.';
+        }
+        break;
+      
+      case 'premium_templates':
+        hasAccess = await subscriptionPlanManager.checkFeatureAccess(session.user.id, 'premium_templates');
+        if (!hasAccess) {
+          reason = 'Premium templates require a paid subscription plan';
+        }
+        break;
+      
+      case 'advanced_indicators':
+        hasAccess = await subscriptionPlanManager.checkFeatureAccess(session.user.id, 'advanced_indicators');
+        if (!hasAccess) {
+          reason = 'Advanced indicators require a Pro or Premium plan';
+        }
+        break;
+      
+      case 'backtesting':
+        hasAccess = await subscriptionPlanManager.checkFeatureAccess(session.user.id, 'backtesting');
+        if (!hasAccess) {
+          reason = 'Strategy backtesting requires a Pro or Premium plan';
+        }
+        break;
+      
+      case 'custom_signatures':
+        hasAccess = await subscriptionPlanManager.checkFeatureAccess(session.user.id, 'custom_signatures');
+        if (!hasAccess) {
+          reason = 'Custom signatures require a Pro or Premium plan';
+        }
         break;
       
       default:
         hasAccess = await subscriptionPlanManager.checkFeatureAccess(session.user.id, feature);
+        if (!hasAccess) {
+          reason = `Feature '${feature}' requires a paid subscription plan`;
+        }
         break;
     }
 
@@ -59,6 +97,7 @@ export async function GET(request: NextRequest) {
       success: true,
       hasAccess: hasAccess,
       feature: feature,
+      reason: reason || undefined,
       ...additionalInfo
     });
 

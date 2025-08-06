@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
 /**
- * Next.js Middleware for protecting admin routes
+ * Next.js Middleware for protecting admin routes and subscription-gated features
  * This runs at the edge before the request reaches the API routes or pages
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip middleware for public admin routes
+  // Skip middleware for public routes and static files
   if (
     pathname === '/admin/login' ||
     pathname.startsWith('/admin/login/') ||
@@ -18,6 +19,20 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/api/admin/auth/me') ||
     pathname.includes('.') // Skip static files
   ) {
+    return NextResponse.next();
+  }
+
+  // Protect AI chat routes with subscription check
+  if (pathname.startsWith('/ai-chat')) {
+    const token = await getToken({ req: request });
+    
+    if (!token) {
+      // Redirect to login if not authenticated
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    // Note: We'll let the client-side component handle the subscription check
+    // for better UX with loading states and detailed upgrade prompts
     return NextResponse.next();
   }
 
@@ -64,11 +79,13 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all admin routes and API routes
-     * - /admin/:path*
-     * - /api/admin/:path*
+     * Match all protected routes
+     * - /admin/:path* (admin routes)
+     * - /api/admin/:path* (admin API routes)
+     * - /ai-chat/:path* (AI chat routes)
      */
     '/admin/:path*',
     '/api/admin/:path*',
+    '/ai-chat/:path*',
   ],
 };

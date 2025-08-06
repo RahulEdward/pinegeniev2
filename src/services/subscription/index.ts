@@ -6,6 +6,8 @@
 
 // Main Services
 export { SubscriptionPlanManager, subscriptionPlanManager } from './SubscriptionPlanManager';
+export { StrategyStorageService, strategyStorageService } from './StrategyStorageService';
+export { TemplateAccessService, templateAccessService } from './TemplateAccessService';
 
 // Types
 export type {

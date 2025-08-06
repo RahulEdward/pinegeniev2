@@ -45,7 +45,6 @@ export class AIService {
           'google': simpleApiKeys.getApiKey('google') || process.env.GOOGLE_AI_KEY || '',
           'openai': simpleApiKeys.getApiKey('openai') || process.env.OPENAI_API_KEY || '',
           'anthropic': simpleApiKeys.getApiKey('anthropic') || process.env.ANTHROPIC_API_KEY || '',
-          'deepseek': simpleApiKeys.getApiKey('deepseek') || process.env.DEEPSEEK_API_KEY || '',
           'ollama': simpleApiKeys.getApiKey('ollama') || process.env.OLLAMA_URL || 'http://localhost:11434'
         };
       } catch (error) {
@@ -55,7 +54,6 @@ export class AIService {
           'google': process.env.GOOGLE_AI_KEY || '',
           'openai': process.env.OPENAI_API_KEY || '',
           'anthropic': process.env.ANTHROPIC_API_KEY || '',
-          'deepseek': process.env.DEEPSEEK_API_KEY || '',
           'ollama': process.env.OLLAMA_URL || 'http://localhost:11434'
         };
       }
@@ -65,7 +63,6 @@ export class AIService {
         'google': (typeof localStorage !== 'undefined' ? localStorage.getItem('google_ai_key') : null) || '',
         'openai': (typeof localStorage !== 'undefined' ? localStorage.getItem('openai_api_key') : null) || '',
         'anthropic': (typeof localStorage !== 'undefined' ? localStorage.getItem('anthropic_api_key') : null) || '',
-        'deepseek': (typeof localStorage !== 'undefined' ? localStorage.getItem('deepseek_api_key') : null) || '',
         'ollama': (typeof localStorage !== 'undefined' ? localStorage.getItem('ollama_url') : null) || 'http://localhost:11434'
       };
     }
@@ -90,24 +87,6 @@ export class AIService {
         },
         requestFormat: 'anthropic'
       },
-      'claude-3-sonnet': {
-        endpoint: 'https://api.anthropic.com/v1/messages',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKeys.anthropic}`,
-          'anthropic-version': '2023-06-01'
-        },
-        requestFormat: 'anthropic'
-      },
-      'claude-3-haiku': {
-        endpoint: 'https://api.anthropic.com/v1/messages',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKeys.anthropic}`,
-          'anthropic-version': '2023-06-01'
-        },
-        requestFormat: 'anthropic'
-      },
       'gpt-4o': {
         endpoint: 'https://api.openai.com/v1/chat/completions',
         headers: {
@@ -116,39 +95,10 @@ export class AIService {
         },
         requestFormat: 'openai'
       },
-      'gpt-4-turbo': {
-        endpoint: 'https://api.openai.com/v1/chat/completions',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKeys.openai}`
-        },
-        requestFormat: 'openai'
-      },
-      'gpt-3.5-turbo': {
-        endpoint: 'https://api.openai.com/v1/chat/completions',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKeys.openai}`
-        },
-        requestFormat: 'openai'
-      },
-      'gemini-1.5-flash': {
-        endpoint: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${this.apiKeys.google}`,
-        headers: { 'Content-Type': 'application/json' },
-        requestFormat: 'google-ai'
-      },
       'gemini-1.5-pro': {
         endpoint: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${this.apiKeys.google}`,
         headers: { 'Content-Type': 'application/json' },
         requestFormat: 'google-ai'
-      },
-      'deepseek-coder': {
-        endpoint: 'https://api.deepseek.com/v1/chat/completions',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKeys.deepseek}`
-        },
-        requestFormat: 'openai'
       },
       'ollama-mistral': {
         endpoint: `${this.apiKeys.ollama}/api/generate`,
@@ -174,11 +124,11 @@ export class AIService {
   }
 
   private getProviderFromModelId(modelId: string): string {
-    if (modelId.startsWith('claude-')) return 'anthropic';
-    if (modelId.startsWith('gpt-')) return 'openai';
-    if (modelId.startsWith('gemini-')) return 'google';
-    if (modelId === 'deepseek-coder') return 'deepseek';
+    if (modelId === 'claude-3-5-sonnet') return 'anthropic';
+    if (modelId === 'gpt-4o') return 'openai';
+    if (modelId === 'gemini-1.5-pro') return 'google';
     if (modelId === 'ollama-mistral') return 'ollama';
+    if (modelId === 'pine-genie') return 'custom';
     return 'unknown';
   }
 
@@ -230,14 +180,12 @@ export class AIService {
       // Route to appropriate model handler
       if (modelId === 'pine-genie') {
         response = await this.sendPineGenieMessage(contentCheck.filteredContent || userMessage, startTime);
-      } else if (modelId.startsWith('claude-')) {
+      } else if (modelId === 'claude-3-5-sonnet') {
         response = await this.sendClaudeMessage(modelId, contentCheck.filteredContent || userMessage, startTime);
-      } else if (modelId.startsWith('gpt-')) {
+      } else if (modelId === 'gpt-4o') {
         response = await this.sendOpenAIMessage(modelId, contentCheck.filteredContent || userMessage, startTime);
-      } else if (modelId.startsWith('gemini-')) {
+      } else if (modelId === 'gemini-1.5-pro') {
         response = await this.sendGeminiMessage(modelId, contentCheck.filteredContent || userMessage, startTime);
-      } else if (modelId === 'deepseek-coder') {
-        response = await this.sendDeepSeekMessage(modelId, contentCheck.filteredContent || userMessage, startTime);
       } else if (modelId === 'ollama-mistral') {
         response = await this.sendOllamaMessage(modelId, contentCheck.filteredContent || userMessage, startTime);
       } else {
@@ -333,9 +281,7 @@ export class AIService {
           'anthropic-version': '2023-06-01'
         },
         body: JSON.stringify({
-          model: modelId === 'claude-3-5-sonnet' ? 'claude-3-5-sonnet-20241022' :
-            modelId === 'claude-3-sonnet' ? 'claude-3-sonnet-20240229' :
-              'claude-3-haiku-20240307',
+          model: 'claude-3-5-sonnet-20241022',
           max_tokens: 4000,
           messages: [{ role: 'user', content }]
         })
@@ -452,49 +398,7 @@ export class AIService {
     }
   }
 
-  private async sendDeepSeekMessage(modelId: string, content: string, startTime: number): Promise<AIResponse> {
-    try {
-      if (!this.apiKeys.deepseek) {
-        throw new Error('DeepSeek API key not configured. Add DEEPSEEK_API_KEY to your environment.');
-      }
 
-      const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKeys.deepseek}`
-        },
-        body: JSON.stringify({
-          model: 'deepseek-coder',
-          messages: [{ role: 'user', content }],
-          max_tokens: 4000,
-          temperature: 0.7
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`DeepSeek API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
-      }
-
-      const data = await response.json();
-      const responseTime = Date.now() - startTime;
-
-      return {
-        content: data.choices[0]?.message?.content || 'No response generated',
-        model: modelId,
-        responseTime,
-        usage: {
-          promptTokens: data.usage?.prompt_tokens || 0,
-          completionTokens: data.usage?.completion_tokens || 0,
-          totalTokens: data.usage?.total_tokens || 0
-        }
-      };
-    } catch (error) {
-      console.error('DeepSeek API error:', error);
-      throw new Error(error instanceof Error ? error.message : 'Failed to get response from DeepSeek');
-    }
-  }
 
   private async sendOllamaMessage(modelId: string, content: string, startTime: number): Promise<AIResponse> {
     try {

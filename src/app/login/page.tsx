@@ -6,8 +6,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 function LoginForm() {
-    const [email, setEmail] = useState('admin@pinegenie.com');
-    const [password, setPassword] = useState('admin123');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -72,14 +72,7 @@ function LoginForm() {
                         <p className="text-slate-400">Sign in to continue building strategies</p>
                     </div>
 
-                    {/* Demo Credentials */}
-                    <div className="bg-blue-50/10 border border-blue-500/20 rounded-lg p-4 mb-6">
-                        <h3 className="text-sm font-medium text-blue-300 mb-2">Demo Credentials</h3>
-                        <div className="text-xs text-blue-200 space-y-1">
-                            <p><strong>Admin:</strong> admin@pinegenie.com / admin123</p>
-                            <p><strong>User:</strong> test@example.com / test123</p>
-                        </div>
-                    </div>
+
 
                     {/* Error Message */}
                     {error && (

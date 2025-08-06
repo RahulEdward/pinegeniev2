@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
+import { templateAccessService } from '@/services/subscription/TemplateAccessService';
 
 export async function POST(
   request: NextRequest,
@@ -34,6 +35,24 @@ export async function POST(
       return NextResponse.json(
         { error: 'Template not found' },
         { status: 404 }
+      );
+    }
+
+    // Check if user has access to this template
+    const accessCheck = await templateAccessService.canUseTemplate(
+      session.user.id,
+      params.id
+    );
+
+    if (!accessCheck.canUse) {
+      return NextResponse.json(
+        { 
+          error: 'Access denied',
+          reason: accessCheck.reason,
+          requiresUpgrade: accessCheck.requiresUpgrade,
+          upgradeFeature: 'premium_templates'
+        },
+        { status: 403 }
       );
     }
 

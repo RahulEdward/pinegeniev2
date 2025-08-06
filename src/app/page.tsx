@@ -1283,24 +1283,24 @@ function PineGenieLanding() {
                 <h3 className={`text-xl font-semibold ${colors.text.primary} mb-2`}>Free</h3>
                 <div className="mb-6">
                   <span className={`text-4xl font-bold ${colors.text.primary}`}>₹0</span>
-                  <span className={`${colors.text.tertiary} ml-2`}>/month</span>
+                  <span className={`${colors.text.tertiary} ml-2`}>/forever</span>
                 </div>
                 <ul className={`text-left space-y-3 mb-8 ${colors.text.tertiary}`}>
                   <li className="flex items-center">
                     <Zap className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    3 strategies per month
+                    Visual drag-and-drop builder
                   </li>
                   <li className="flex items-center">
                     <Code className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    Basic Pine Script export
+                    Save 1 strategy
                   </li>
                   <li className="flex items-center">
                     <BarChart3 className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    Community support
+                    Basic templates only
                   </li>
                   <li className="flex items-center">
-                    <Bot className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    AI assistant (limited)
+                    <Bot className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+                    <span className="text-gray-400">No AI support</span>
                   </li>
                 </ul>
                 <button
@@ -1355,7 +1355,7 @@ function PineGenieLanding() {
                   onClick={handleSignUp}
                   className={`w-full py-3 px-6 bg-gradient-to-r ${colors.accent.blue} text-white rounded-lg font-semibold hover:opacity-90 transition-all transform hover:scale-105`}
                 >
-                  Start Pro Trial
+                  Get Pro Plan
                 </button>
               </div>
             </div>
@@ -1407,20 +1407,20 @@ function PineGenieLanding() {
           {/* Pricing FAQ */}
           <div className="mt-16 text-center">
             <p className={`${colors.text.tertiary} mb-4`}>
-              All plans include a 14-day free trial. No credit card required.
+              Start with our free plan and upgrade when you need more features.
             </p>
             <div className="flex flex-wrap justify-center gap-8 text-sm">
               <div className="flex items-center">
                 <Shield className="w-4 h-4 text-green-500 mr-2" />
-                <span className={colors.text.tertiary}>30-day money-back guarantee</span>
+                <span className={colors.text.tertiary}>Secure payment processing</span>
               </div>
               <div className="flex items-center">
                 <Zap className="w-4 h-4 text-blue-500 mr-2" />
-                <span className={colors.text.tertiary}>Cancel anytime</span>
+                <span className={colors.text.tertiary}>Instant activation</span>
               </div>
               <div className="flex items-center">
                 <Code className="w-4 h-4 text-purple-500 mr-2" />
-                <span className={colors.text.tertiary}>No setup fees</span>
+                <span className={colors.text.tertiary}>24/7 support</span>
               </div>
             </div>
           </div>
@@ -1479,7 +1479,7 @@ function PineGenieLanding() {
             onClick={handleSignUp}
             className={`bg-gradient-to-r ${colors.accent.blue} text-white px-8 py-4 rounded-lg font-semibold hover:opacity-90 transition-all transform hover:scale-105`}
           >
-            Start Free Trial
+            Get Started Free
           </button>
         </div>
       </section>

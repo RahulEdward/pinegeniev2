@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState('admin@pinegenie.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [mfaCode, setMfaCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -135,9 +135,7 @@ export default function AdminLoginPage() {
           <p className="mt-2 text-sm text-gray-600">
             Sign in to your admin account
           </p>
-          <p className="mt-1 text-xs text-blue-600">
-            Default: admin@pinegenie.com / admin123
-          </p>
+
         </div>
         
         <form className="mt-8 space-y-6 bg-white p-8 rounded-lg shadow-md" onSubmit={handleSubmit}>

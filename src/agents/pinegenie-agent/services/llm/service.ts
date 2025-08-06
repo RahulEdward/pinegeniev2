@@ -82,8 +82,8 @@ export class LLMService {
   constructor() {
     this.apiKey = process.env.OPENAI_API_KEY || '';
     this.baseUrl = 'https://api.openai.com/v1';
-    this.defaultModel = 'gpt-4';
-    this.fallbackModel = 'gpt-3.5-turbo';
+    this.defaultModel = 'gpt-4o';
+    this.fallbackModel = 'gpt-4o';
     this.requestQueue = [];
     this.isProcessingQueue = false;
     this.rateLimitDelay = 1000; // 1 second delay between requests

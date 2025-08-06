@@ -238,7 +238,8 @@ class RealThemeManager {
     };
 
     root.style.setProperty('--theme-font-family', fontMap[this.config.fontFamily]);
-    document.body.style.fontFamily = fontMap[this.config.fontFamily];
+    // Don't override body font-family to preserve Geist fonts
+    // document.body.style.fontFamily = fontMap[this.config.fontFamily];
   }
 
   private applyAnimations(root: HTMLElement): void {

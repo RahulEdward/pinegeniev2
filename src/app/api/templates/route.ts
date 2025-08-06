@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
+import { templateAccessService } from '@/services/subscription/TemplateAccessService';
 
 export async function GET(request: NextRequest) {
   try {
@@ -92,6 +93,12 @@ export async function GET(request: NextRequest) {
         tags.some(tag => template.tags.includes(tag))
       );
     }
+
+    // Apply subscription-based filtering
+    filteredTemplates = await templateAccessService.filterTemplatesBySubscription(
+      session.user.id, 
+      filteredTemplates
+    );
 
     // Get available filter options
     const [categories, difficulties, popularTags] = await Promise.all([

@@ -33,6 +33,7 @@
     "aws-sdk": "^2.1692.0",
     "bcryptjs": "^3.0.2",
     "framer-motion": "^12.23.6",
+    "geist": "^1.4.2",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.525.0",
     "microsoft-cognitiveservices-speech-sdk": "^1.45.0",
