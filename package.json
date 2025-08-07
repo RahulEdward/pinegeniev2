@@ -9,6 +9,8 @@
     "lint": "next lint",
     "check-case": "node case-sensitivity-check.js",
     "prebuild": "npm run check-case",
+    "vercel-build": "prisma generate && next build",
+    "postinstall": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "db:setup": "tsx scripts/setup-neon-db.ts setup",
     "db:health": "tsx scripts/setup-neon-db.ts health",
