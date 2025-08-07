@@ -691,7 +691,7 @@ const Canvas: React.FC = () => {
                     <div className="relative mb-6">
                       <div className={`absolute inset-0 bg-gradient-to-r ${colors.accent.blue} rounded-full blur-xl opacity-30 animate-pulse`} />
                       <div className={`relative p-4 bg-gradient-to-r ${colors.accent.blue} rounded-full inline-block`}>
-                        <span role="img" aria-label="sparkles" className="text-3xl">Γ£¿</span>
+                        <span role="img" aria-label="sparkles" className="text-3xl">✨</span>
                       </div>
                     </div>
                     <h3 className={`text-2xl font-bold bg-gradient-to-r ${colors.accent.blue} bg-clip-text text-transparent mb-3`}>
