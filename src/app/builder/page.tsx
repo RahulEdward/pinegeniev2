@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 
 // Dynamic import with proper SSR handling
-const Canvas = dynamic(() => import('./ui/Canvas'), {
+const Canvas = dynamic(() => import('./ui'), {
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center h-screen bg-gray-100 dark:bg-gray-900">
