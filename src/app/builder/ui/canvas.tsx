@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { ThemeProvider, useTheme } from './ThemeProvider';
 import Sidebar from './Sidebar';
-import Toolbar from './toolbar';
+import Toolbar from './Toolbar';
 import N8nNode, { N8nNodeData } from './N8nNode';
 import ConnectionLine from './ConnectionLine';
 import ValidationStatus from './ValidationStatus';

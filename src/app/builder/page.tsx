@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 
 // Use dynamic import to avoid SSR issues with ThemeProvider
-const CanvasWithTheme = dynamic(() => import('./ui').then(mod => ({ default: mod.Canvas })), { 
+const CanvasWithTheme = dynamic(() => import('./ui/Canvas'), { 
   ssr: false,
   loading: () => <div className="flex items-center justify-center h-screen">Loading Canvas...</div>
 });
