@@ -15,9 +15,9 @@ import {
   Connection,
   getConnectionManager
 } from '../utils/connection-manager';
-import { 
-  SimpleConnection, 
-  getSimpleConnectionHandler 
+import {
+  SimpleConnection,
+  getSimpleConnectionHandler
 } from '../utils/simple-connection-handler';
 import {
   MouseEventManager,
@@ -90,6 +90,17 @@ const Canvas: React.FC = () => {
     },
     onModeChange: (mode: InteractionMode) => {
       setCurrentInteractionMode(mode);
+    },
+    // Enhanced handlers for better conflict resolution
+    onNodeHover: (nodeId: string | null) => {
+      // Handle node hover state
+    },
+    onHandleHover: (nodeId: string | null, handleType: 'input' | 'output' | null) => {
+      // Handle connection handle hover state
+    },
+    onInteractionConflict: (currentMode: InteractionMode, attemptedMode: InteractionMode) => {
+      // Handle interaction conflicts
+      console.warn(`Interaction conflict: ${currentMode} vs ${attemptedMode}`);
     }
   };
 
@@ -197,33 +208,33 @@ const Canvas: React.FC = () => {
 
     // Simple and reliable positioning - center of visible area
     let newNodePosition = { x: 0, y: 0 };
-    
+
     if (canvasRef.current) {
       const canvasRect = canvasRef.current.getBoundingClientRect();
-      
+
       // Calculate center position in canvas coordinates
       // This accounts for zoom and canvas offset properly
       const viewportCenterX = canvasRect.width / 2;
       const viewportCenterY = canvasRect.height / 2;
-      
+
       // Convert screen coordinates to canvas coordinates
       const canvasCenterX = (viewportCenterX - canvasOffset.x) / zoom;
       const canvasCenterY = (viewportCenterY - canvasOffset.y) / zoom;
-      
+
       // Position node at center
       newNodePosition = {
         x: canvasCenterX - DEFAULT_NODE_DIMENSIONS.width / 2,
         y: canvasCenterY - DEFAULT_NODE_DIMENSIONS.height / 2
       };
-      
+
       // Add small offset for each new node to prevent overlap
       const offsetAmount = 40;
       const offsetIndex = nodes.length % 8; // Cycle through 8 positions
       const angle = (offsetIndex * Math.PI * 2) / 8; // Distribute in circle
-      
+
       newNodePosition.x += Math.cos(angle) * offsetAmount;
       newNodePosition.y += Math.sin(angle) * offsetAmount;
-      
+
     } else {
       // Fallback positioning
       newNodePosition = {
@@ -240,13 +251,13 @@ const Canvas: React.FC = () => {
       props: nodeConfig,
       position: newNodePosition
     };
-    
+
     setNodes(prev => [...prev, newNode]);
   };
 
   const onNodeMove = (nodeId: string, newPosition: { x: number; y: number }) => {
     // Update node position directly without boundary restrictions for smooth movement
-    setNodes(prev => prev.map(node => 
+    setNodes(prev => prev.map(node =>
       node.id === nodeId ? { ...node, position: newPosition } : node
     ));
 
@@ -281,7 +292,7 @@ const Canvas: React.FC = () => {
   const onConnectionEnd = (nodeId: string, type: 'input' | 'output') => {
     try {
       const connectionState = simpleConnectionHandler.getState();
-      
+
       if (connectionState.isConnecting) {
         simpleConnectionHandler.completeConnection(nodeId, type);
       }
@@ -301,14 +312,14 @@ const Canvas: React.FC = () => {
     if (e.target !== canvasRef.current) {
       return;
     }
-    
+
     // Cancel any active connection when clicking on empty canvas
     const connectionState = simpleConnectionHandler.getState();
     if (connectionState.isConnecting) {
       simpleConnectionHandler.cancelConnection();
       return;
     }
-    
+
     if (!canvasRef.current) return;
     mouseEventManager.handleCanvasMouseDown(e, canvasRef.current);
   };
@@ -545,11 +556,10 @@ const Canvas: React.FC = () => {
         <div className="flex-1 relative overflow-hidden">
           <div
             ref={canvasRef}
-            className={`w-full h-full relative ${
-              currentInteractionMode === 'creating-connection' ? 'cursor-crosshair' : 
+            className={`w-full h-full relative ${currentInteractionMode === 'creating-connection' ? 'cursor-crosshair' :
               currentInteractionMode === 'panning-canvas' ? 'cursor-grabbing' :
-              currentInteractionMode === 'dragging-node' ? 'cursor-grabbing' : 'cursor-move'
-            }`}
+                currentInteractionMode === 'dragging-node' ? 'cursor-grabbing' : 'cursor-move'
+              }`}
             onMouseDown={handleCanvasMouseDown}
             onMouseMove={handleCanvasMouseMove}
             data-canvas
@@ -674,7 +684,7 @@ const Canvas: React.FC = () => {
                 canvasOffset={canvasOffset}
                 mouseEventManager={mouseEventManager}
                 isValidConnectionTarget={
-                  currentInteractionMode === 'creating-connection' && 
+                  currentInteractionMode === 'creating-connection' &&
                   mouseEventManager.getState().activeNodeId !== node.id
                 }
                 isConnectionActive={
@@ -807,7 +817,7 @@ const Canvas: React.FC = () => {
         onStrategyGenerated={(aiNodes, aiConnections) => {
           // Add AI-generated nodes to canvas
           setNodes(prev => [...prev, ...aiNodes]);
-          
+
           // Add AI-generated connections using simple handler
           const currentConnections = simpleConnectionHandler.getConnections();
           aiConnections.forEach(conn => {
@@ -816,10 +826,10 @@ const Canvas: React.FC = () => {
               simpleConnectionHandler.connections.push(conn);
             }
           });
-          
+
           // Trigger update
           simpleConnectionHandler['notifyListeners']?.();
-          
+
           // Close AI assistant
           setIsAIAssistantOpen(false);
         }}
@@ -832,7 +842,7 @@ const Canvas: React.FC = () => {
       />
 
       {/* Connection Instructions - show only when user might need help */}
-      <ConnectionInstructions 
+      <ConnectionInstructions
         isVisible={nodes.length >= 2 && connections.length === 0}
         connectionCount={connections.length}
         isConnecting={simpleConnectionHandler.getState().isConnecting}
