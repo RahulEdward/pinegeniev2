@@ -277,7 +277,7 @@ export default function BillingPage() {
 
         {/* Subscription Plans */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {plans.map((plan) => {
+          {plans.filter(plan => ['free', 'pro', 'premium'].includes(plan.name)).map((plan) => {
             const price = billingCycle === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
             const isCurrentPlan = currentSubscription?.planName === plan.name;
             
