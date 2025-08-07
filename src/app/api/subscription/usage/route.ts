@@ -34,8 +34,7 @@ export async function GET(request: NextRequest) {
       // Count user's strategies
       prisma.strategy.count({
         where: {
-          userId: userId,
-          deletedAt: null
+          userId: userId
         }
       }),
       
