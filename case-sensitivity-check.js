@@ -51,14 +51,35 @@ function checkCaseSensitivity() {
         const fullPath = path.resolve(path.dirname(file), importPath);
         
         // Check if file exists with exact case
-        const possibleExtensions = ['.ts', '.tsx', '.js', '.jsx', ''];
+        const possibleExtensions = ['.ts', '.tsx', '.js', '.jsx'];
         let found = false;
+        let actualPath = '';
         
-        for (const ext of possibleExtensions) {
-          const testPath = fullPath + ext;
-          if (fs.existsSync(testPath)) {
-            found = true;
-            break;
+        // First try without extension (for directory imports)
+        if (fs.existsSync(fullPath)) {
+          const stat = fs.statSync(fullPath);
+          if (stat.isDirectory()) {
+            // Check for index files in directory
+            for (const ext of possibleExtensions) {
+              const indexPath = path.join(fullPath, 'index' + ext);
+              if (fs.existsSync(indexPath)) {
+                found = true;
+                actualPath = indexPath;
+                break;
+              }
+            }
+          }
+        }
+        
+        // Then try with extensions
+        if (!found) {
+          for (const ext of possibleExtensions) {
+            const testPath = fullPath + ext;
+            if (fs.existsSync(testPath)) {
+              found = true;
+              actualPath = testPath;
+              break;
+            }
           }
         }
         
