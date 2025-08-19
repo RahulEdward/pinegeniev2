@@ -163,56 +163,44 @@ export const subscriptionPlansData = [
     name: 'premium',
     displayName: 'Premium',
     description: 'For teams and organizations with advanced needs',
-    monthlyPrice: 8299,
-    annualPrice: 82999,
+    monthlyPrice: 2998,
+    annualPrice: 29980,
     currency: 'INR',
     features: [
       {
-        id: 'everything_pro',
-        name: 'Everything in Pro',
-        description: 'All Pro features included',
+        id: 'ai_credits_1000',
+        name: '1000 AI Credits Monthly',
+        description: '1000 AI credits monthly - auto-refreshed!',
         included: true
       },
       {
-        id: 'white_label',
-        name: 'White Label Options',
-        description: 'Remove Pine Genie branding',
+        id: 'unlimited_indicators',
+        name: 'Unlimited Indicators & Strategies',
+        description: 'Unlimited indicators, strategies & screeners',
         included: true
       },
       {
-        id: 'api_access',
-        name: 'API Access',
-        description: 'Full REST API access',
+        id: 'technical_analysis',
+        name: 'Technical Analysis Indicators',
+        description: 'Technical analysis indicators included',
         included: true
       },
       {
-        id: 'team_collaboration',
-        name: 'Team Collaboration',
-        description: 'Share strategies with team members',
+        id: 'multi_timeframe',
+        name: 'Multi-timeframe & Multi-symbol',
+        description: 'Multi-timeframe & multi-symbol support',
         included: true
       },
       {
-        id: 'custom_integrations',
-        name: 'Custom Integrations',
-        description: 'Custom integration development',
+        id: 'priority_discord',
+        name: 'Priority Discord Support',
+        description: 'Priority support via exclusive Discord',
         included: true
       },
       {
-        id: 'advanced_analytics',
-        name: 'Advanced Analytics',
-        description: 'Detailed performance analytics',
-        included: true
-      },
-      {
-        id: 'priority_processing',
-        name: 'Priority Processing',
-        description: 'Faster strategy generation',
-        included: true
-      },
-      {
-        id: 'dedicated_support',
-        name: 'Dedicated Support',
-        description: 'Dedicated account manager',
+        id: 'import_customize',
+        name: 'Import & Customize Code',
+        description: 'Import & customize your existing code',
         included: true
       }
     ],

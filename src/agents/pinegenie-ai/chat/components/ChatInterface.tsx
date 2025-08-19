@@ -207,22 +207,22 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               <div className="example-prompts">
                 <p>Try asking me:</p>
                 <button
-                  onClick={() => setInputValue("Create a RSI strategy that buys when RSI is below 30")}
+                  onClick={() => setInputValue(&quot;Create a RSI strategy that buys when RSI is below 30&quot;)}
                   className="example-prompt"
                 >
-                  "Create a RSI strategy that buys when RSI is below 30"
+                  &quot;Create a RSI strategy that buys when RSI is below 30&quot;
                 </button>
                 <button
-                  onClick={() => setInputValue("Build a MACD crossover strategy with stop loss")}
+                  onClick={() => setInputValue(&quot;Build a MACD crossover strategy with stop loss&quot;)}
                   className="example-prompt"
                 >
-                  "Build a MACD crossover strategy with stop loss"
+                  &quot;Build a MACD crossover strategy with stop loss&quot;
                 </button>
                 <button
-                  onClick={() => setInputValue("Optimize my current strategy parameters")}
+                  onClick={() => setInputValue(&quot;Optimize my current strategy parameters&quot;)}
                   className="example-prompt"
                 >
-                  "Optimize my current strategy parameters"
+                  &quot;Optimize my current strategy parameters&quot;
                 </button>
               </div>
             </div>

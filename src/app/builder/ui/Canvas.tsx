@@ -6,6 +6,8 @@ import N8nNode, { N8nNodeData } from './N8nNode';
 import ConnectionLine from './ConnectionLine';
 import ValidationStatus from './ValidationStatus';
 import UserManual from './UserManual';
+import ScriptEditor from './ScriptEditor';
+import SaveStrategyModal from './SaveStrategyModal';
 
 import ConnectionInstructions from './ConnectionInstructions';
 import AIAssistant from './AIAssistant';
@@ -40,6 +42,16 @@ const Canvas: React.FC = () => {
   const [isManualOpen, setIsManualOpen] = useState(false);
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const [currentInteractionMode, setCurrentInteractionMode] = useState<InteractionMode>('idle');
+  const [isScriptEditorOpen, setIsScriptEditorOpen] = useState(false);
+  const [generatedScript, setGeneratedScript] = useState('');
+  const [scriptMetadata, setScriptMetadata] = useState<{
+    codeLines?: number;
+    nodeCount?: number;
+    strategyName?: string;
+  }>({});
+  const [scriptWarnings, setScriptWarnings] = useState<string[]>([]);
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+  const [currentStrategyId, setCurrentStrategyId] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // Enhanced connection management
@@ -484,23 +496,34 @@ const Canvas: React.FC = () => {
       const result = generateEnhancedPineScript(convertedNodes, convertedEdges);
 
       if (result.success) {
-        navigator.clipboard.writeText(result.code);
-        alert(`Γ£à Zero-Error Pine Script Generated!\n\n≡ƒôï Code copied to clipboard\n≡ƒÄ» ${result.metadata?.codeLines} lines of perfect Pine Script v6\nΓÜí ${result.warnings.length} warnings (if any)`);
+        // Set the generated script data
+        setGeneratedScript(result.code);
+        setScriptMetadata({
+          codeLines: result.metadata?.codeLines,
+          nodeCount: result.metadata?.nodeCount,
+          strategyName: 'Generated Strategy'
+        });
+        setScriptWarnings(result.warnings || []);
+        
+        // Open the script editor
+        setIsScriptEditorOpen(true);
 
         // Log success details
-        console.log('Γ£à Pine Script Generation Success:', {
+        console.log('✅ Pine Script Generation Success:', {
           codeLines: result.metadata?.codeLines,
           nodeCount: result.metadata?.nodeCount,
           warnings: result.warnings
         });
       } else {
         // Show detailed error information
-        const errorDetails = result.errors.join('\nΓÇó ');
-        alert(`Γ¥î Pine Script Generation Failed\n\nErrors found:\nΓÇó ${errorDetails}\n\nPlease fix these issues and try again.`);
+        const errorDetails = result.errors.join('\n• ');
+        alert(`❌ Pine Script Generation Failed\n\nErrors found:\n• ${errorDetails}\n\nPlease fix these issues and try again.`);
 
-        // Still copy the error script for debugging
-        navigator.clipboard.writeText(result.code);
-        console.error('Γ¥î Pine Script Generation Errors:', result.errors);
+        console.error('❌ Pine Script Generation Failed:', {
+          errors: result.errors,
+          nodeCount: convertedNodes.length,
+          connectionCount: convertedEdges.length
+        });
       }
     }).catch(error => {
       console.error('Failed to load Pine Script generator:', error);
@@ -510,15 +533,73 @@ const Canvas: React.FC = () => {
 
   // Enhanced strategy saving with connection export
   const saveStrategy = () => {
-    const connectionData = connectionManager.exportConnections();
-    const data = {
-      nodes,
-      connections: connectionData.connections,
-      metadata: connectionData.metadata,
-      timestamp: new Date().toISOString()
-    };
-    localStorage.setItem('pinegenie_strategy', JSON.stringify(data));
-    alert('Strategy saved to localStorage!');
+    setIsSaveModalOpen(true);
+  };
+
+  const handleSaveStrategy = async (strategyData: {
+    title: string;
+    description: string;
+    type: 'INDICATOR' | 'STRATEGY' | 'LIBRARY';
+    tags: string[];
+  }) => {
+    try {
+      // Prepare the strategy data
+      const connectionData = connectionManager.exportConnections();
+      const strategyPayload = {
+        title: strategyData.title,
+        description: strategyData.description,
+        type: strategyData.type,
+        code: '', // Will be generated when user clicks Generate Script
+        metadata: {
+          nodes: nodes.length,
+          connections: connectionData.connections.length,
+          components: nodes.map(n => ({ type: n.type, label: n.label })),
+          tags: strategyData.tags,
+          builderData: {
+            nodes,
+            connections: connectionData.connections,
+            metadata: connectionData.metadata,
+            timestamp: new Date().toISOString()
+          }
+        },
+        status: 'DRAFT'
+      };
+
+      const response = await fetch('/api/scripts', {
+        method: currentStrategyId ? 'PUT' : 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(currentStrategyId ? 
+          { ...strategyPayload, id: currentStrategyId } : 
+          strategyPayload
+        ),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setCurrentStrategyId(result.data.id);
+        
+        // Also save to localStorage as backup
+        const backupData = {
+          nodes,
+          connections: connectionData.connections,
+          metadata: connectionData.metadata,
+          timestamp: new Date().toISOString(),
+          strategyInfo: strategyData
+        };
+        localStorage.setItem('pinegenie_strategy_backup', JSON.stringify(backupData));
+        
+        console.log('Strategy saved successfully:', result);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save strategy');
+      }
+    } catch (error) {
+      console.error('Save strategy error:', error);
+      throw error;
+    }
   };
 
   const getNodeById = (id: string) => nodes.find(n => n.id === id);
@@ -537,7 +618,7 @@ const Canvas: React.FC = () => {
   };
 
   return (
-    <div className={`flex h-screen bg-gradient-to-br ${colors.bg.primary}`}>
+    <div className={`flex bg-gradient-to-br ${colors.bg.primary}`} style={{ height: 'auto', minHeight: '100vh', overflow: 'visible' }}>
       <Sidebar onNodeAdd={onNodeAdd} isCollapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
       <div className="flex-1 flex flex-col">
         <Toolbar
@@ -846,6 +927,32 @@ const Canvas: React.FC = () => {
         isVisible={nodes.length >= 2 && connections.length === 0}
         connectionCount={connections.length}
         isConnecting={simpleConnectionHandler.getState().isConnecting}
+      />
+
+      {/* Script Editor Modal */}
+      <ScriptEditor
+        isOpen={isScriptEditorOpen}
+        onClose={() => setIsScriptEditorOpen(false)}
+        generatedCode={generatedScript}
+        metadata={scriptMetadata}
+        warnings={scriptWarnings}
+        darkMode={isDark}
+      />
+
+      {/* Save Strategy Modal */}
+      <SaveStrategyModal
+        isOpen={isSaveModalOpen}
+        onClose={() => setIsSaveModalOpen(false)}
+        onSave={handleSaveStrategy}
+        nodes={nodes}
+        connections={connections}
+        darkMode={isDark}
+        existingStrategy={currentStrategyId ? {
+          id: currentStrategyId,
+          title: 'Current Strategy',
+          description: '',
+          type: 'STRATEGY'
+        } : null}
       />
     </div>
   );

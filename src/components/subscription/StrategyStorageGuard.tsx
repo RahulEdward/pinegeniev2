@@ -108,7 +108,7 @@ export function StrategyStorageGuard({
             </div>
 
             <p className="text-gray-600 mb-6">
-              You've reached your strategy storage limit. To save "{strategyName}", you can either 
+              You&apos;ve reached your strategy storage limit. To save &quot;{strategyName}&quot;, you can either 
               upgrade to a paid plan or delete an existing strategy.
             </p>
 

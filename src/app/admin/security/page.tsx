@@ -51,7 +51,7 @@ export default function SecurityPage() {
 
   useEffect(() => {
     fetchSecurityEvents();
-  }, [currentPage, filters]);
+  }, [currentPage, filters]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchSecurityEvents = async () => {
     setLoading(true);

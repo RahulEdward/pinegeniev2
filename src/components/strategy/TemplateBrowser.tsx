@@ -15,7 +15,7 @@ export function TemplateBrowser({
   onStrategyCreate,
   className = '',
 }: TemplateBrowserProps) {
-  const { templates, loading, error, filters, fetchTemplates, useTemplate } = useTemplates();
+  const { templates, loading, error, filters, fetchTemplates, useTemplate: createFromTemplate } = useTemplates();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -50,7 +50,7 @@ export function TemplateBrowser({
     if (!showUseDialog) return;
 
     try {
-      const strategy = await useTemplate(showUseDialog.id, {
+      const strategy = await createFromTemplate(showUseDialog.id, {
         name: useTemplateData.name || undefined,
         description: useTemplateData.description || undefined,
         folderId: useTemplateData.folderId || undefined,

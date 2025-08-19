@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { ChatMessage, ConversationContext, ConversationState, UserChatPreferences } from '../../types/chat-types';
 import { ConversationManager } from '../services/conversation-manager';
 
@@ -25,7 +25,7 @@ export const useConversation = (initialConversationId?: string): UseConversation
     return conversationManager.createConversation(initialConversationId);
   });
 
-  const conversationManager = new ConversationManager();
+  const conversationManager = useMemo(() => new ConversationManager(), []);
 
   // Load conversation from storage on mount
   useEffect(() => {

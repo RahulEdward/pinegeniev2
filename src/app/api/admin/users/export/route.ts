@@ -1,32 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAdminAuthAndLogging, addSecurityHeaders } from '@/middleware/admin';
 import { prisma } from '@/lib/prisma';
+import { logAdminAction } from '@/services/admin';
 
+// Export users as CSV
 export const GET = withAdminAuthAndLogging(async (request: NextRequest, adminId: string, adminUser: any) => {
   try {
-    const { searchParams } = new URL(request.url);
-    const search = searchParams.get('search') || '';
-    const status = searchParams.get('status') || '';
-    
-    // Build where clause
-    const where: any = {};
-    
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-      ];
-    }
-
-    if (status === 'verified') {
-      where.emailVerified = { not: null };
-    } else if (status === 'unverified') {
-      where.emailVerified = null;
-    }
-
-    // Get users
+    // Get all users
     const users = await prisma.user.findMany({
-      where,
       select: {
         id: true,
         name: true,
@@ -38,54 +19,58 @@ export const GET = withAdminAuthAndLogging(async (request: NextRequest, adminId:
         _count: {
           select: {
             conversations: true,
+            strategies: true,
           },
         },
       },
       orderBy: { createdAt: 'desc' },
     });
 
-    // Convert to CSV
-    const headers = [
+    // Create CSV content
+    const csvHeaders = [
       'ID',
       'Name',
       'Email',
       'Role',
       'Email Verified',
-      'Conversations',
+      'Conversations Count',
+      'Strategies Count',
       'Created At',
-      'Updated At',
+      'Updated At'
     ];
 
-    const rows = users.map(user => [
+    const csvRows = users.map(user => [
       user.id,
       user.name || '',
       user.email || '',
       user.role,
       user.emailVerified ? 'Yes' : 'No',
       user._count.conversations.toString(),
-      new Date(user.createdAt).toISOString(),
-      new Date(user.updatedAt).toISOString(),
+      user._count.strategies.toString(),
+      user.createdAt.toISOString(),
+      user.updatedAt.toISOString()
     ]);
 
-    const csv = [
-      headers.join(','),
-      ...rows.map(row => row.join(','))
-    ].join('\\n');
+    const csvContent = [
+      csvHeaders.join(','),
+      ...csvRows.map(row => row.map(field => `"${field}"`).join(','))
+    ].join('\n');
 
     // Log admin action
-    await prisma.auditLog.create({
-      data: {
-        adminId,
-        action: 'EXPORT_USERS',
-        resource: 'USER',
-        details: { count: users.length },
-        ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+    await logAdminAction(
+      adminId,
+      'EXPORT_USERS',
+      'USER_MANAGEMENT',
+      undefined,
+      { totalUsers: users.length },
+      {
+        ip: request.headers.get('x-forwarded-for') || 'unknown',
         userAgent: request.headers.get('user-agent') || 'unknown',
       }
-    });
+    );
 
-    // Return CSV
-    const response = new NextResponse(csv, {
+    const response = new NextResponse(csvContent, {
+      status: 200,
       headers: {
         'Content-Type': 'text/csv',
         'Content-Disposition': `attachment; filename="users-export-${new Date().toISOString().split('T')[0]}.csv"`,
@@ -93,6 +78,7 @@ export const GET = withAdminAuthAndLogging(async (request: NextRequest, adminId:
     });
 
     return addSecurityHeaders(response);
+
   } catch (error) {
     console.error('Users export error:', error);
     const response = NextResponse.json(

@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { seedTokenPricingData } from './seeds/token-pricing-seed';
 
 const prisma = new PrismaClient();
 
@@ -316,6 +317,113 @@ async function main() {
   }
 
   console.log('✅ Strategy templates seeded');
+
+  // Create subscription plans if they don't exist
+  const subscriptionPlans = [
+    {
+      name: 'free',
+      displayName: 'Free',
+      description: 'Perfect for getting started',
+      monthlyPrice: 0.00,
+      annualPrice: 0.00,
+      currency: 'USD',
+      features: [
+        {
+          id: 'basic_strategies',
+          name: '5 Strategies',
+          description: 'Create up to 5 basic strategies',
+          included: true
+        },
+        {
+          id: 'basic_indicators',
+          name: 'Basic Indicators',
+          description: 'Access to essential technical indicators',
+          included: true
+        }
+      ],
+      limits: {
+        strategiesPerMonth: 5,
+        templatesAccess: 'basic',
+        aiGenerations: 10,
+        aiChatAccess: false,
+        scriptStorage: 5,
+        exportFormats: ['pine'],
+        supportLevel: 'basic',
+        customSignatures: false,
+        apiAccess: false,
+        whiteLabel: false,
+        teamCollaboration: false,
+        advancedIndicators: false,
+        backtesting: false
+      },
+      isPopular: false,
+      trialDays: 0,
+      isActive: true,
+    },
+    {
+      name: 'pro',
+      displayName: 'Pro',
+      description: 'For serious traders',
+      monthlyPrice: 1499.00,
+      annualPrice: 14990.00,
+      currency: 'INR',
+      features: [
+        {
+          id: 'ai_credits',
+          name: '500 AI Credits Monthly',
+          description: 'Auto-refreshed, no extra charges!',
+          included: true
+        },
+        {
+          id: 'unlimited_strategies',
+          name: 'Unlimited Strategies',
+          description: 'Create unlimited indicators, strategies & screeners',
+          included: true
+        },
+        {
+          id: 'unlimited_inputs',
+          name: 'Unlimited Inputs & Conditions',
+          description: 'Unlimited inputs, conditions, alerts & plots',
+          included: true
+        }
+      ],
+      limits: {
+        strategiesPerMonth: 'unlimited',
+        templatesAccess: 'all',
+        aiGenerations: 500,
+        aiChatAccess: true,
+        scriptStorage: 'unlimited',
+        exportFormats: ['pine', 'json', 'txt'],
+        supportLevel: 'priority',
+        customSignatures: true,
+        apiAccess: true,
+        whiteLabel: false,
+        teamCollaboration: false,
+        advancedIndicators: true,
+        backtesting: true
+      },
+      isPopular: true,
+      trialDays: 7,
+      isActive: true,
+    }
+  ];
+
+  for (const planData of subscriptionPlans) {
+    await prisma.subscriptionPlan.upsert({
+      where: { name: planData.name },
+      update: {},
+      create: planData,
+    });
+    console.log('✅ Created subscription plan:', planData.displayName);
+  }
+
+  // Seed AI Token and Pricing Management data
+  try {
+    await seedTokenPricingData();
+  } catch (error) {
+    console.log('⚠️  Could not seed token and pricing data:', error);
+    // Don't fail the entire seed process if this fails
+  }
 
   console.log('🎉 Seeding completed!');
   console.log('');

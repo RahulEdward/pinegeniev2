@@ -87,7 +87,7 @@ export default function PayUPaymentForm({
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-slate-400">Redirecting to PayU for secure payment...</p>
           <p className="text-sm text-slate-500 mt-2">
-            If you're not redirected automatically, click the button below.
+            If you&apos;re not redirected automatically, click the button below.
           </p>
           <button
             onClick={() => formRef.current?.submit()}

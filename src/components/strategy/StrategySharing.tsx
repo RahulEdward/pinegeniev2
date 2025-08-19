@@ -224,7 +224,7 @@ export function StrategySharing({
 
         {shares.length === 0 ? (
           <div className="text-gray-500 dark:text-gray-400 text-sm text-center py-4">
-            This strategy hasn't been shared with anyone yet
+            This strategy hasn&apos;t been shared with anyone yet
           </div>
         ) : (
           <div className="space-y-3">

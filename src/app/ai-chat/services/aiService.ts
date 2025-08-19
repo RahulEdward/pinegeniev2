@@ -246,18 +246,22 @@ export class AIService {
       const response = await fetch('/api/pine-genie/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: content })
+        body: JSON.stringify({ 
+          messages: [{ role: 'user', content }],
+          mode: 'general'
+        })
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
 
       const data = await response.json();
       const responseTime = Date.now() - startTime;
 
       return {
-        content: data.response || 'No response generated',
+        content: data.content || data.response || 'No response generated',
         model: 'pine-genie',
         responseTime
       };

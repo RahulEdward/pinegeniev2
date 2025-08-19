@@ -131,7 +131,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNodeAdd, isCollapsed, onToggleColla
   const categoryKeys = Object.keys(nodeTemplates) as NodeCategory[];
 
   return (
-    <div className={`w-80 bg-gradient-to-br ${colors.bg.primary} ${colors.border.primary} border-r overflow-hidden`}>
+    <div className={`w-64 bg-gradient-to-br ${colors.bg.primary} ${colors.border.primary} border-r overflow-y-auto overflow-x-hidden`} style={{ maxHeight: '100vh' }}>
       {/* Header */}
       <div className={`p-6 ${colors.border.primary} border-b`}>
         <div className="flex items-center justify-between mb-2">
@@ -175,9 +175,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onNodeAdd, isCollapsed, onToggleColla
         </div>
       </div>
       {/* Component list */}
-      <div className="p-4 h-full overflow-y-auto">
-        <div className="space-y-3">
-          {nodeTemplates[categoryKeys[activeCategory]]?.map((node, nodeIdx) => {
+      <div className="p-4 overflow-y-auto overflow-x-hidden" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+        <div className="space-y-3" style={{ maxHeight: 'none', overflow: 'visible' }}>
+          {nodeTemplates[categoryKeys[activeCategory]]?.slice(0, 6).map((node, nodeIdx) => {
             const nodeType = NODE_TYPES[node.type as NodeTypeKey];
             const IconComponent = nodeType.icon;
             const accentColor = colors.accent[nodeType.color as keyof typeof colors.accent];

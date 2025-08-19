@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { AIResponse, ConversationContext } from '../../types/chat-types';
 import { ResponseGenerator } from '../services/response-generator';
 
@@ -20,7 +20,7 @@ export const useAIChat = (): UseAIChatReturn => {
   const [error, setError] = useState<string | null>(null);
 
   // Initialize response generator
-  const responseGenerator = new ResponseGenerator();
+  const responseGenerator = useMemo(() => new ResponseGenerator(), []);
 
   // Clear error state
   const clearError = useCallback(() => {

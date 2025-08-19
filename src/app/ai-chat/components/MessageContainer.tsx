@@ -86,7 +86,7 @@ export default function MessageContainer({ messages, isLoading, onSuggestedPromp
               </div>
               <h3 className="empty-chat-title">Welcome to Pine Genie AI</h3>
               <p className="empty-chat-description">
-                I'm here to help you create, analyze, and optimize Pine Script trading strategies. 
+                I&apos;m here to help you create, analyze, and optimize Pine Script trading strategies. 
                 Ask me anything about technical indicators, strategy development, or Pine Script coding!
               </p>
               <div className="suggested-prompts">

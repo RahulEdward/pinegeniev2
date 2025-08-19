@@ -85,7 +85,7 @@ function PaymentSuccessContent() {
             Payment Information Not Found
           </h1>
           <p className="text-slate-400 mb-6">
-            We couldn't find the payment details. Please check your email for confirmation or contact support.
+            We couldn&apos;t find the payment details. Please check your email for confirmation or contact support.
           </p>
           <button
             onClick={() => router.push('/billing')}
@@ -169,7 +169,7 @@ function PaymentSuccessContent() {
         {/* What's Next */}
         <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 mb-8">
           <h2 className="text-2xl font-bold text-white mb-6">
-            What's Next?
+            What&apos;s Next?
           </h2>
           
           <div className="space-y-4">

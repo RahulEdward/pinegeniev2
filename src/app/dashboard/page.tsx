@@ -79,7 +79,7 @@ function MyScriptsSection({ darkMode, setActivePage }: { darkMode: boolean; setA
       fetchScripts();
       checkScriptLimits();
     }
-  }, [filters, session]);
+  }, [filters, session]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkScriptLimits = async () => {
     try {

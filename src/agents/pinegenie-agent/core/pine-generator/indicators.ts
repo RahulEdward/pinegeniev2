@@ -467,10 +467,7 @@ export const technicalIndicators: IndicatorDefinition[] = [
       }
     ]
   }
-];
-
-// Additional indicators continue...  // VOLUME 
-INDICATORS
+  // VOLUME INDICATORS
   {
     id: 'volume_sma',
     name: 'Volume SMA',

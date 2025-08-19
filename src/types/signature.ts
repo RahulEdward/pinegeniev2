@@ -36,14 +36,14 @@ export interface GenerationContext {
   templateId?: string;
   timestamp: Date;
   version: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface SignatureVariable {
   name: string;
   type: 'string' | 'number' | 'datetime' | 'boolean';
   required: boolean;
-  defaultValue?: any;
+  defaultValue?: unknown;
   description?: string;
 }
 
@@ -123,7 +123,7 @@ export interface SignatureTemplateModel {
   name: string;
   type: string;
   template: string;
-  variables: any; // JSONB field
+  variables: Record<string, unknown>; // JSONB field
   position: string;
   enabled: boolean;
   isSystem: boolean;
@@ -137,6 +137,6 @@ export interface SignatureUsageAnalytics {
   userId?: number;
   signatureType: string;
   templateId?: number;
-  generationContext: any; // JSONB field
+  generationContext: Record<string, unknown>; // JSONB field
   createdAt: Date;
 }

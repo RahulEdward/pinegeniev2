@@ -85,7 +85,7 @@ export const StrategyExporter: React.FC<StrategyExporterProps> = ({
       id: 'image',
       name: 'Strategy Diagram',
       description: 'Visual representation as PNG',
-      icon: <Image size={20} />,
+      icon: <Image size={20} alt="" />,
       fileExtension: 'png',
       mimeType: 'image/png'
     }

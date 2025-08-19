@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { authOptions } from '@/lib/auth-options';
 import { availableModels } from '@/lib/ai-models';
 
 // In-memory storage for AI model configurations (in production, use database)

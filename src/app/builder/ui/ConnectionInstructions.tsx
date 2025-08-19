@@ -38,7 +38,7 @@ const ConnectionInstructions: React.FC<ConnectionInstructionsProps> = ({
               <div className="w-2 h-2 bg-orange-400 rounded-full animate-ping" />
               <span className="font-medium">Creating Connection...</span>
             </div>
-            <div>Click on another node's handle to complete the connection</div>
+            <div>Click on another node&apos;s handle to complete the connection</div>
             <div className="text-xs text-gray-400">Press ESC or click empty space to cancel</div>
           </div>
         ) : (

@@ -46,7 +46,7 @@ export default function ChatHistory({ onSelectSession }: ChatHistoryProps) {
         id: '4',
         title: 'Debugging Pine Script Error',
         date: 'Last week',
-        preview: 'I'm getting an error in my Pine Script code: "line 42: Cannot use expression as statement"'
+        preview: 'I&apos;m getting an error in my Pine Script code: &quot;line 42: Cannot use expression as statement&quot;'
       }
     ];
     

@@ -33,6 +33,9 @@ model User {
   payments Payment[]
   invoices Invoice[]
   usageMetrics UsageMetric[]
+  tokenAllocations TokenAllocation[]
+  tokenUsageLogs TokenUsageLog[]
+  promotionUsages PromotionUsage[]
 
   @@map("users")
 }
@@ -531,6 +534,8 @@ model SubscriptionPlan {
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
   subscriptions Subscription[]
+  pricingContent PricingContent?
+  pricingHistory PricingHistory[]
 
   @@index([name])
   @@index([isActive])
@@ -554,6 +559,7 @@ model Subscription {
   plan                 SubscriptionPlan @relation(fields: [planId], references: [id])
   payments             Payment[]
   usageMetrics         UsageMetric[]
+  promotionUsages      PromotionUsage[]
 
   @@unique([userId, status], name: "unique_active_subscription")
   @@index([userId])
@@ -582,6 +588,7 @@ model Payment {
   user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   subscription        Subscription? @relation(fields: [subscriptionId], references: [id])
   invoices            Invoice[]
+  promotionUsages     PromotionUsage[]
 
   @@index([userId])
   @@index([status])
@@ -658,6 +665,156 @@ model UsageMetric {
   @@index([metricType])
   @@index([periodStart, periodEnd])
   @@map("usage_metrics")
+}
+
+// AI Token and Pricing Management Models
+
+// Token Allocation Model
+model TokenAllocation {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  tokenAmount   Int      @map("token_amount")
+  allocatedBy   String   @map("allocated_by") // Admin user ID
+  reason        String?
+  expiresAt     DateTime? @map("expires_at")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([isActive])
+  @@index([createdAt])
+  @@map("token_allocations")
+}
+
+// Token Usage Log Model
+model TokenUsageLog {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  modelId         String?  @map("model_id")
+  tokensUsed      Int      @map("tokens_used")
+  cost            Decimal  @db.Decimal(10,4)
+  requestType     String   @map("request_type") // 'chat', 'generation', 'analysis'
+  metadata        Json?
+  timestamp       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([timestamp])
+  @@index([modelId])
+  @@index([requestType])
+  @@index([userId, timestamp])
+  @@map("token_usage_logs")
+}
+
+// Promotion Model
+model Promotion {
+  id              String           @id @default(cuid())
+  name            String
+  description     String
+  type            PromotionType
+  value           Decimal          @db.Decimal(10,2)
+  code            String?          @unique
+  isCodeRequired  Boolean          @default(true) @map("is_code_required")
+  startDate       DateTime         @map("start_date")
+  endDate         DateTime         @map("end_date")
+  usageLimit      Int?             @map("usage_limit")
+  usageCount      Int              @default(0) @map("usage_count")
+  eligiblePlans   Json             @map("eligible_plans") // Array of plan IDs
+  eligibleUsers   Json?            @map("eligible_users") // Array of user IDs
+  isActive        Boolean          @default(true) @map("is_active")
+  autoApply       Boolean          @default(false) @map("auto_apply")
+  stackable       Boolean          @default(false)
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  createdBy       String           @map("created_by") // Admin user ID
+  usages          PromotionUsage[]
+
+  @@index([code])
+  @@index([isActive])
+  @@index([startDate, endDate])
+  @@index([type])
+  @@index([createdAt])
+  @@map("promotions")
+}
+
+// Promotion Usage Model
+model PromotionUsage {
+  id              String     @id @default(cuid())
+  promotionId     String     @map("promotion_id")
+  userId          String     @map("user_id")
+  subscriptionId  String?    @map("subscription_id")
+  paymentId       String?    @map("payment_id")
+  discountAmount  Decimal    @db.Decimal(10,2) @map("discount_amount")
+  appliedAt       DateTime   @default(now()) @map("applied_at")
+  promotion       Promotion  @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription    Subscription? @relation(fields: [subscriptionId], references: [id])
+  payment         Payment?   @relation(fields: [paymentId], references: [id])
+
+  @@index([promotionId])
+  @@index([userId])
+  @@index([appliedAt])
+  @@index([subscriptionId])
+  @@index([paymentId])
+  @@map("promotion_usages")
+}
+
+// Pricing Content Model
+model PricingContent {
+  id              String   @id @default(cuid())
+  planId          String   @unique @map("plan_id")
+  heroTitle       String   @map("hero_title")
+  heroSubtitle    String   @map("hero_subtitle")
+  features        Json     // Array of ContentFeature objects
+  benefits        Json     // Array of strings
+  testimonials    Json     // Array of Testimonial objects
+  faq             Json     // Array of FAQ objects
+  callToAction    Json     @map("call_to_action") // CallToAction object
+  comparisonTable Json?    @map("comparison_table") // ComparisonTableData object
+  isDraft         Boolean  @default(true) @map("is_draft")
+  publishedAt     DateTime? @map("published_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  updatedBy       String   @map("updated_by") // Admin user ID
+  plan            SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@index([isDraft])
+  @@index([publishedAt])
+  @@index([updatedAt])
+  @@map("pricing_content")
+}
+
+// Pricing History Model
+model PricingHistory {
+  id                String           @id @default(cuid())
+  planId            String           @map("plan_id")
+  oldMonthlyPrice   Decimal          @map("old_monthly_price") @db.Decimal(10,2)
+  newMonthlyPrice   Decimal          @map("new_monthly_price") @db.Decimal(10,2)
+  oldAnnualPrice    Decimal          @map("old_annual_price") @db.Decimal(10,2)
+  newAnnualPrice    Decimal          @map("new_annual_price") @db.Decimal(10,2)
+  changeReason      String           @map("change_reason")
+  effectiveDate     DateTime         @map("effective_date")
+  affectedUsers     Int              @map("affected_users")
+  grandfatheredUsers Int             @map("grandfathered_users")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  createdBy         String           @map("created_by") // Admin user ID
+  plan              SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@index([effectiveDate])
+  @@index([createdAt])
+  @@map("pricing_history")
+}
+
+// Enums for AI Token and Pricing Management
+enum PromotionType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_TRIAL
+  UPGRADE_DISCOUNT
 }
 
 // Payment System Enums

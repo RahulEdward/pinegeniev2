@@ -104,7 +104,7 @@ export function UpgradePrompt({
                     <Star className="h-3 w-3 mr-1" />
                     Pro
                   </div>
-                  <div className="text-2xl font-bold text-gray-900">₹24.99</div>
+                  <div className="text-2xl font-bold text-gray-900">₹1,499</div>
                   <div className="text-xs text-gray-500">per month</div>
                   <div className="mt-3 space-y-1">
                     <div className="text-xs text-gray-600">• Unlimited Strategies</div>

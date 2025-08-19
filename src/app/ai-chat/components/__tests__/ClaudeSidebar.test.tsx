@@ -38,7 +38,6 @@ describe('ClaudeSidebar', () => {
       expect(screen.getByTestId('new-chat-button')).toBeInTheDocument();
       expect(screen.getByTestId('chat-history-button')).toBeInTheDocument();
       expect(screen.getByTestId('spec-planning-button')).toBeInTheDocument();
-      expect(screen.getByTestId('visual-builder-button')).toBeInTheDocument();
       
       // User profile section should be rendered
       expect(screen.getByTestId('user-profile-section')).toBeInTheDocument();
@@ -56,7 +55,6 @@ describe('ClaudeSidebar', () => {
       expect(screen.getByText('New Chat')).toBeInTheDocument();
       expect(screen.getByText('Chat History')).toBeInTheDocument();
       expect(screen.getByText('Spec Planning')).toBeInTheDocument();
-      expect(screen.getByText('Visual Builder')).toBeInTheDocument();
       
       // User profile section should show user details when expanded
       expect(screen.getByText('Pine Genie User')).toBeInTheDocument();
@@ -102,7 +100,6 @@ describe('ClaudeSidebar', () => {
       expect(screen.queryByText('New Chat')).not.toBeInTheDocument();
       expect(screen.queryByText('Chat History')).not.toBeInTheDocument();
       expect(screen.queryByText('Spec Planning')).not.toBeInTheDocument();
-      expect(screen.queryByText('Visual Builder')).not.toBeInTheDocument();
       
       // Chat history list should also be hidden when collapsed
       expect(screen.queryByTestId('chat-history-list')).not.toBeInTheDocument();
@@ -191,7 +188,6 @@ describe('ClaudeSidebar', () => {
       expect(screen.getByTestId('new-chat-button')).toHaveAttribute('title', 'Start new chat');
       expect(screen.getByTestId('chat-history-button')).toHaveAttribute('title', 'Chat history');
       expect(screen.getByTestId('spec-planning-button')).toHaveAttribute('title', 'Spec planning');
-      expect(screen.getByTestId('visual-builder-button')).toHaveAttribute('title', 'Visual builder');
     });
 
     it('should have proper ARIA labels', () => {
@@ -200,7 +196,6 @@ describe('ClaudeSidebar', () => {
       expect(screen.getByTestId('new-chat-button')).toHaveAttribute('aria-label', 'Start new chat');
       expect(screen.getByTestId('chat-history-button')).toHaveAttribute('aria-label', 'Chat history');
       expect(screen.getByTestId('spec-planning-button')).toHaveAttribute('aria-label', 'Spec planning');
-      expect(screen.getByTestId('visual-builder-button')).toHaveAttribute('aria-label', 'Visual builder');
     });
 
     it('should render all SVG icons', () => {
@@ -208,9 +203,7 @@ describe('ClaudeSidebar', () => {
       
       const buttons = [
         'new-chat-button',
-        'chat-history-button', 
-        'spec-planning-button',
-        'visual-builder-button'
+        'spec-planning-button'
       ];
       
       buttons.forEach(buttonTestId => {

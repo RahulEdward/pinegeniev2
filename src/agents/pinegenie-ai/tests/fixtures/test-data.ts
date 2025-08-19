@@ -393,7 +393,7 @@ export const performanceBenchmarks = {
   }
 };
 
-export default {
+const testData = {
   sampleTradingRequests,
   sampleStrategyBlueprints,
   sampleNodeConfigurations,
@@ -402,3 +402,5 @@ export default {
   sampleErrorScenarios,
   performanceBenchmarks
 };
+
+export default testData;

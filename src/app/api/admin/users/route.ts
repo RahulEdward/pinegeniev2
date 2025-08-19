@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAdminAuthAndLogging, addSecurityHeaders, withRateLimit } from '@/middleware/admin';
 import { prisma } from '@/lib/prisma';
 import { logAdminAction } from '@/services/admin';
+import bcrypt from 'bcryptjs';
 
 // Get users with pagination and filtering
 export const GET = withAdminAuthAndLogging(async (request: NextRequest, adminId: string, adminUser: any) => {
@@ -105,8 +106,39 @@ export const POST = withRateLimit(20, 60000)(
 
       switch (action) {
         case 'create':
+          // Validate required fields
+          if (!userData.name || !userData.email || !userData.password) {
+            throw new Error('Name, email, and password are required');
+          }
+
+          // Check if user already exists
+          const existingUser = await prisma.user.findUnique({
+            where: { email: userData.email },
+          });
+
+          if (existingUser) {
+            throw new Error('User with this email already exists');
+          }
+
+          // Hash password
+          const hashedPassword = await bcrypt.hash(userData.password, 12);
+
           result = await prisma.user.create({
-            data: userData,
+            data: {
+              name: userData.name,
+              email: userData.email,
+              password: hashedPassword,
+              role: userData.role || 'USER',
+              emailVerified: new Date(), // Auto-verify admin-created users
+            },
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+              createdAt: true,
+              emailVerified: true,
+            },
           });
           actionType = 'CREATE_USER';
           break;
@@ -151,6 +183,44 @@ export const POST = withRateLimit(20, 60000)(
             },
           });
           actionType = 'ACTIVATE_USER';
+          break;
+
+        case 'delete':
+          if (!userId) {
+            throw new Error('User ID required for deletion');
+          }
+          
+          // First, delete related conversations to avoid foreign key constraints
+          await prisma.conversation.deleteMany({
+            where: { userId: userId },
+          });
+          
+          // Then delete the user
+          result = await prisma.user.delete({
+            where: { id: userId },
+          });
+          actionType = 'DELETE_USER';
+          break;
+
+        case 'view_details':
+          if (!userId) {
+            throw new Error('User ID required for viewing details');
+          }
+          result = await prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+              conversations: {
+                select: {
+                  id: true,
+                  title: true,
+                  createdAt: true,
+                },
+                orderBy: { createdAt: 'desc' },
+                take: 10,
+              },
+            },
+          });
+          actionType = 'VIEW_USER_DETAILS';
           break;
 
         default:

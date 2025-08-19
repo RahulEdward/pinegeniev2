@@ -26,7 +26,7 @@ export interface CreateAuditLogData {
   action: string;
   resource: string;
   resourceId?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   ipAddress: string;
   userAgent: string;
 }
@@ -61,13 +61,13 @@ export interface MetricsFilters {
 }
 
 // Admin API Response Types
-export interface AdminApiResponse<T = any> {
+export interface AdminApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: {
     code: string;
     message: string;
-    details?: Record<string, any>;
+    details?: Record<string, unknown>;
   };
   meta?: {
     total?: number;
@@ -79,7 +79,7 @@ export interface AdminApiResponse<T = any> {
 // Admin Settings Types
 export interface AdminSettingsData {
   key: string;
-  value: any;
+  value: unknown;
   description?: string;
   category?: string;
   isSystemSetting?: boolean;
@@ -96,7 +96,7 @@ export interface UserActivityData {
   userId: string;
   action: string;
   resource?: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   ipAddress: string;
   userAgent: string;
 }
@@ -115,7 +115,7 @@ export interface SecurityEventData {
   type: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
   description: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
   userId?: string;

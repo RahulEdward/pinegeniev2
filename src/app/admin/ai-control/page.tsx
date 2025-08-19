@@ -93,7 +93,7 @@ export default function AIControlPage() {
 
   useEffect(() => {
     fetchAIData();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchAIData = async () => {
     try {

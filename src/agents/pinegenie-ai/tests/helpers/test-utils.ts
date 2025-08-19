@@ -348,7 +348,7 @@ export const commonTestScenarios = {
   }
 };
 
-export default {
+const testUtils = {
   createMockParsedRequest,
   createMockTradingIntent,
   createMockStrategyBlueprint,
@@ -366,6 +366,8 @@ export default {
   createMockStrategyBuilder,
   commonTestScenarios
 };
+
+export default testUtils;
 
 // User Acceptance Test Utilities
 export interface TestUserInputResult {

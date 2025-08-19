@@ -41,7 +41,7 @@ export default function SubscriptionGate({
     if (session?.user?.id) {
       checkAccess();
     }
-  }, [session, feature]);
+  }, [session, feature]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkAccess = async () => {
     try {

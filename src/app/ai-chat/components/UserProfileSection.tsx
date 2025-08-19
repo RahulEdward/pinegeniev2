@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { useClaudeLayoutStore } from '../stores/claude-layout-store';
 
 // Types for user profile and settings
@@ -42,7 +43,7 @@ export default function UserProfileSection({
   className = ''
 }: UserProfileSectionProps) {
   const { sidebarCollapsed, toggleTheme, setFontSize, setAutoOpenCodePanel } = useClaudeLayoutStore();
-  const [showSettings, setShowSettings] = useState(false);
+
   const [showProfile, setShowProfile] = useState(false);
 
   // Handle settings changes
@@ -68,7 +69,7 @@ export default function UserProfileSection({
   // Generate avatar initials if no avatar image
   const getAvatarContent = () => {
     if (user.avatar) {
-      return <img src={user.avatar} alt={user.name} className="avatar-image" />;
+      return <Image src={user.avatar} alt={user.name} className="avatar-image" width={32} height={32} />;
     }
     return <span className="avatar-initials">{user.initials}</span>;
   };
@@ -83,28 +84,7 @@ export default function UserProfileSection({
   if (sidebarCollapsed) {
     return (
       <div className={`user-profile-section collapsed ${className}`} data-testid="user-profile-section">
-        {/* Collapsed Settings Button */}
-        <button
-          className="nav-button footer-button"
-          onClick={() => setShowSettings(!showSettings)}
-          aria-label="Settings"
-          title="Settings"
-          data-testid="settings-button"
-        >
-          <svg 
-            className="nav-icon" 
-            width="20" 
-            height="20" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2"
-            aria-hidden="true"
-          >
-            <circle cx="12" cy="12" r="3" />
-            <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" />
-          </svg>
-        </button>
+        {/* Settings button removed */}
 
         {/* Collapsed Profile Button */}
         <button
@@ -124,125 +104,7 @@ export default function UserProfileSection({
 
   return (
     <div className={`user-profile-section expanded ${className}`} data-testid="user-profile-section">
-      {/* Settings Panel */}
-      <div className="settings-section">
-        <button
-          className="section-header"
-          onClick={() => setShowSettings(!showSettings)}
-          aria-expanded={showSettings}
-          data-testid="settings-toggle"
-        >
-          <div className="header-content">
-            <svg 
-              className="section-icon" 
-              width="18" 
-              height="18" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2"
-              aria-hidden="true"
-            >
-              <circle cx="12" cy="12" r="3" />
-              <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" />
-            </svg>
-            <span className="section-title">Settings</span>
-          </div>
-          <svg 
-            className={`expand-icon ${showSettings ? 'expanded' : ''}`}
-            width="16" 
-            height="16" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2"
-            aria-hidden="true"
-          >
-            <polyline points="6,9 12,15 18,9" />
-          </svg>
-        </button>
-
-        {showSettings && (
-          <div className="settings-panel" data-testid="settings-panel">
-            {/* Theme Setting */}
-            <div className="setting-item">
-              <label className="setting-label" htmlFor="theme-select">
-                Theme
-              </label>
-              <select
-                id="theme-select"
-                className="setting-select"
-                value={settings.theme}
-                onChange={(e) => handleSettingChange('theme', e.target.value)}
-                data-testid="theme-select"
-              >
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
-                <option value="auto">Auto</option>
-              </select>
-            </div>
-
-            {/* Font Size Setting */}
-            <div className="setting-item">
-              <label className="setting-label" htmlFor="font-size-range">
-                Font Size: {settings.fontSize}px
-              </label>
-              <input
-                id="font-size-range"
-                type="range"
-                className="setting-range"
-                min="12"
-                max="20"
-                value={settings.fontSize}
-                onChange={(e) => handleSettingChange('fontSize', parseInt(e.target.value))}
-                data-testid="font-size-range"
-              />
-            </div>
-
-            {/* Auto Open Code Panel */}
-            <div className="setting-item">
-              <label className="setting-checkbox-label">
-                <input
-                  type="checkbox"
-                  className="setting-checkbox"
-                  checked={settings.autoOpenCodePanel}
-                  onChange={(e) => handleSettingChange('autoOpenCodePanel', e.target.checked)}
-                  data-testid="auto-open-code-panel-checkbox"
-                />
-                <span className="checkbox-text">Auto-open code panel</span>
-              </label>
-            </div>
-
-            {/* Notifications */}
-            <div className="setting-item">
-              <label className="setting-checkbox-label">
-                <input
-                  type="checkbox"
-                  className="setting-checkbox"
-                  checked={settings.notifications}
-                  onChange={(e) => handleSettingChange('notifications', e.target.checked)}
-                  data-testid="notifications-checkbox"
-                />
-                <span className="checkbox-text">Enable notifications</span>
-              </label>
-            </div>
-
-            {/* Auto Save */}
-            <div className="setting-item">
-              <label className="setting-checkbox-label">
-                <input
-                  type="checkbox"
-                  className="setting-checkbox"
-                  checked={settings.autoSave}
-                  onChange={(e) => handleSettingChange('autoSave', e.target.checked)}
-                  data-testid="auto-save-checkbox"
-                />
-                <span className="checkbox-text">Auto-save conversations</span>
-              </label>
-            </div>
-          </div>
-        )}
-      </div>
+      {/* Settings Panel removed */}
 
       {/* Profile Section */}
       <div className="profile-section">
@@ -290,17 +152,7 @@ export default function UserProfileSection({
                 Edit Profile
               </button>
 
-              <button
-                className="profile-action-btn"
-                onClick={() => {/* Handle account settings */}}
-                data-testid="account-settings-button"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-                Account Settings
-              </button>
+              {/* Account Settings button removed */}
 
               <button
                 className="profile-action-btn help-btn"

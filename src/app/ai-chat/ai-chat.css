@@ -46,18 +46,106 @@ body {
 }
 
 /* Input focus styles */
-textarea:focus, input:focus {
+textarea:focus,
+input:focus {
   border-color: var(--accent-blue);
-  box-shadow: 0 0 0 1px var(--accent-blue);
+  box-shadow: none !important;
 }
 
-/* Responsive adjustments */
+/* Remove all shadows from input area */
+.input-section,
+.main-input-container,
+.main-input,
+.input-section *,
+.main-input-container *,
+textarea,
+input,
+button {
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
+  filter: none !important;
+}
+
+/* Force remove shadows on focus */
+textarea:focus,
+input:focus,
+.main-input:focus,
+.input-section:focus-within,
+.main-input-container:focus-within {
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
+}
+
+/* Responsive adjustments - Keep sidebar visible */
 @media (max-width: 768px) {
-  .sidebar {
-    display: none;
+  .claude-sidebar {
+    display: flex !important;
+    position: static !important;
+    transform: none !important;
+    width: 280px !important;
   }
-  
+
   .main-content {
-    width: 100%;
+    width: calc(100% - 280px);
   }
+}
+
+/* Fix sidebar icon alignment */
+.nav-button {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+}
+
+.nav-icon {
+  width: 20px !important;
+  height: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.nav-text {
+  flex: 1;
+  text-align: left;
+}
+
+/* Ensure sidebar is always visible */
+.claude-sidebar {
+  display: flex !important;
+  position: static !important;
+  transform: none !important;
+}
+
+/* Fix grid layout */
+.claude-interface {
+  display: grid !important;
+  grid-template-columns: 280px 1fr 400px !important;
+  grid-template-areas: "sidebar chat code" !important;
+}
+
+/* AGGRESSIVE SHADOW REMOVAL FOR INPUT */
+* {
+  box-shadow: none !important;
+}
+
+.main-input-container,
+.main-input-container *,
+.input-section,
+.input-section * {
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
+  filter: none !important;
+  outline: none !important;
+  text-shadow: none !important;
+}
+
+/* Override any framework shadows */
+div, textarea, input, button {
+  box-shadow: none !important;
 }

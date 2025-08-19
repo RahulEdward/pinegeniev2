@@ -587,9 +587,6 @@ export class IndicatorConfigManager {
       validationStats: { valid, invalid, warnings }
     };
   }
-    
-    this.initializeDefaultPresets();
-  }
 
   /**
    * Initialize default configuration presets
@@ -1096,9 +1093,6 @@ export class IndicatorConfigManager {
       mostUsedPresets,
       validationStats: { valid, invalid, warnings }
     };
-  }
-    
-    this.initializePresets();
   }
 
   /**

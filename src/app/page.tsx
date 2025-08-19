@@ -1322,33 +1322,33 @@ function PineGenieLanding() {
               <div className="text-center">
                 <h3 className={`text-xl font-semibold ${colors.text.primary} mb-2`}>Pro</h3>
                 <div className="mb-6">
-                  <span className={`text-4xl font-bold bg-gradient-to-r ${colors.accent.blue} bg-clip-text text-transparent`}>₹2,499</span>
+                  <span className={`text-4xl font-bold bg-gradient-to-r ${colors.accent.blue} bg-clip-text text-transparent`}>₹1,499</span>
                   <span className={`${colors.text.tertiary} ml-2`}>/month</span>
                 </div>
                 <ul className={`text-left space-y-3 mb-8 ${colors.text.tertiary}`}>
                   <li className="flex items-center">
                     <Zap className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    Unlimited strategies
+                    <span><strong>500 AI credits monthly</strong> - auto-refreshed!</span>
                   </li>
                   <li className="flex items-center">
                     <Code className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    Advanced Pine Script v6
+                    Unlimited indicators, strategies & screeners
                   </li>
                   <li className="flex items-center">
                     <BarChart3 className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    Real-time backtesting
+                    Technical analysis indicators included
                   </li>
                   <li className="flex items-center">
                     <Bot className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    Full AI assistant
+                    Multi-timeframe & multi-symbol support
                   </li>
                   <li className="flex items-center">
                     <Shield className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    Priority support
+                    Priority support via exclusive Discord
                   </li>
                   <li className="flex items-center">
                     <Database className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    Custom indicators
+                    Import & customize your existing code
                   </li>
                 </ul>
                 <button
@@ -1365,33 +1365,33 @@ function PineGenieLanding() {
               <div className="text-center">
                 <h3 className={`text-xl font-semibold ${colors.text.primary} mb-2`}>Premium</h3>
                 <div className="mb-6">
-                  <span className={`text-4xl font-bold bg-gradient-to-r ${colors.accent.purple} bg-clip-text text-transparent`}>₹8,299</span>
+                  <span className={`text-4xl font-bold bg-gradient-to-r ${colors.accent.purple} bg-clip-text text-transparent`}>₹2,998</span>
                   <span className={`${colors.text.tertiary} ml-2`}>/month</span>
                 </div>
                 <ul className={`text-left space-y-3 mb-8 ${colors.text.tertiary}`}>
                   <li className="flex items-center">
                     <Zap className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    Everything in Pro
+                    <span><strong>1000 AI credits monthly</strong> - auto-refreshed!</span>
                   </li>
                   <li className="flex items-center">
                     <Code className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    White-label solutions
+                    Unlimited indicators, strategies & screeners
                   </li>
                   <li className="flex items-center">
                     <BarChart3 className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    Advanced analytics
+                    Technical analysis indicators included
                   </li>
                   <li className="flex items-center">
                     <Bot className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    Custom AI training
+                    Multi-timeframe & multi-symbol support
                   </li>
                   <li className="flex items-center">
                     <Shield className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    24/7 dedicated support
+                    Priority support via exclusive Discord
                   </li>
                   <li className="flex items-center">
                     <Database className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                    API access
+                    Import & customize your existing code
                   </li>
                 </ul>
                 <button

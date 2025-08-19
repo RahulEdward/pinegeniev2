@@ -120,6 +120,11 @@ class AIControlSystem {
   }
 
   async isModelActive(modelId: string): Promise<boolean> {
+    // Pine Genie is always active as it's our built-in model
+    if (modelId === 'pine-genie') {
+      return true;
+    }
+    
     if (this.models.size === 0) {
       await this.loadModels();
     }

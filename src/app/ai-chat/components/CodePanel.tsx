@@ -180,15 +180,77 @@ export default function CodePanel({ code, isOpen, onClose, onClear }: CodePanelP
               </pre>
             </div>
           ) : (
-            <div className="code-placeholder">
-              <div className="placeholder-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <div className="code-placeholder" style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              padding: '2rem',
+              textAlign: 'center',
+              background: '#0d1117',
+              border: 'none',
+              borderRadius: '0',
+              margin: '0'
+            }}>
+              <div className="placeholder-icon" style={{
+                marginBottom: '1.5rem',
+                opacity: 0.7,
+                color: '#1f6feb'
+              }}>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <polyline points="16,18 22,12 16,6" />
                   <polyline points="8,6 2,12 8,18" />
                 </svg>
               </div>
-              <h4>Generated Pine Script code will appear here</h4>
-              <p>Ask me to generate a Pine Script strategy or indicator to see the code here.</p>
+              <h4 style={{
+                margin: '0 0 1rem 0',
+                fontSize: '1.25rem',
+                fontWeight: 600,
+                background: 'linear-gradient(45deg, #1f6feb, #388bfd)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}>Pine Script Code Editor</h4>
+              <p style={{
+                margin: '0 0 1.5rem 0',
+                fontSize: '1rem',
+                opacity: 0.8,
+                maxWidth: '300px',
+                lineHeight: 1.5,
+                color: '#8b949e'
+              }}>Ask me to generate a Pine Script strategy or indicator to see the code here.</p>
+              <div style={{
+                display: 'flex',
+                gap: '0.5rem',
+                flexWrap: 'wrap',
+                justifyContent: 'center'
+              }}>
+                <span style={{
+                  padding: '0.25rem 0.75rem',
+                  background: 'rgba(31, 111, 235, 0.1)',
+                  border: '1px solid rgba(31, 111, 235, 0.3)',
+                  borderRadius: '16px',
+                  fontSize: '0.75rem',
+                  color: '#1f6feb'
+                }}>Pine Script v6</span>
+                <span style={{
+                  padding: '0.25rem 0.75rem',
+                  background: 'rgba(0, 212, 170, 0.1)',
+                  border: '1px solid rgba(0, 212, 170, 0.3)',
+                  borderRadius: '16px',
+                  fontSize: '0.75rem',
+                  color: '#00d4aa'
+                }}>Auto-format</span>
+                <span style={{
+                  padding: '0.25rem 0.75rem',
+                  background: 'rgba(255, 184, 0, 0.1)',
+                  border: '1px solid rgba(255, 184, 0, 0.3)',
+                  borderRadius: '16px',
+                  fontSize: '0.75rem',
+                  color: '#ffb800'
+                }}>Syntax highlight</span>
+              </div>
             </div>
           )}
         </div>

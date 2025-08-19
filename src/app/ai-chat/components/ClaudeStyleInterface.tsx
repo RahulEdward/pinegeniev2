@@ -38,16 +38,59 @@ export default function ClaudeStyleInterface({
   // Initialize responsive behavior - hydration safe
   useResponsiveLayout();
 
+  // Add scroll fix for AI chat
+  React.useEffect(() => {
+    document.body.style.overflow = 'auto';
+    document.body.style.height = 'auto';
+    document.documentElement.style.overflow = 'auto';
+    document.documentElement.style.height = 'auto';
+    
+    const style = document.createElement('style');
+    style.innerHTML = `
+      body, html { overflow: auto !important; height: auto !important; }
+      .claude-interface { overflow: visible !important; }
+      .claude-main-chat { overflow: visible !important; }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      const existingStyle = document.head.querySelector('style');
+      if (existingStyle && existingStyle.innerHTML.includes('claude-interface')) {
+        document.head.removeChild(existingStyle);
+      }
+    };
+  }, []);
+
   // State for hydration
   const [isClient, setIsClient] = useState(false);
 
-  // Handle hydration
+  // Handle hydration and load conversations
   React.useEffect(() => {
     setIsClient(true);
+    loadConversations();
   }, []);
 
-  // Empty conversation data - no hard-coded chat history
-  const [conversations] = useState<Conversation[]>([]);
+  // Load conversations from API
+  const loadConversations = async () => {
+    try {
+      setLoadingConversations(true);
+      const response = await fetch('/api/ai-chat/conversations');
+      if (response.ok) {
+        const data = await response.json();
+        setConversations(data.data || []);
+      } else {
+        console.error('Failed to load conversations');
+      }
+    } catch (error) {
+      console.error('Error loading conversations:', error);
+    } finally {
+      setLoadingConversations(false);
+    }
+  };
+
+  // Conversation data - loaded from API
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loadingConversations, setLoadingConversations] = useState(true);
 
   // Sample user data
   const [user] = useState<UserProfile>({
@@ -90,13 +133,67 @@ export default function ClaudeStyleInterface({
   // State for messages - start with empty array to show welcome screen
   const [messages, setMessages] = useState<Message[]>([]);
   const [isAILoading, setIsAILoading] = useState(false);
-  
+
   // State for code panel
   const [generatedCode, setGeneratedCode] = useState<string>('');
-  
+
   // State for AI model selection
   const [selectedModel, setSelectedModel] = useState<string>('pine-genie');
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Handle conversation deletion
+  const handleDeleteConversation = async (conversationId: string) => {
+    try {
+      const response = await fetch(`/api/ai-chat/conversations?id=${conversationId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        // Remove conversation from local state
+        setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+
+        // If the deleted conversation was the current one, clear it
+        if (currentConversation === conversationId) {
+          setCurrentConversation(null);
+          setMessages([]);
+        }
+      } else {
+        console.error('Failed to delete conversation');
+      }
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+    }
+  };
+
+  // Handle conversation selection
+  const handleSelectConversation = async (conversationId: string) => {
+    setCurrentConversation(conversationId);
+
+    // Load messages for this conversation
+    try {
+      const response = await fetch(`/api/ai-chat/conversations/${conversationId}/messages`);
+      if (response.ok) {
+        const data = await response.json();
+        // Transform messages to match the expected format
+        const formattedMessages = data.data.map((msg: any) => ({
+          id: msg.id,
+          content: msg.content,
+          role: msg.role,
+          timestamp: new Date(msg.createdAt)
+        }));
+        setMessages(formattedMessages);
+      }
+    } catch (error) {
+      console.error('Error loading conversation messages:', error);
+    }
+  };
+
+  // Handle new chat
+  const handleNewChat = () => {
+    setCurrentConversation(null);
+    setMessages([]);
+    setGeneratedCode('');
+  };
 
   // Set initial conversation if provided
   React.useEffect(() => {
@@ -110,25 +207,7 @@ export default function ClaudeStyleInterface({
     document.documentElement.setAttribute('data-theme', settings.theme);
   }, [settings.theme]);
 
-  // Handler functions
-  const handleSelectConversation = (id: string) => {
-    setCurrentConversation(id);
-    if (!useClaudeLayoutStore.getState().sidebarCollapsed) {
-      toggleSidebar();
-    }
-  };
-
-  const handleDeleteConversation = (id: string) => {
-    console.log('Delete conversation:', id);
-  };
-
-  const handleNewChat = () => {
-    setCurrentConversation(null);
-    console.log('Starting new chat');
-    if (useClaudeLayoutStore.getState().sidebarCollapsed) {
-      toggleSidebar();
-    }
-  };
+  // Handler functions (removed duplicates - using the new async versions above)
 
   const handleStartChat = () => {
     if (!useClaudeLayoutStore.getState().sidebarCollapsed) {
@@ -155,13 +234,13 @@ export default function ClaudeStyleInterface({
   const extractPineScriptCode = (text: string): string => {
     const codeBlockRegex = /```(?:pinescript|pine)?\n?([\s\S]*?)```/gi;
     const matches = text.match(codeBlockRegex);
-    
+
     if (matches && matches.length > 0) {
       // Extract code from the first code block
       const codeMatch = matches[0].replace(/```(?:pinescript|pine)?\n?/gi, '').replace(/```$/g, '');
       return addPineGenieSignature(codeMatch.trim());
     }
-    
+
     return '';
   };
 
@@ -172,12 +251,12 @@ export default function ClaudeStyleInterface({
 // Date: ${new Date().toLocaleDateString()}
 
 `;
-    
+
     // Check if code already has Pine Genie signature
     if (code.includes('Generated by Pine Genie AI')) {
       return code;
     }
-    
+
     return signature + code;
   };
 
@@ -284,7 +363,7 @@ export default function ClaudeStyleInterface({
 
     } catch (error) {
       console.error('Error sending message:', error);
-      
+
       // Fallback error message
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -292,7 +371,7 @@ export default function ClaudeStyleInterface({
         role: 'assistant',
         timestamp: new Date()
       };
-      
+
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsAILoading(false);
@@ -319,7 +398,11 @@ export default function ClaudeStyleInterface({
     <div
       className={getLayoutClass()}
       style={{
-        gridTemplateColumns: gridTemplate
+        gridTemplateColumns: gridTemplate,
+        height: 'auto',
+        minHeight: '100vh',
+        overflow: 'visible',
+        position: 'relative'
       }}
     >
       {/* Left Sidebar */}
@@ -342,14 +425,21 @@ export default function ClaudeStyleInterface({
       <main
         className="claude-main-chat"
         data-testid="main-chat-area"
+        style={{
+          height: 'auto',
+          minHeight: '100vh',
+          overflow: 'visible',
+          display: 'block',
+          position: 'relative'
+        }}
       >
         {/* Back Button - Only render on client side */}
         {isClient && (
-          <div style={{ 
-            position: 'absolute', 
-            top: '20px', 
-            left: '20px', 
-            zIndex: 1000 
+          <div style={{
+            position: 'fixed',
+            top: '24px',
+            left: '24px',
+            zIndex: 1001
           }}>
             <button
               onClick={() => window.location.href = '/dashboard'}
@@ -357,32 +447,43 @@ export default function ClaudeStyleInterface({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                padding: '8px 16px',
-                backgroundColor: '#1f6feb',
+                padding: '12px 20px',
+                backgroundColor: 'rgba(55, 65, 81, 0.9)',
                 color: 'white',
-                border: 'none',
-                borderRadius: '8px',
+                border: '1px solid rgba(75, 85, 99, 0.5)',
+                borderRadius: '12px',
                 cursor: 'pointer',
                 fontSize: '14px',
-                fontWeight: '500'
+                fontWeight: '600',
+                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+                backdropFilter: 'blur(10px)',
+                transition: 'all 0.2s ease'
               }}
               title="Back to Dashboard"
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(75, 85, 99, 0.9)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(55, 65, 81, 0.9)';
+                e.currentTarget.style.transform = 'translateY(0px)';
+              }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
+                <path d="M19 12H5M12 19l-7-7 7-7" />
               </svg>
-              Back
+              Back to Dashboard
             </button>
           </div>
         )}
 
         {/* Theme Toggle - Only render on client side */}
         {isClient && (
-          <div style={{ 
-            position: 'absolute', 
-            top: '20px', 
-            right: '20px', 
-            zIndex: 1000 
+          <div style={{
+            position: 'absolute',
+            top: '20px',
+            right: '20px',
+            zIndex: 1000
           }}>
             <button
               onClick={toggleTheme}
@@ -414,7 +515,11 @@ export default function ClaudeStyleInterface({
           </div>
         )}
 
-        <div className="chat-content">
+        <div className="chat-content" style={{
+          paddingBottom: '150px',
+          minHeight: '100vh',
+          overflow: 'visible'
+        }}>
           {/* Message Container - Always show, handles empty state internally */}
           <MessageContainer
             messages={messages}
@@ -424,7 +529,22 @@ export default function ClaudeStyleInterface({
         </div>
 
         {/* Input Section - Fixed at bottom */}
-        <div className="input-section">
+        <div className="input-section" style={{
+          position: 'fixed',
+          bottom: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '90%',
+          maxWidth: '800px',
+          zIndex: 1000,
+          boxShadow: 'none',
+          overflow: 'hidden',
+          filter: 'none',
+          WebkitBoxShadow: 'none',
+          MozBoxShadow: 'none',
+          background: 'transparent',
+          border: 'none'
+        }}>
           {/* Attached Files Display - Outside the input container */}
           {attachedFiles.length > 0 && (
             <div className="attached-files-external">
@@ -446,11 +566,39 @@ export default function ClaudeStyleInterface({
             </div>
           )}
 
-          <div className="main-input-container">
+          <div className="main-input-container" style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '12px 16px',
+            borderRadius: '24px',
+            boxShadow: 'none !important',
+            overflow: 'hidden',
+            filter: 'none !important',
+            WebkitBoxShadow: 'none !important',
+            MozBoxShadow: 'none !important',
+            border: settings.theme === 'dark' ? '1px solid #30363d' : '1px solid #d0d7de',
+            background: settings.theme === 'dark' ? '#161b22' : '#ffffff',
+            outline: 'none !important',
+            WebkitAppearance: 'none',
+            MozAppearance: 'none'
+          }}>
             <textarea
               className="main-input"
               placeholder="How can I help you today?"
               value={inputValue}
+              style={{
+                flex: 1,
+                border: 'none',
+                outline: 'none',
+                background: 'transparent',
+                resize: 'none',
+                fontSize: '16px',
+                lineHeight: '1.5',
+                color: settings.theme === 'dark' ? '#e6edf3' : '#24292f',
+                minHeight: '20px',
+                maxHeight: '120px'
+              }}
               rows={1}
               onFocus={handleStartChat}
               onChange={handleInputChange}
@@ -494,15 +642,13 @@ export default function ClaudeStyleInterface({
         </div>
       </main>
 
-      {/* Right Code Panel */}
-      {shouldShowCodePanel() && (
-        <CodePanel
-          code={generatedCode}
-          isOpen={codePanelOpen}
-          onClose={toggleCodePanel}
-          onClear={handleClearCode}
-        />
-      )}
+      {/* Right Code Panel - Always Visible */}
+      <CodePanel
+        code={generatedCode}
+        isOpen={true}
+        onClose={toggleCodePanel}
+        onClear={handleClearCode}
+      />
 
     </div>
   );

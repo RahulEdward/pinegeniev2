@@ -16,7 +16,7 @@ export interface NodeConnection {
 }
 
 export interface NodeConfiguration {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface TradingStrategy {
@@ -90,7 +90,7 @@ export interface BacktestResult {
   id: string;
   strategyId: string;
   config: BacktestConfig;
-  results: any; // Raw backtest results
+  results: Record<string, unknown>; // Raw backtest results
   performanceMetrics: PerformanceMetrics;
   status: 'pending' | 'running' | 'completed' | 'failed';
   errorMessage?: string;

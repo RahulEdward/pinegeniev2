@@ -20,34 +20,23 @@ export default function AIMessage({ content, timestamp, isLoading }: AIMessagePr
 
   return (
     <div className="ai-message" data-testid="ai-message">
-      <div className="message-avatar ai-avatar">
-        <div className="avatar-circle">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-            <path d="M2 17l10 5 10-5"/>
-            <path d="M2 12l10 5 10-5"/>
-          </svg>
-        </div>
-      </div>
-      <div className="message-content">
-        <div className="message-bubble ai-bubble">
-          {isLoading ? (
-            <div className="typing-indicator-container">
-              <div className="typing-text">Pine Genie is thinking</div>
-              <div className="loading-dots">
-                <span className="dot"></span>
-                <span className="dot"></span>
-                <span className="dot"></span>
-              </div>
+      <div className="ai-message-content">
+        {isLoading ? (
+          <div className="typing-indicator-content">
+            <span>Pine Genie is thinking</span>
+            <div className="typing-dots">
+              <div className="typing-dot"></div>
+              <div className="typing-dot"></div>
+              <div className="typing-dot"></div>
             </div>
-          ) : (
-            <div className="message-text" dangerouslySetInnerHTML={{ __html: formatContent(content) }} />
-          )}
-        </div>
-        {!isLoading && (
-          <div className="message-timestamp">
-            {formatTime(timestamp)}
           </div>
+        ) : (
+          <>
+            <div dangerouslySetInnerHTML={{ __html: formatContent(content) }} />
+            <div className="ai-message-timestamp">
+              {formatTime(timestamp)}
+            </div>
+          </>
         )}
       </div>
     </div>

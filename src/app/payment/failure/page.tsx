@@ -114,7 +114,7 @@ function PaymentFailureContent() {
             Payment Information Not Found
           </h1>
           <p className="text-slate-400 mb-6">
-            We couldn't find the payment details. Please try making the payment again.
+            We couldn&apos;t find the payment details. Please try making the payment again.
           </p>
           <button
             onClick={() => router.push('/billing')}
@@ -139,7 +139,7 @@ function PaymentFailureContent() {
             Payment Failed
           </h1>
           <p className="text-xl text-slate-400">
-            We couldn't process your payment. Don't worry, no charges were made.
+            We couldn&apos;t process your payment. Don&apos;t worry, no charges were made.
           </p>
         </div>
 
@@ -242,7 +242,7 @@ function PaymentFailureContent() {
             >
               support@pinegenie.com
             </a>
-            {' '}and we'll help you resolve the issue quickly.
+            {' '}and we&apos;ll help you resolve the issue quickly.
           </p>
           <p className="text-slate-400 text-xs mt-2">
             Reference Transaction ID: {failureDetails.txnid}
