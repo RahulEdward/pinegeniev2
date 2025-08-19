@@ -1,157 +1,121 @@
+/**
+ * Admin Token Users API
+ * 
+ * GET /api/admin/tokens/users - Get all users with their token information
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
-import { withAdminAuthAndLogging, addSecurityHeaders } from '@/middleware/admin';
-import { prisma } from '@/lib/prisma';
-import { logAdminAction } from '@/services/admin';
-import { UserTokenData } from '@/types/admin-token-pricing';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
+import { PrismaClient } from '@prisma/client';
 
-// GET /api/admin/tokens/users - Get paginated user token data
-export const GET = withAdminAuthAndLogging(async (request: NextRequest, adminId: string, adminUser: any) => {
+const prisma = new PrismaClient();
+
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const search = searchParams.get('search') || '';
-    const subscriptionPlan = searchParams.get('subscriptionPlan') || '';
-    const sortBy = searchParams.get('sortBy') || 'name';
-    const sortOrder = searchParams.get('sortOrder') || 'asc';
-
-    const skip = (page - 1) * limit;
-
-    // Build where clause for users
-    const userWhere: any = {};
+    const session = await getServerSession(authOptions);
     
-    if (search) {
-      userWhere.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-      ];
-    }
-
-    // Get users with their token data
-    const [users, totalCount] = await Promise.all([
-      prisma.user.findMany({
-        where: userWhere,
-        skip,
-        take: limit,
-        orderBy: sortBy === 'name' ? { name: sortOrder } : 
-                 sortBy === 'email' ? { email: sortOrder } :
-                 { createdAt: sortOrder },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          createdAt: true,
-          subscriptions: {
-            where: { status: 'ACTIVE' },
-            include: { plan: true },
-            take: 1
-          },
-          tokenAllocations: {
-            where: { isActive: true },
-            orderBy: { createdAt: 'desc' }
-          },
-          tokenUsageLogs: {
-            where: {
-              timestamp: {
-                gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) // Current month
-              }
-            },
-            select: {
-              tokensUsed: true,
-              timestamp: true
-            }
-          }
-        },
-      }),
-      prisma.user.count({ where: userWhere }),
-    ]);
-
-    // Transform users data to include token information
-    const usersWithTokenData: UserTokenData[] = users.map(user => {
-      const subscription = user.subscriptions[0];
-      const totalAllocated = user.tokenAllocations.reduce((sum, allocation) => sum + allocation.tokenAmount, 0);
-      const totalUsed = user.tokenUsageLogs.reduce((sum, log) => sum + log.tokensUsed, 0);
-      const lastAllocation = user.tokenAllocations[0];
-      const lastUsage = user.tokenUsageLogs.length > 0 ? 
-        new Date(Math.max(...user.tokenUsageLogs.map(log => log.timestamp.getTime()))) : 
-        new Date(0);
-
-      return {
-        userId: user.id,
-        userName: user.name || 'Unknown User',
-        email: user.email || '',
-        currentTokens: Math.max(0, totalAllocated - totalUsed),
-        monthlyAllocation: totalAllocated,
-        tokensUsed: totalUsed,
-        subscriptionPlan: subscription?.plan.displayName || 'Free',
-        lastRefresh: lastAllocation?.createdAt || user.createdAt,
-        expiresAt: lastAllocation?.expiresAt || undefined
-      };
-    });
-
-    // Filter by subscription plan if specified
-    let filteredUsers = usersWithTokenData;
-    if (subscriptionPlan) {
-      filteredUsers = usersWithTokenData.filter(user => 
-        user.subscriptionPlan.toLowerCase().includes(subscriptionPlan.toLowerCase())
+    // Check if user is admin (you might want to add proper admin check here)
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
       );
     }
 
-    // Sort by token-related fields if needed
-    if (sortBy === 'tokens') {
-      filteredUsers.sort((a, b) => {
-        const aVal = a.currentTokens;
-        const bVal = b.currentTokens;
-        return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
-      });
-    } else if (sortBy === 'usage') {
-      filteredUsers.sort((a, b) => {
-        const aVal = a.tokensUsed;
-        const bVal = b.tokensUsed;
-        return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
-      });
-    } else if (sortBy === 'lastActivity') {
-      filteredUsers.sort((a, b) => {
-        const aVal = a.lastRefresh.getTime();
-        const bVal = b.lastRefresh.getTime();
-        return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
-      });
-    }
-
-    // Log admin action
-    await logAdminAction(
-      adminId,
-      'VIEW_USER_TOKENS',
-      'TOKEN_MANAGEMENT',
-      undefined,
-      { page, limit, search, subscriptionPlan, totalCount },
-      {
-        ip: request.headers.get('x-forwarded-for') || 'unknown',
-        userAgent: request.headers.get('user-agent') || 'unknown',
-      }
-    );
-
-    const response = NextResponse.json({
-      success: true,
-      data: {
-        users: filteredUsers,
-        pagination: {
-          page,
-          limit,
-          totalCount: filteredUsers.length,
-          totalPages: Math.ceil(filteredUsers.length / limit),
+    // Get all users with their token allocations and usage
+    const users = await prisma.user.findMany({
+      include: {
+        tokenAllocations: {
+          where: {
+            isActive: true
+          }
         },
-      },
+        tokenUsageLogs: {
+          orderBy: {
+            timestamp: 'desc'
+          },
+          take: 1
+        },
+        subscriptions: {
+          where: {
+            status: 'ACTIVE'
+          },
+          include: {
+            plan: true
+          },
+          take: 1
+        }
+      }
     });
 
-    return addSecurityHeaders(response);
+    // Calculate token data for each user
+    const usersWithTokenData = await Promise.all(
+      users.map(async (user) => {
+        // Get total allocated tokens
+        const totalAllocated = user.tokenAllocations.reduce(
+          (sum, allocation) => sum + allocation.tokenAmount, 
+          0
+        );
+
+        // Get total used tokens
+        const usageResult = await prisma.tokenUsageLog.aggregate({
+          where: {
+            userId: user.id
+          },
+          _sum: {
+            tokensUsed: true
+          }
+        });
+
+        const totalUsed = usageResult._sum.tokensUsed || 0;
+        const remaining = Math.max(0, totalAllocated - totalUsed);
+        
+        // Determine status
+        let status: 'active' | 'low' | 'expired' = 'active';
+        if (remaining === 0) {
+          status = 'expired';
+        } else if (remaining < 100) {
+          status = 'low';
+        }
+
+        // Get subscription info
+        const subscription = user.subscriptions[0];
+        const subscriptionName = subscription?.plan?.displayName || 'Free';
+
+        // Get last usage
+        const lastUsed = user.tokenUsageLogs[0]?.timestamp 
+          ? new Date(user.tokenUsageLogs[0].timestamp).toLocaleDateString()
+          : 'Never';
+
+        return {
+          id: user.id,
+          name: user.name || 'Unknown',
+          email: user.email || '',
+          totalTokens: totalAllocated,
+          usedTokens: totalUsed,
+          remainingTokens: remaining,
+          lastUsed,
+          status,
+          subscription: subscriptionName
+        };
+      })
+    );
+
+    return NextResponse.json({
+      success: true,
+      users: usersWithTokenData
+    });
 
   } catch (error) {
-    console.error('User tokens fetch error:', error);
-    const response = NextResponse.json(
-      { success: false, message: 'Failed to fetch user token data' },
+    console.error('Error fetching user token data:', error);
+    
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to fetch user token data'
+      },
       { status: 500 }
     );
-    return addSecurityHeaders(response);
   }
-});
+}

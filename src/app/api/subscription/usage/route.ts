@@ -1,15 +1,13 @@
 /**
  * Subscription Usage API
  * 
- * Endpoint for fetching user's current subscription usage data
+ * GET /api/subscription/usage - Get current user's usage statistics
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { subscriptionPlanManager } from '@/services/subscription';
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,53 +15,28 @@ export async function GET(request: NextRequest) {
     
     if (!session?.user?.id) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { success: false, error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const userId = session.user.id;
-
-    // Get current month start for AI usage calculation
-    const currentMonthStart = new Date();
-    currentMonthStart.setDate(1);
-    currentMonthStart.setHours(0, 0, 0, 0);
-
-    // Fetch user's current usage data
-    const [strategiesCount, aiUsageCount] = await Promise.all([
-      // Count user's strategies
-      prisma.strategy.count({
-        where: {
-          userId: userId
-        }
-      }),
-      
-      // Count AI usage this month (placeholder - implement when AI usage tracking is added)
-      Promise.resolve(0) // TODO: Implement AI usage tracking
-    ]);
-
-    // Get templates used (placeholder - implement when template usage tracking is added)
-    const templatesUsed: string[] = []; // TODO: Implement template usage tracking
-
-    const usage = {
-      strategiesCount,
-      aiUsageThisMonth: aiUsageCount,
-      templatesUsed,
-      lastUpdated: new Date()
-    };
+    // Get user's usage statistics
+    const usageStats = await subscriptionPlanManager.getUserUsageStats(session.user.id);
 
     return NextResponse.json({
       success: true,
-      usage
+      usage: usageStats
     });
 
   } catch (error) {
-    console.error('Error fetching subscription usage:', error);
+    console.error('Error fetching usage statistics:', error);
+    
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        success: false,
+        error: 'Failed to fetch usage statistics'
+      },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

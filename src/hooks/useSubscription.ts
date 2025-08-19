@@ -120,12 +120,12 @@ export function useSubscription() {
       };
     }
 
-    const limits = subscription.limits;
+    const limits = subscription.limits || {};
     const upgradeRequired: string[] = [];
     const restrictedFeatures: string[] = [];
 
     // Strategy storage limitations
-    const strategiesLimit = limits.scriptStorage === 'unlimited' ? 'unlimited' : limits.scriptStorage;
+    const strategiesLimit = limits.scriptStorage === 'unlimited' ? 'unlimited' : (limits.scriptStorage || 0);
     const canSaveStrategy = strategiesLimit === 'unlimited' || usage.strategiesCount < strategiesLimit;
     
     if (!canSaveStrategy) {
@@ -134,8 +134,8 @@ export function useSubscription() {
     }
 
     // AI access limitations
-    const canUseAI = limits.aiChatAccess;
-    const aiUsageLimit = limits.aiGenerations === 'unlimited' ? 'unlimited' : limits.aiGenerations;
+    const canUseAI = limits.aiChatAccess || false;
+    const aiUsageLimit = limits.aiGenerations === 'unlimited' ? 'unlimited' : (limits.aiGenerations || 0);
     
     if (!canUseAI) {
       upgradeRequired.push('ai_access');
@@ -151,7 +151,7 @@ export function useSubscription() {
     }
 
     // Advanced features limitations
-    const canUseAdvancedFeatures = limits.advancedIndicators && limits.backtesting;
+    const canUseAdvancedFeatures = (limits.advancedIndicators || false) && (limits.backtesting || false);
     
     if (!canUseAdvancedFeatures) {
       upgradeRequired.push('advanced_features');
@@ -206,7 +206,7 @@ export function useSubscription() {
       return { hasAccess: false, reason: 'Subscription data not loaded' };
     }
 
-    const limit = subscription.limits.scriptStorage;
+    const limit = subscription.limits?.scriptStorage || 0;
     const current = usage.strategiesCount;
     
     if (limit === 'unlimited') {
@@ -234,7 +234,7 @@ export function useSubscription() {
     if (!subscription) return false;
     
     if (templateType === 'basic') return true;
-    return subscription.limits.templatesAccess === 'all';
+    return subscription.limits?.templatesAccess === 'all';
   }, [subscription]);
 
   const checkFeatureAccess = useCallback((feature: string): boolean => {
@@ -244,19 +244,19 @@ export function useSubscription() {
     
     switch (feature) {
       case 'ai_chat':
-        return limits.aiChatAccess;
+        return limits.aiChatAccess || false;
       case 'advanced_indicators':
-        return limits.advancedIndicators;
+        return limits.advancedIndicators || false;
       case 'backtesting':
-        return limits.backtesting;
+        return limits.backtesting || false;
       case 'custom_signatures':
-        return limits.customSignatures;
+        return limits.customSignatures || false;
       case 'api_access':
-        return limits.apiAccess;
+        return limits.apiAccess || false;
       case 'white_label':
-        return limits.whiteLabel;
+        return limits.whiteLabel || false;
       case 'team_collaboration':
-        return limits.teamCollaboration;
+        return limits.teamCollaboration || false;
       default:
         return false;
     }
@@ -270,10 +270,10 @@ export function useSubscription() {
     switch (resource) {
       case 'strategies':
         if (limits.scriptStorage === 'unlimited') return 'unlimited';
-        return Math.max(0, limits.scriptStorage - usage.strategiesCount);
+        return Math.max(0, (limits.scriptStorage || 0) - usage.strategiesCount);
       case 'ai_usage':
         if (limits.aiGenerations === 'unlimited') return 'unlimited';
-        return Math.max(0, limits.aiGenerations - usage.aiUsageThisMonth);
+        return Math.max(0, (limits.aiGenerations || 0) - usage.aiUsageThisMonth);
       default:
         return 0;
     }

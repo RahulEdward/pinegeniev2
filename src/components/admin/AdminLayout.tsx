@@ -13,7 +13,8 @@ import {
   Menu,
   X,
   Bot,
-  ChevronRight
+  ChevronRight,
+  Coins
 } from 'lucide-react';
 import LogoutButton from './LogoutButton';
 import EnhancedThemeToggle from './EnhancedThemeToggle';
@@ -27,6 +28,7 @@ const iconMap = {
   CreditCard,
   Shield,
   Bot,
+  Coins,
 };
 
 interface AdminLayoutProps {
@@ -70,6 +72,18 @@ const navigationItems: NavigationItem[] = [
     href: '/admin/users',
   },
   {
+    id: 'tokens',
+    label: 'Token Management',
+    icon: Coins,
+    href: '/admin/tokens',
+  },
+  {
+    id: 'subscriptions',
+    label: 'Subscriptions',
+    icon: CreditCard,
+    href: '/admin/subscriptions',
+  },
+  {
     id: 'ai-control',
     label: 'AI Control',
     icon: Bot,
@@ -92,12 +106,6 @@ const navigationItems: NavigationItem[] = [
     label: 'Analytics',
     icon: BarChart3,
     href: '/admin/analytics',
-  },
-  {
-    id: 'billing',
-    label: 'Billing',
-    icon: CreditCard,
-    href: '/admin/billing',
   },
   {
     id: 'security',

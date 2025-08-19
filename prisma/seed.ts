@@ -326,7 +326,7 @@ async function main() {
       description: 'Perfect for getting started',
       monthlyPrice: 0.00,
       annualPrice: 0.00,
-      currency: 'USD',
+      currency: 'INR',
       features: [
         {
           id: 'basic_strategies',
@@ -404,6 +404,58 @@ async function main() {
       },
       isPopular: true,
       trialDays: 7,
+      isActive: true,
+    },
+    {
+      name: 'premium',
+      displayName: 'Premium',
+      description: 'For professional traders and teams',
+      monthlyPrice: 2998.00,
+      annualPrice: 29980.00,
+      currency: 'INR',
+      features: [
+        {
+          id: 'ai_credits_premium',
+          name: '1000 AI Credits Monthly',
+          description: 'Auto-refreshed, no extra charges!',
+          included: true
+        },
+        {
+          id: 'unlimited_everything',
+          name: 'Everything in Pro',
+          description: 'All Pro features plus advanced capabilities',
+          included: true
+        },
+        {
+          id: 'team_collaboration',
+          name: 'Team Collaboration',
+          description: 'Share and collaborate with team members',
+          included: true
+        },
+        {
+          id: 'priority_support',
+          name: 'Priority Support',
+          description: 'Dedicated support via exclusive Discord',
+          included: true
+        }
+      ],
+      limits: {
+        strategiesPerMonth: 'unlimited',
+        templatesAccess: 'all',
+        aiGenerations: 1000,
+        aiChatAccess: true,
+        scriptStorage: 'unlimited',
+        exportFormats: ['pine', 'json', 'txt', 'csv'],
+        supportLevel: 'premium',
+        customSignatures: true,
+        apiAccess: true,
+        whiteLabel: true,
+        teamCollaboration: true,
+        advancedIndicators: true,
+        backtesting: true
+      },
+      isPopular: false,
+      trialDays: 14,
       isActive: true,
     }
   ];

@@ -764,6 +764,33 @@ export default function PineGenieDashboard() {
               {sidebarItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activePage === item.id;
+                
+                // Special handling for Projects - show as "Invite Only"
+                if (item.id === 'projects') {
+                  return (
+                    <div
+                      key={item.id}
+                      className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg cursor-not-allowed opacity-60 ${darkMode
+                          ? 'text-slate-400'
+                          : 'text-gray-500'
+                        }`}
+                      title={!sidebarOpen ? 'Projects - Invite Only' : ''}
+                    >
+                      <Icon className={`h-5 w-5 ${sidebarOpen ? 'mr-3' : 'mx-auto'}`} />
+                      {sidebarOpen && (
+                        <div className="flex items-center justify-between w-full">
+                          <span className={`${darkMode
+                              ? 'text-yellow-400'
+                              : 'text-yellow-600'
+                            }`}>
+                            Invite Only
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                
                 return (
                   <button
                     key={item.id}
