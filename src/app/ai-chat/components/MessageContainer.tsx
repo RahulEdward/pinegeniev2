@@ -84,47 +84,47 @@ export default function MessageContainer({ messages, isLoading, onSuggestedPromp
                   <path d="M2 12l10 5 10-5"/>
                 </svg>
               </div>
-              <h3 className="empty-chat-title">Welcome to Pine Genie AI</h3>
+              <h3 className="empty-chat-title">Pine Genie AI - Direct Code Generator</h3>
               <p className="empty-chat-description">
-                I&apos;m here to help you create, analyze, and optimize Pine Script trading strategies. 
-                Ask me anything about technical indicators, strategy development, or Pine Script coding!
+                Type any trading strategy name and get complete Pine Script v6 code instantly. 
+                No questions asked - just working code!
               </p>
               <div className="suggested-prompts">
                 <button 
                   className="suggested-prompt"
-                  onClick={() => onSuggestedPrompt?.("Generate trading strategy")}
+                  onClick={() => onSuggestedPrompt?.("RSI strategy")}
                 >
-                  Generate trading strategy
+                  RSI Strategy
                 </button>
                 <button 
                   className="suggested-prompt"
-                  onClick={() => onSuggestedPrompt?.("Create custom indicator")}
+                  onClick={() => onSuggestedPrompt?.("MACD crossover strategy")}
                 >
-                  Create custom indicator
+                  MACD Crossover
                 </button>
                 <button 
                   className="suggested-prompt"
-                  onClick={() => onSuggestedPrompt?.("Analyze market patterns")}
+                  onClick={() => onSuggestedPrompt?.("Bollinger Bands breakout strategy")}
                 >
-                  Analyze market patterns
+                  Bollinger Bands
                 </button>
                 <button 
                   className="suggested-prompt"
-                  onClick={() => onSuggestedPrompt?.("Backtest my strategy")}
+                  onClick={() => onSuggestedPrompt?.("Moving average crossover strategy")}
                 >
-                  Backtest my strategy
+                  Moving Average
                 </button>
                 <button 
                   className="suggested-prompt"
-                  onClick={() => onSuggestedPrompt?.("Optimize parameters")}
+                  onClick={() => onSuggestedPrompt?.("Stochastic oscillator strategy")}
                 >
-                  Optimize parameters
+                  Stochastic Strategy
                 </button>
                 <button 
                   className="suggested-prompt"
-                  onClick={() => onSuggestedPrompt?.("Pine Script debugging")}
+                  onClick={() => onSuggestedPrompt?.("Support resistance breakout strategy")}
                 >
-                  Pine Script debugging
+                  Support/Resistance
                 </button>
               </div>
             </div>

@@ -18,48 +18,127 @@ export default function EnhancedThemeToggle({ variant = 'default', className = '
   // Initialize on mount
   useEffect(() => {
     setMounted(true);
+    initializeTheme();
+  }, []);
+
+  // Initialize theme from localStorage or system preference
+  const initializeTheme = () => {
     try {
-      // Get theme from localStorage (using the main app's theme key)
       const storedTheme = localStorage.getItem('theme');
-      if (storedTheme === 'dark' || storedTheme === 'light') {
+      const storedMode = localStorage.getItem('theme-mode');
+      
+      if (storedMode && ['light', 'dark', 'system'].includes(storedMode)) {
+        setMode(storedMode as ThemeMode);
+      } else if (storedTheme === 'dark' || storedTheme === 'light') {
         setMode(storedTheme);
+        localStorage.setItem('theme-mode', storedTheme);
       } else {
-        // Check if dark mode is active
-        const isDark = document.documentElement.classList.contains('dark');
-        setMode(isDark ? 'dark' : 'light');
+        // Default to system
+        setMode('system');
+        localStorage.setItem('theme-mode', 'system');
       }
+      
+      // Apply the current theme
+      applyTheme();
     } catch (error) {
       console.error('Error initializing theme:', error);
     }
-  }, []);
+  };
+
+  // Apply theme based on current mode
+  const applyTheme = () => {
+    try {
+      const currentMode = localStorage.getItem('theme-mode') || 'system';
+      let isDark = false;
+
+      if (currentMode === 'dark') {
+        isDark = true;
+      } else if (currentMode === 'light') {
+        isDark = false;
+      } else {
+        // System preference
+        isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      }
+
+      // Apply to document
+      const root = document.documentElement;
+      const body = document.body;
+      
+      if (isDark) {
+        root.classList.remove('light');
+        root.classList.add('dark');
+        body.classList.remove('light');
+        body.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+        root.classList.add('light');
+        body.classList.remove('dark');
+        body.classList.add('light');
+      }
+
+      // Store the actual theme
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    } catch (error) {
+      console.error('Error applying theme:', error);
+    }
+  };
 
   // Toggle theme function
   function setThemeMode(newMode: ThemeMode) {
     try {
       setMode(newMode);
+      localStorage.setItem('theme-mode', newMode);
       
-      // Apply theme immediately
+      let isDark = false;
+      
       if (newMode === 'dark') {
-        document.documentElement.classList.remove('light');
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
+        isDark = true;
       } else if (newMode === 'light') {
-        document.documentElement.classList.remove('dark');
-        document.documentElement.classList.add('light');
-        localStorage.setItem('theme', 'light');
+        isDark = false;
       } else {
         // System preference
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.classList.remove('light', 'dark');
-        document.documentElement.classList.add(prefersDark ? 'dark' : 'light');
-        localStorage.setItem('theme', prefersDark ? 'dark' : 'light');
+        isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       }
+
+      // Apply theme immediately
+      const root = document.documentElement;
+      const body = document.body;
+      
+      // Remove all theme classes first
+      root.classList.remove('light', 'dark');
+      body.classList.remove('light', 'dark');
+      
+      // Add the correct theme class
+      const themeClass = isDark ? 'dark' : 'light';
+      root.classList.add(themeClass);
+      body.classList.add(themeClass);
+      
+      // Store the actual theme
+      localStorage.setItem('theme', themeClass);
       
       setIsOpen(false);
+      
+      // Force a re-render by dispatching a custom event
+      window.dispatchEvent(new Event('theme-changed'));
     } catch (error) {
       console.error('Error setting theme:', error);
     }
   }
+
+  // Listen for system theme changes
+  useEffect(() => {
+    if (!mounted) return;
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+      if (mode === 'system') {
+        applyTheme();
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [mode, mounted]);
 
   // Don't render anything until mounted to prevent hydration mismatch
   if (!mounted) return null;

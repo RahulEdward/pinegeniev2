@@ -6,7 +6,8 @@ import AdminRoute from '@/components/admin/AdminRoute';
 import AdminLayout from '@/components/admin/AdminLayout';
 import EnhancedMetricsCard from '@/components/admin/EnhancedMetricsCard';
 import AdminDashboardTest from '@/components/admin/AdminDashboardTest';
-import { Users, Bot, TrendingUp } from 'lucide-react';
+import { Users, Bot, TrendingUp, Book } from 'lucide-react';
+// ThemeDebug component removed
 
 interface DashboardMetrics {
   totalUsers: number;
@@ -83,26 +84,30 @@ export default function AdminPage() {
         <AdminDashboardTest />
 
         {/* Demo Mode Notice */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <div className="flex items-start">
-            <Bot className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3" />
-            <div>
-              <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                Demo Mode Active
-              </h3>
-              <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                PineGenie AI is running in demo mode with mock responses. Add your API keys to enable full functionality.
-              </p>
-              <div className="mt-3">
-                <a
-                  href="/admin/models"
-                  className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500"
-                >
-                  Configure API Keys →
-                </a>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div className="flex items-start">
+              <Bot className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3" />
+              <div>
+                <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                  Demo Mode Active
+                </h3>
+                <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                  PineGenie AI is running in demo mode with mock responses. Add your API keys to enable full functionality.
+                </p>
+                <div className="mt-3">
+                  <a
+                    href="/admin/models"
+                    className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500"
+                  >
+                    Configure API Keys →
+                  </a>
+                </div>
               </div>
             </div>
           </div>
+          
+          {/* ThemeDebug component removed */}
         </div>
 
         {/* Metrics Overview */}
@@ -200,7 +205,7 @@ export default function AdminPage() {
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Quick Actions
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <a
               href="/admin/models"
               className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -231,6 +236,17 @@ export default function AdminPage() {
               <h4 className="font-medium text-gray-900 dark:text-white">Analytics</h4>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 View system performance metrics
+              </p>
+            </a>
+            
+            <a
+              href="/admin/guide"
+              className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              <Book className="w-8 h-8 text-orange-500 mb-2" />
+              <h4 className="font-medium text-gray-900 dark:text-white">User Guide</h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Complete admin dashboard guide
               </p>
             </a>
           </div>

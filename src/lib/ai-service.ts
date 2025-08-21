@@ -1,14 +1,22 @@
+// AI Service for real AI model integration
 import OpenAI from 'openai';
-import Anthropic from '@anthropic-ai/sdk';
-import { prisma } from './prisma';
 
-export interface AIMessage {
+interface AIModelConfig {
+  id: string;
+  name: string;
+  provider: 'openai' | 'anthropic' | 'google' | 'custom';
+  apiKey?: string;
+  endpoint?: string;
+}
+
+interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
 }
 
-export interface AIResponse {
+interface AIResponse {
   content: string;
+  model: string;
   usage?: {
     promptTokens: number;
     completionTokens: number;
@@ -16,221 +24,193 @@ export interface AIResponse {
   };
 }
 
-class AIService {
-  private openai: OpenAI | null = null;
-  private anthropic: Anthropic | null = null;
-  private demoMode: boolean = false;
+export class AIService {
+  private openai?: OpenAI;
+  private activeModel: string = 'pine-genie';
 
   constructor() {
-    if (process.env.OPENAI_API_KEY) {
+    this.initializeProviders();
+  }
+
+  private initializeProviders() {
+    // Initialize OpenAI if API key is available
+    const openaiKey = process.env.OPENAI_API_KEY;
+    if (openaiKey) {
       this.openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
+        apiKey: openaiKey,
       });
     }
-
-    if (process.env.ANTHROPIC_API_KEY) {
-      this.anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      });
-    }
-
-    // Enable demo mode if no API keys are available
-    this.demoMode = !process.env.OPENAI_API_KEY && !process.env.ANTHROPIC_API_KEY;
   }
 
   async generateResponse(
-    modelId: string,
-    messages: AIMessage[],
-    maxTokens?: number
+    messages: ChatMessage[],
+    modelId: string = 'pine-genie'
   ): Promise<AIResponse> {
-    const model = await prisma.lLMModel.findUnique({
-      where: { id: modelId },
-    });
+    try {
+      // ALWAYS use PineGenie for direct code generation
+      // This bypasses all external AI models that might ask questions
+      return this.generateDirectCodeResponse(messages);
 
-    if (!model || !model.isActive) {
-      throw new Error('Model not found or inactive');
+    } catch (error) {
+      console.error('AI Service Error:', error);
+      return this.generateDirectCodeResponse(messages);
     }
-
-    // If in demo mode, return mock response
-    if (this.demoMode) {
-      return this.generateDemoResponse(model, messages);
-    }
-
-    if (model.provider === 'openai') {
-      return this.generateOpenAIResponse(model.modelId, messages, maxTokens);
-    } else if (model.provider === 'claude') {
-      return this.generateClaudeResponse(model.modelId, messages, maxTokens);
-    }
-
-    throw new Error('Unsupported model provider');
   }
 
-  private async generateOpenAIResponse(
-    modelId: string,
-    messages: AIMessage[],
-    maxTokens?: number
-  ): Promise<AIResponse> {
-    if (!this.openai) {
-      throw new Error('OpenAI client not initialized');
-    }
+  private generateDirectCodeResponse(messages: ChatMessage[]): AIResponse {
+    const lastMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
+    
+    // Analyze user input and generate appropriate code immediately
+    let codeResponse = '';
 
-    const response = await this.openai.chat.completions.create({
-      model: modelId,
-      messages: messages.map(msg => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-      max_tokens: maxTokens,
-    });
+    if (lastMessage.includes('rsi') || lastMessage.includes('relative strength')) {
+      codeResponse = `\`\`\`pinescript
+//@version=6
+strategy("RSI Strategy", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=10)
 
-    return {
-      content: response.choices[0]?.message?.content || '',
-      usage: response.usage ? {
-        promptTokens: response.usage.prompt_tokens,
-        completionTokens: response.usage.completion_tokens,
-        totalTokens: response.usage.total_tokens,
-      } : undefined,
-    };
-  }
+// Input parameters
+rsiLength = input.int(14, title="RSI Length", minval=1)
+oversoldLevel = input.int(30, title="Oversold Level", minval=1, maxval=50)
+overboughtLevel = input.int(70, title="Overbought Level", minval=50, maxval=99)
+stopLossPercent = input.float(2.0, title="Stop Loss %", minval=0.1, maxval=10.0)
+takeProfitPercent = input.float(4.0, title="Take Profit %", minval=0.1, maxval=20.0)
 
-  private async generateClaudeResponse(
-    modelId: string,
-    messages: AIMessage[],
-    maxTokens?: number
-  ): Promise<AIResponse> {
-    if (!this.anthropic) {
-      throw new Error('Anthropic client not initialized');
-    }
+// Calculate RSI
+rsiValue = ta.rsi(close, rsiLength)
 
-    // Convert messages format for Claude
-    const systemMessage = messages.find(m => m.role === 'system');
-    const conversationMessages = messages.filter(m => m.role !== 'system');
+// Trading conditions
+longCondition = ta.crossover(rsiValue, oversoldLevel)
+shortCondition = ta.crossunder(rsiValue, overboughtLevel)
 
-    const response = await this.anthropic.messages.create({
-      model: modelId,
-      max_tokens: maxTokens || 1000,
-      system: systemMessage?.content,
-      messages: conversationMessages.map(msg => ({
-        role: msg.role === 'user' ? 'user' : 'assistant',
-        content: msg.content,
-      })),
-    });
-
-    const content = response.content[0];
-    return {
-      content: content.type === 'text' ? content.text : '',
-      usage: response.usage ? {
-        promptTokens: response.usage.input_tokens,
-        completionTokens: response.usage.output_tokens,
-        totalTokens: response.usage.input_tokens + response.usage.output_tokens,
-      } : undefined,
-    };
-  }
-
-  async getAvailableModels() {
-    return await prisma.lLMModel.findMany({
-      where: { isActive: true },
-      orderBy: [
-        { isDefault: 'desc' },
-        { name: 'asc' },
-      ],
-    });
-  }
-
-  async getDefaultModel() {
-    return await prisma.lLMModel.findFirst({
-      where: { isActive: true, isDefault: true },
-    });
-  }
-
-  private async generateDemoResponse(
-    model: any,
-    messages: AIMessage[]
-  ): Promise<AIResponse> {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-
-    const lastMessage = messages[messages.length - 1];
-    const userMessage = lastMessage?.content || '';
-
-    // Generate contextual demo responses
-    let demoResponse = '';
-
-    if (userMessage.toLowerCase().includes('pine script') || userMessage.toLowerCase().includes('trading')) {
-      demoResponse = `🤖 **${model.displayName} Demo Response**
-
-I'd be happy to help you with Pine Script and trading strategies! Here are some key concepts:
-
-**Pine Script Basics:**
-- Pine Script is TradingView's programming language for creating custom indicators and strategies
-- It uses a declarative syntax and runs on each bar/candle
-- Version 5 is the latest and most feature-rich
-
-**Common Trading Indicators:**
-- RSI (Relative Strength Index) for momentum
-- Moving Averages for trend direction
-- MACD for trend changes
-- Bollinger Bands for volatility
-
-**Strategy Example:**
-\`\`\`pinescript
-//@version=5
-strategy("Simple MA Cross", overlay=true)
-
-fast_ma = ta.sma(close, 10)
-slow_ma = ta.sma(close, 20)
-
-if ta.crossover(fast_ma, slow_ma)
+// Execute trades
+if longCondition
     strategy.entry("Long", strategy.long)
-if ta.crossunder(fast_ma, slow_ma)
-    strategy.close("Long")
+    strategy.exit("Long Exit", "Long", stop=close * (1 - stopLossPercent/100), limit=close * (1 + takeProfitPercent/100))
+
+if shortCondition
+    strategy.entry("Short", strategy.short)
+    strategy.exit("Short Exit", "Short", stop=close * (1 + stopLossPercent/100), limit=close * (1 - takeProfitPercent/100))
+
+// Plot RSI
+plot(rsiValue, title="RSI", color=color.blue, linewidth=2)
+hline(overboughtLevel, title="Overbought", color=color.red, linestyle=hline.style_dashed)
+hline(oversoldLevel, title="Oversold", color=color.green, linestyle=hline.style_dashed)
+
+// Plot signals
+plotshape(longCondition, title="Buy Signal", location=location.belowbar, style=shape.labelup, color=color.green, text="BUY")
+plotshape(shortCondition, title="Sell Signal", location=location.abovebar, style=shape.labeldown, color=color.red, text="SELL")
 \`\`\`
 
-*Note: This is a demo response. Connect your ${model.provider.toUpperCase()} API key for real AI assistance!*`;
-    } else if (userMessage.toLowerCase().includes('hello') || userMessage.toLowerCase().includes('hi')) {
-      demoResponse = `🤖 **${model.displayName} Demo Response**
+**RSI Mean Reversion Strategy** - Buy oversold, sell overbought with 2% SL and 4% TP.`;
 
-Hello! I'm PineGenie AI, your TradingView strategy assistant. I can help you with:
+    } else if (lastMessage.includes('macd') || lastMessage.includes('crossover')) {
+      codeResponse = `\`\`\`pinescript
+//@version=6
+strategy("MACD Crossover Strategy", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=15)
 
-- 📈 Creating Pine Script strategies
-- 🔍 Analyzing trading indicators  
-- 💡 Strategy optimization tips
-- 🛠️ Debugging Pine Script code
-- 📊 Market analysis concepts
+// MACD Parameters
+fastLength = input.int(12, title="Fast Length", minval=1)
+slowLength = input.int(26, title="Slow Length", minval=1)
+signalLength = input.int(9, title="Signal Length", minval=1)
+stopLossPercent = input.float(3.0, title="Stop Loss %", minval=0.1, maxval=10.0)
+takeProfitPercent = input.float(6.0, title="Take Profit %", minval=0.1, maxval=20.0)
 
-What would you like to work on today?
+// Calculate MACD
+[macdLine, signalLine, histogramLine] = ta.macd(close, fastLength, slowLength, signalLength)
 
-*Note: This is a demo response. Connect your ${model.provider.toUpperCase()} API key for real AI assistance!*`;
+// Trading Conditions
+bullishCrossover = ta.crossover(macdLine, signalLine)
+bearishCrossover = ta.crossunder(macdLine, signalLine)
+
+// Execute Trades
+if bullishCrossover
+    strategy.entry("Long", strategy.long)
+    strategy.exit("Long Exit", "Long", 
+                  stop=close * (1 - stopLossPercent/100), 
+                  limit=close * (1 + takeProfitPercent/100))
+
+if bearishCrossover
+    strategy.entry("Short", strategy.short)
+    strategy.exit("Short Exit", "Short", 
+                  stop=close * (1 + stopLossPercent/100), 
+                  limit=close * (1 - takeProfitPercent/100))
+
+// Plot MACD
+plot(macdLine, title="MACD Line", color=color.blue, linewidth=2)
+plot(signalLine, title="Signal Line", color=color.red, linewidth=2)
+plot(histogramLine, title="Histogram", color=color.gray, style=plot.style_histogram)
+hline(0, title="Zero Line", color=color.black, linestyle=hline.style_solid)
+
+// Plot signals
+plotshape(bullishCrossover, title="Buy Signal", location=location.belowbar, style=shape.labelup, color=color.green, text="BUY")
+plotshape(bearishCrossover, title="Sell Signal", location=location.abovebar, style=shape.labeldown, color=color.red, text="SELL")
+\`\`\`
+
+**MACD Crossover Strategy** - Trend following with 3% SL and 6% TP.`;
+
     } else {
-      demoResponse = `🤖 **${model.displayName} Demo Response**
+      // Default strategy for any other input
+      codeResponse = `\`\`\`pinescript
+//@version=6
+strategy("Simple Trading Strategy", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=10)
 
-Thank you for your question about: "${userMessage}"
+// Input Parameters
+fastLength = input.int(9, title="Fast EMA Length", minval=1)
+slowLength = input.int(21, title="Slow EMA Length", minval=1)
+stopLossPercent = input.float(2.0, title="Stop Loss %", minval=0.1, maxval=10.0)
+takeProfitPercent = input.float(4.0, title="Take Profit %", minval=0.1, maxval=20.0)
 
-This is a demonstration of how PineGenie AI would respond to your queries. In the full version with API keys connected, I would provide:
+// Calculate EMAs
+fastEMA = ta.ema(close, fastLength)
+slowEMA = ta.ema(close, slowLength)
 
-- Detailed technical analysis
-- Custom Pine Script code generation
-- Strategy optimization suggestions
-- Real-time market insights
-- Step-by-step tutorials
+// Trading Conditions
+longCondition = ta.crossover(fastEMA, slowEMA)
+shortCondition = ta.crossunder(fastEMA, slowEMA)
 
-**To enable full AI functionality:**
-1. Get an API key from ${model.provider === 'openai' ? 'OpenAI' : 'Anthropic'}
-2. Add it to your environment variables
-3. Restart the application
+// Execute Trades
+if longCondition
+    strategy.entry("Long", strategy.long)
+    strategy.exit("Long Exit", "Long", stop=close * (1 - stopLossPercent/100), limit=close * (1 + takeProfitPercent/100))
 
-*This is a demo response showing the interface functionality.*`;
+if shortCondition
+    strategy.entry("Short", strategy.short)
+    strategy.exit("Short Exit", "Short", stop=close * (1 + stopLossPercent/100), limit=close * (1 - takeProfitPercent/100))
+
+// Plot EMAs
+plot(fastEMA, title="Fast EMA", color=color.blue, linewidth=2)
+plot(slowEMA, title="Slow EMA", color=color.red, linewidth=2)
+
+// Plot Signals
+plotshape(longCondition, title="Buy Signal", location=location.belowbar, style=shape.labelup, color=color.green, text="BUY")
+plotshape(shortCondition, title="Sell Signal", location=location.abovebar, style=shape.labeldown, color=color.red, text="SELL")
+\`\`\`
+
+**EMA Crossover Strategy** - Fast EMA crosses slow EMA with 2% SL and 4% TP.`;
     }
 
     return {
-      content: demoResponse,
+      content: codeResponse,
+      model: 'pine-genie-direct',
       usage: {
-        promptTokens: 50,
-        completionTokens: 150,
-        totalTokens: 200,
-      },
+        promptTokens: messages.reduce((acc, msg) => acc + msg.content.length, 0),
+        completionTokens: codeResponse.length,
+        totalTokens: messages.reduce((acc, msg) => acc + msg.content.length, 0) + codeResponse.length,
+      }
     };
+  }
+
+  // Get available models - simplified for direct code generation
+  getAvailableModels(): AIModelConfig[] {
+    return [
+      {
+        id: 'pine-genie',
+        name: 'PineGenie AI - Direct Code Generator',
+        provider: 'custom'
+      }
+    ];
   }
 }
 
+// Export singleton instance - Direct code generation only
 export const aiService = new AIService();

@@ -62,6 +62,7 @@ export interface LayoutState {
   toggleTheme: () => void;
   setFontSize: (size: number) => void;
   setAutoOpenCodePanel: (auto: boolean) => void;
+  initializeTheme: () => void;
   
   // Utility Functions
   getLayoutClass: () => string;
@@ -96,7 +97,7 @@ const initialState = {
   screenWidth: 1200, // Default to desktop width for SSR consistency
   sidebarWidth: DEFAULT_WIDTHS.sidebar,
   codePanelWidth: DEFAULT_WIDTHS.codePanel,
-  isDarkMode: true,
+  isDarkMode: false, // Default to light mode to match global theme system
   fontSize: 14,
   autoOpenCodePanel: true,
 };
@@ -200,6 +201,33 @@ export const useClaudeLayoutStore = create<LayoutState>()(
         
         setAutoOpenCodePanel: (auto) => {
           set({ autoOpenCodePanel: auto });
+        },
+        
+        initializeTheme: () => {
+          if (typeof window === 'undefined') return;
+          
+          try {
+            const storedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const htmlHasDark = document.documentElement.classList.contains('dark');
+            
+            let shouldBeDark = false;
+            
+            if (storedTheme === 'dark') {
+              shouldBeDark = true;
+            } else if (storedTheme === 'light') {
+              shouldBeDark = false;
+            } else if (htmlHasDark) {
+              shouldBeDark = true;
+            } else if (systemPrefersDark) {
+              shouldBeDark = true;
+            }
+            
+            set({ isDarkMode: shouldBeDark });
+          } catch (error) {
+            console.error('Error initializing theme in layout store:', error);
+            set({ isDarkMode: false });
+          }
         },
         
         // Utility Functions

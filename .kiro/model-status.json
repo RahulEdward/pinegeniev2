@@ -1,0 +1,22 @@
+{
+  "pine-genie": {
+    "isActive": false,
+    "isDefault": false
+  },
+  "gpt-4o": {
+    "isActive": true,
+    "isDefault": true
+  },
+  "claude-3-5-sonnet": {
+    "isActive": false,
+    "isDefault": false
+  },
+  "gemini-1.5-pro": {
+    "isActive": false,
+    "isDefault": false
+  },
+  "ollama-mistral": {
+    "isActive": false,
+    "isDefault": false
+  }
+}

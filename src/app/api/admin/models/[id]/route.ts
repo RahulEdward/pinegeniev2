@@ -2,18 +2,52 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/admin-auth';
 import { availableModels } from '@/lib/ai-models';
 
-// In-memory storage for model status (in production, use database)
-let modelStatus = new Map<string, { isActive: boolean; isDefault: boolean }>();
+import fs from 'fs';
+import path from 'path';
 
-// Initialize with default status
-if (modelStatus.size === 0) {
-  availableModels.forEach((model, index) => {
-    modelStatus.set(model.id, {
+// File-based storage for model status (persists between server restarts)
+const MODEL_STATUS_FILE = path.join(process.cwd(), '.kiro', 'model-status.json');
+
+// Ensure .kiro directory exists
+const kiroDir = path.join(process.cwd(), '.kiro');
+if (!fs.existsSync(kiroDir)) {
+  fs.mkdirSync(kiroDir, { recursive: true });
+}
+
+function loadModelStatus(): Map<string, { isActive: boolean; isDefault: boolean }> {
+  try {
+    if (fs.existsSync(MODEL_STATUS_FILE)) {
+      const data = fs.readFileSync(MODEL_STATUS_FILE, 'utf8');
+      const statusObj = JSON.parse(data);
+      return new Map(Object.entries(statusObj));
+    }
+  } catch (error) {
+    console.error('Error loading model status:', error);
+  }
+  
+  // Initialize with default status if file doesn't exist
+  const defaultStatus = new Map<string, { isActive: boolean; isDefault: boolean }>();
+  availableModels.forEach((model) => {
+    defaultStatus.set(model.id, {
       isActive: model.id === 'pine-genie', // Pine Genie is active by default
       isDefault: model.id === 'pine-genie' // Pine Genie is default
     });
   });
+  
+  saveModelStatus(defaultStatus);
+  return defaultStatus;
 }
+
+function saveModelStatus(modelStatus: Map<string, { isActive: boolean; isDefault: boolean }>) {
+  try {
+    const statusObj = Object.fromEntries(modelStatus);
+    fs.writeFileSync(MODEL_STATUS_FILE, JSON.stringify(statusObj, null, 2));
+  } catch (error) {
+    console.error('Error saving model status:', error);
+  }
+}
+
+let modelStatus = loadModelStatus();
 
 export async function PATCH(
   request: NextRequest,
@@ -52,6 +86,9 @@ export async function PATCH(
     };
 
     modelStatus.set(id, newStatus);
+    
+    // Save to file to persist changes
+    saveModelStatus(modelStatus);
 
     // Return updated model
     const updatedModel = {

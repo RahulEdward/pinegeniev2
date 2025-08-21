@@ -14,10 +14,14 @@ import {
   X,
   Bot,
   ChevronRight,
-  Coins
+  Coins,
+  Book
 } from 'lucide-react';
 import LogoutButton from './LogoutButton';
 import EnhancedThemeToggle from './EnhancedThemeToggle';
+import SimpleThemeToggle from './SimpleThemeToggle';
+import WorkingThemeToggle from './WorkingThemeToggle';
+import DirectThemeToggle from './DirectThemeToggle';
 import React from 'react';
 
 const iconMap = {
@@ -119,6 +123,18 @@ const navigationItems: NavigationItem[] = [
     icon: Settings,
     href: '/admin/settings',
   },
+  {
+    id: 'guide',
+    label: 'User Guide',
+    icon: Book,
+    href: '/admin/guide',
+  },
+  {
+    id: 'demo-user',
+    label: 'Demo User',
+    icon: Users,
+    href: '/admin/demo-user',
+  },
 ];
 
 export default function AdminLayout({ children, title, breadcrumbs, actions, adminUser }: AdminLayoutProps) {
@@ -128,13 +144,12 @@ export default function AdminLayout({ children, title, breadcrumbs, actions, adm
   // Apply admin theme class to the layout
   React.useEffect(() => {
     document.body.classList.add('admin-layout');
-    // Initialize theme manager
-    if (typeof window !== 'undefined') {
-      import('@/lib/theme-manager').then(({ getThemeManager }) => {
-        getThemeManager();
-      });
-    }
-    return () => document.body.classList.remove('admin-layout');
+    
+    // Simple theme initialization - let the toggle handle it
+    
+    return () => {
+      document.body.classList.remove('admin-layout');
+    };
   }, []);
 
   return (
@@ -281,7 +296,7 @@ export default function AdminLayout({ children, title, breadcrumbs, actions, adm
 
             <div className="flex items-center space-x-3">
               {actions}
-              <EnhancedThemeToggle variant="compact" />
+              <DirectThemeToggle />
               <LogoutButton />
             </div>
           </div>

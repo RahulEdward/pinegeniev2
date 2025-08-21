@@ -32,7 +32,10 @@ export default function ClaudeStyleInterface({
     shouldShowCodePanel,
     toggleSidebar,
     toggleCodePanel,
-    setCurrentConversation
+    setCurrentConversation,
+    isDarkMode,
+    initializeTheme,
+    toggleTheme: toggleStoreTheme
   } = useClaudeLayoutStore();
 
   // Initialize responsive behavior - hydration safe
@@ -68,6 +71,14 @@ export default function ClaudeStyleInterface({
   React.useEffect(() => {
     setIsClient(true);
     loadConversations();
+    
+    // Ensure sidebar is open on desktop by default
+    if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+      const { sidebarCollapsed, setSidebarCollapsed } = useClaudeLayoutStore.getState();
+      if (sidebarCollapsed) {
+        setSidebarCollapsed(false);
+      }
+    }
   }, []);
 
   // Load conversations from API
@@ -114,9 +125,9 @@ export default function ClaudeStyleInterface({
     return `${timeOfDay}, ${user.name}`;
   }, [user.name]);
 
-  // Sample settings
+  // Sample settings - initialize with light theme to match global default
   const [settings, setSettings] = useState<UserSettings>({
-    theme: 'dark',
+    theme: 'light',
     fontSize: 14,
     autoOpenCodePanel: true,
     sidebarCollapsed: false,
@@ -202,9 +213,33 @@ export default function ClaudeStyleInterface({
     }
   }, [initialConversation, currentConversation, setCurrentConversation]);
 
+  // Initialize theme from global theme system
+  React.useEffect(() => {
+    initializeTheme();
+  }, [initializeTheme]);
+
+  // Sync settings with layout store theme
+  React.useEffect(() => {
+    const themeFromStore = isDarkMode ? 'dark' : 'light';
+    if (settings.theme !== themeFromStore) {
+      setSettings(prev => ({ ...prev, theme: themeFromStore }));
+    }
+  }, [isDarkMode, settings.theme]);
+
   // Apply theme on mount and when settings change
   React.useEffect(() => {
     document.documentElement.setAttribute('data-theme', settings.theme);
+    
+    // Also sync with global theme classes for consistency
+    if (settings.theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
   }, [settings.theme]);
 
   // Handler functions (removed duplicates - using the new async versions above)
@@ -293,6 +328,7 @@ export default function ClaudeStyleInterface({
   };
 
   const toggleTheme = () => {
+    toggleStoreTheme();
     const newTheme = settings.theme === 'dark' ? 'light' : 'dark';
     handleUpdateSettings({ theme: newTheme });
     document.documentElement.setAttribute('data-theme', newTheme);

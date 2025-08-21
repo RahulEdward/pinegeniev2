@@ -21,7 +21,11 @@
     "db:migrate": "prisma migrate deploy",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "audit:payu": "tsx scripts/run-payu-audit.ts",
+    "audit:payu:demo": "tsx scripts/run-payu-audit.ts --demo --verbose",
+    "audit:payu:json": "tsx scripts/run-payu-audit.ts --output json --output-path audit-report.json",
+    "audit:payu:verbose": "tsx scripts/run-payu-audit.ts --verbose"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.30.1",
@@ -29,6 +33,7 @@
     "@prisma/client": "^6.11.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/uuid": "^10.0.0",
     "bcryptjs": "^3.0.2",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.6",
@@ -37,12 +42,13 @@
     "lucide-react": "^0.525.0",
     "next": "15.3.5",
     "next-auth": "^4.24.11",
-    "openai": "^4.67.3",
+    "openai": "^4.104.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.5.2",
     "reactflow": "^11.11.4",
     "server-only": "^0.0.1",
+    "uuid": "^11.1.0",
     "zod": "^3.25.76",
     "zustand": "^4.5.2"
   },

@@ -622,7 +622,7 @@ function MyScriptsSection({ darkMode, setActivePage }: { darkMode: boolean; setA
 
 export default function PineGenieDashboard() {
   const router = useRouter();
-  const [darkMode, setDarkMode] = useState(true); // Default to dark mode to match landing page
+  const [darkMode, setDarkMode] = useState(false); // Initialize with light theme
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activePage, setActivePage] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
@@ -638,11 +638,57 @@ export default function PineGenieDashboard() {
     }
   }, [status, router]);
 
+  // Initialize theme from localStorage or system preference
   useEffect(() => {
+    const initializeTheme = () => {
+      try {
+        const storedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        let shouldBeDark = false;
+        
+        if (storedTheme === 'dark') {
+          shouldBeDark = true;
+        } else if (storedTheme === 'light') {
+          shouldBeDark = false;
+        } else {
+          // No stored preference, use system preference but default to light
+          shouldBeDark = systemPrefersDark;
+          localStorage.setItem('theme', shouldBeDark ? 'dark' : 'light');
+        }
+        
+        setDarkMode(shouldBeDark);
+        
+        // Ensure HTML class matches
+        if (shouldBeDark) {
+          document.documentElement.classList.add('dark');
+          document.documentElement.classList.remove('light');
+        } else {
+          document.documentElement.classList.add('light');
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (error) {
+        console.error('Error initializing theme:', error);
+        // Fallback to light theme
+        setDarkMode(false);
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      }
+    };
+
+    initializeTheme();
+  }, []);
+
+  useEffect(() => {
+    // Update theme when darkMode state changes
     if (darkMode) {
       document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+      localStorage.setItem('theme', 'dark');
     } else {
+      document.documentElement.classList.add('light');
       document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
   }, [darkMode]);
 
