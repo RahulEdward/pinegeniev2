@@ -826,8 +826,8 @@ export default function PineGenieDashboard() {
                       {sidebarOpen && (
                         <div className="flex items-center justify-between w-full">
                           <span className={`${darkMode
-                              ? 'text-yellow-400'
-                              : 'text-yellow-600'
+                              ? 'text-white'
+                              : 'text-gray-600'
                             }`}>
                             Invite Only
                           </span>

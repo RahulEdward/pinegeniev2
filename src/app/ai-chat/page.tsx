@@ -2,7 +2,7 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth-options';
 import { Metadata } from 'next';
-import ClaudeStyleInterface from './components/ClaudeStyleInterface';
+import ChatGPTStyleInterface from './components/ChatGPTStyleInterface';
 import { AIAccessGuard } from './components/AIAccessGuard';
 
 export const metadata: Metadata = {
@@ -19,9 +19,8 @@ export default async function PineGenieAIPage() {
 
   return (
     <AIAccessGuard>
-      <ClaudeStyleInterface 
+      <ChatGPTStyleInterface 
         userId={session.user?.id || 'default-user'}
-        initialConversation={null}
       />
     </AIAccessGuard>
   );
