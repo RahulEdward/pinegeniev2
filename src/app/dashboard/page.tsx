@@ -40,7 +40,7 @@ const sidebarItems = [
   { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
   { id: 'scripts', label: 'My Scripts', icon: Code, path: '/scripts' },
   { id: 'builder', label: 'Script Builder', icon: Zap, path: '/builder' },
-  { id: 'pinegenie-ai', label: 'Pine Genie AI', icon: Bot, path: '/ai-chat' },
+  { id: 'pinegenie-ai', label: 'Pine Genie AI', icon: Bot, path: '/simple-ai-chat' },
   { id: 'templates', label: 'Templates', icon: FileText, path: '/templates' },
   { id: 'library', label: 'Library', icon: BookOpen, path: '/library' },
   { id: 'projects', label: 'Projects', icon: Folder, path: '/projects' },

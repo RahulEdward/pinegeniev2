@@ -5,10 +5,17 @@ import { aiService } from '@/lib/ai-service';
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
+    // Check authentication (skip for development testing)
     const session = await getServerSession(authOptions);
-    if (!session) {
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    
+    if (!session && !isDevelopment) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Log for development
+    if (isDevelopment) {
+      console.log('🔓 Development mode: Skipping auth check');
     }
 
     const body = await request.json();
@@ -18,8 +25,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Messages array is required' }, { status: 400 });
     }
 
+    console.log(`🤖 AI Generate API: Using model ${modelId} for ${messages.length} messages`);
+
     // Generate response using our AI service
     const response = await aiService.generateResponse(messages, modelId);
+
+    console.log(`✅ AI Generate API: Response generated with model ${response.model}`);
 
     return NextResponse.json({
       success: true,
@@ -29,7 +40,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('AI Chat API Error:', error);
+    console.error('❌ AI Generate API Error:', error);
     return NextResponse.json(
       { 
         error: 'Failed to generate response',

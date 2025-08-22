@@ -8,7 +8,11 @@ import CodePanel from './CodePanel';
 import ModelSelector, { availableModels } from './ModelSelector';
 import { Conversation } from './ChatHistoryList';
 import { UserProfile, UserSettings } from './UserProfileSection';
-import { aiService, ChatMessage } from '../services/aiService';
+// Using API route instead of direct client-side service
+interface ChatMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}
 import '../styles/claude-interface.css';
 
 interface ClaudeStyleInterfaceProps {
@@ -148,8 +152,8 @@ export default function ClaudeStyleInterface({
   // State for code panel
   const [generatedCode, setGeneratedCode] = useState<string>('');
 
-  // State for AI model selection
-  const [selectedModel, setSelectedModel] = useState<string>('pine-genie');
+  // State for AI model selection - Default to ChatGPT-4
+  const [selectedModel, setSelectedModel] = useState<string>('gpt-4');
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Handle conversation deletion
@@ -360,22 +364,54 @@ export default function ClaudeStyleInterface({
     setIsGenerating(true);
 
     try {
-      // Convert messages to ChatMessage format
+      // Convert messages to ChatMessage format for our AI service
       const chatMessages: ChatMessage[] = [
         ...messages.map(msg => ({
-          role: msg.role as 'user' | 'assistant',
-          content: msg.content,
-          timestamp: msg.timestamp
+          role: msg.role as 'user' | 'assistant' | 'system',
+          content: msg.content
         })),
         {
           role: 'user' as const,
-          content: content,
-          timestamp: new Date()
+          content: content
         }
       ];
 
-      // Send to AI service
-      const aiResponse = await aiService.sendMessage(selectedModel, chatMessages);
+      // Map model names to our working models
+      let modelToUse = selectedModel;
+      if (selectedModel === 'pine-genie') {
+        modelToUse = 'pine-genie'; // Use local fallback
+      } else if (selectedModel === 'gpt-4o') {
+        modelToUse = 'gpt-4'; // Map to our working GPT-4
+      } else if (selectedModel === 'claude-3-5-sonnet') {
+        modelToUse = 'gpt-3.5-turbo'; // Fallback to GPT-3.5 if Claude not available
+      } else {
+        modelToUse = 'gpt-4'; // Default to GPT-4
+      }
+
+      // Send to our API route (server-side) instead of client-side service
+      console.log(`🚀 Sending request to /api/ai-generate with model: ${modelToUse}`);
+      
+      const response = await fetch('/api/ai-generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: chatMessages,
+          modelId: modelToUse
+        })
+      });
+
+      console.log(`📡 API Response status: ${response.status}`);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`❌ API Error: ${response.status} - ${errorText}`);
+        throw new Error(`API request failed: ${response.status} - ${errorText}`);
+      }
+
+      const aiResponse = await response.json();
+      console.log(`✅ AI Response received:`, { model: aiResponse.model, contentLength: aiResponse.content?.length });
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
