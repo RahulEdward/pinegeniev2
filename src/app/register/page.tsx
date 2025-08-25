@@ -11,12 +11,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('darkMode') === 'true';
-    }
-    return true; // Default to dark mode
-  });
+  const [isDark, setIsDark] = useState(false); // Default to light mode for SSR
   const [fieldErrors, setFieldErrors] = useState({
     name: '',
     email: '',
@@ -120,11 +115,13 @@ export default function RegisterPage() {
   };
 
   useEffect(() => {
-    // Check for dark mode preference
-    const darkMode = localStorage.getItem('darkMode') === 'true';
-    setIsDark(darkMode);
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
+    // Check for dark mode preference (client-side only)
+    if (typeof window !== 'undefined') {
+      const darkMode = localStorage.getItem('darkMode') === 'true';
+      setIsDark(darkMode);
+      if (darkMode) {
+        document.documentElement.classList.add('dark');
+      }
     }
   }, []);
 

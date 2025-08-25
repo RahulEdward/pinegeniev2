@@ -641,6 +641,9 @@ export default function PineGenieDashboard() {
   // Initialize theme from localStorage or system preference
   useEffect(() => {
     const initializeTheme = () => {
+      // Only run on client side
+      if (typeof window === 'undefined') return;
+      
       try {
         const storedTheme = localStorage.getItem('theme');
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -671,8 +674,10 @@ export default function PineGenieDashboard() {
         console.error('Error initializing theme:', error);
         // Fallback to light theme
         setDarkMode(false);
-        document.documentElement.classList.add('light');
-        document.documentElement.classList.remove('dark');
+        if (typeof document !== 'undefined') {
+          document.documentElement.classList.add('light');
+          document.documentElement.classList.remove('dark');
+        }
       }
     };
 
@@ -681,6 +686,8 @@ export default function PineGenieDashboard() {
 
   useEffect(() => {
     // Update theme when darkMode state changes
+    if (typeof window === 'undefined') return;
+    
     if (darkMode) {
       document.documentElement.classList.add('dark');
       document.documentElement.classList.remove('light');
