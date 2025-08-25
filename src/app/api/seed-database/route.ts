@@ -4,6 +4,10 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     console.log('🌱 Starting database seeding...');

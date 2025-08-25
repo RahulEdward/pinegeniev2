@@ -3,6 +3,10 @@ import { authenticateAdmin, logSecurityEvent } from '@/services/admin';
 import { AdminCredentials } from '@/types/admin';
 import jwt from 'jsonwebtoken';
 
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   console.log('🔐 Admin login API called');
   

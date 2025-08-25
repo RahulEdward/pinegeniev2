@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logoutAdmin, logSecurityEvent } from '@/services/admin';
 import jwt from 'jsonwebtoken';
 
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get('admin-token')?.value;

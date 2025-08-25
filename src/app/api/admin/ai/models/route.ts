@@ -33,6 +33,10 @@ if (aiModelConfigs.size === 0) {
   });
 }
 
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);

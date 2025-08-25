@@ -35,12 +35,12 @@ import { useSubscription } from '@/hooks/useSubscription';
 
 
 
-// Sidebar menu items
-const sidebarItems = [
+// Sidebar menu items - will be filtered based on subscription
+const allSidebarItems = [
   { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
   { id: 'scripts', label: 'My Scripts', icon: Code, path: '/scripts' },
   { id: 'builder', label: 'Script Builder', icon: Zap, path: '/builder' },
-  { id: 'pinegenie-ai', label: 'Pine Genie AI', icon: Bot, path: '/simple-ai-chat' },
+  { id: 'pinegenie-ai', label: 'Pine Genie AI', icon: Bot, path: '/simple-ai-chat', requiresAI: true },
   { id: 'templates', label: 'Templates', icon: FileText, path: '/templates' },
   { id: 'library', label: 'Library', icon: BookOpen, path: '/library' },
   { id: 'projects', label: 'Projects', icon: Folder, path: '/projects' },
@@ -224,6 +224,37 @@ function MyScriptsSection({ darkMode, setActivePage }: { darkMode: boolean; setA
 
   return (
     <div className="space-y-6">
+      {/* Free Plan Notice */}
+      {!subscription?.limits?.aiChatAccess && (
+        <div className={`backdrop-blur-xl rounded-2xl border p-6 transition-colors ${darkMode
+            ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-blue-500/20'
+            : 'bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200/50 shadow-lg'
+          }`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <Crown className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h3 className={`text-lg font-bold transition-colors ${darkMode ? 'text-white' : 'text-gray-900'
+                  }`}>Welcome to Pine Genie - Free Plan</h3>
+                <p className={`transition-colors ${darkMode ? 'text-slate-300' : 'text-gray-600'
+                  }`}>
+                  ✅ Visual drag-and-drop builder • ✅ Save 1 strategy • ✅ Basic templates only • ❌ No AI support
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => window.open('/billing', '_blank')}
+              className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-xl font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-lg flex items-center space-x-2"
+            >
+              <Sparkles className="h-4 w-4" />
+              <span>Upgrade Plan</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className={`backdrop-blur-xl rounded-2xl border p-6 transition-colors ${darkMode
           ? 'bg-slate-800/50 border-slate-700/50'
@@ -630,6 +661,17 @@ export default function PineGenieDashboard() {
 
   // NextAuth session management
   const { data: session, status } = useSession();
+  
+  // Subscription management
+  const { subscription, checkAIChatAccess } = useSubscription();
+  
+  // Filter sidebar items based on subscription
+  const sidebarItems = allSidebarItems.filter(item => {
+    if (item.requiresAI) {
+      return checkAIChatAccess();
+    }
+    return true;
+  });
 
   useEffect(() => {
     // Redirect to login if not authenticated

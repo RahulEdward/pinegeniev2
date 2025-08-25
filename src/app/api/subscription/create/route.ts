@@ -22,6 +22,10 @@ const PAYU_CONFIG = {
   cancelUrl: process.env.NEXT_PUBLIC_BASE_URL + '/payment/failure'
 };
 
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

@@ -49,6 +49,10 @@ function saveModelStatus(modelStatus: Map<string, { isActive: boolean; isDefault
 
 let modelStatus = loadModelStatus();
 
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }

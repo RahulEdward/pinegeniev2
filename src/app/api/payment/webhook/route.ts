@@ -10,6 +10,10 @@ import { subscriptionPlanManager } from '@/services/subscription';
 import { verifyPayUResponseHash } from '@/lib/payu-config';
 import type { PayUResponse } from '@/lib/payu-config';
 
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     console.log('PayU webhook received');

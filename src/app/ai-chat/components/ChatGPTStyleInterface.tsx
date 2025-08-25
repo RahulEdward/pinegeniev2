@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/hooks/useTheme';
+import { useSubscription } from '@/hooks/useSubscription';
 
 interface Message {
     id: string;
@@ -26,6 +27,7 @@ interface ChatGPTStyleInterfaceProps {
 export default function ChatGPTStyleInterface({ userId }: ChatGPTStyleInterfaceProps) {
     const router = useRouter();
     const { isDarkMode, toggleTheme } = useTheme();
+    const { checkAIChatAccess } = useSubscription();
     const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
     const [inputValue, setInputValue] = useState('');
@@ -33,6 +35,13 @@ export default function ChatGPTStyleInterface({ userId }: ChatGPTStyleInterfaceP
     const [selectedModel, setSelectedModel] = useState('gpt-4');
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Check AI access on component mount
+    useEffect(() => {
+        if (!checkAIChatAccess()) {
+            router.push('/dashboard');
+        }
+    }, [checkAIChatAccess, router]);
 
     const models = [
         { id: 'gpt-4', name: 'GPT-4', description: '✅ Advanced Pine Script Generation' },

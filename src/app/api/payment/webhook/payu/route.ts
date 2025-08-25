@@ -8,6 +8,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { paymentService } from '@/services/payment';
 import type { PayUResponse } from '@/lib/payu-config';
 
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     // Parse form data from PayU

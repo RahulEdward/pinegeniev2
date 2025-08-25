@@ -1,3 +1,7 @@
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
 import { withAdminAuthAndLogging, addSecurityHeaders } from '@/middleware/admin';
 import { prisma } from '@/lib/prisma';

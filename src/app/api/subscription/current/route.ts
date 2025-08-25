@@ -9,6 +9,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { subscriptionPlanManager } from '@/services/subscription';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -37,11 +40,11 @@ export async function GET(request: NextRequest) {
           remainingCredits: 5,
           isActive: true,
           limits: {
-            strategiesPerMonth: 5,
+            strategiesPerMonth: 1,
             templatesAccess: 'basic',
-            aiGenerations: 5,
+            aiGenerations: 0,
             aiChatAccess: false,
-            scriptStorage: 5,
+            scriptStorage: 1,
             exportFormats: ['pine'],
             supportLevel: 'basic',
             customSignatures: false,

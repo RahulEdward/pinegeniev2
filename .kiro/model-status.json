@@ -1,0 +1,22 @@
+{
+  "pine-genie": {
+    "isActive": true,
+    "isDefault": true
+  },
+  "gpt-4": {
+    "isActive": false,
+    "isDefault": false
+  },
+  "gpt-3.5-turbo": {
+    "isActive": false,
+    "isDefault": false
+  },
+  "gpt-4o": {
+    "isActive": false,
+    "isDefault": false
+  },
+  "claude-3-5-sonnet": {
+    "isActive": false,
+    "isDefault": false
+  }
+}
