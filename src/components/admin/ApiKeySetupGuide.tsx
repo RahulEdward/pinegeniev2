@@ -93,7 +93,7 @@ const serviceConfigs: Record<string, ServiceConfig> = {
             'Complete the verification process',
             'Get your Merchant Key and Salt from dashboard',
             'For testing, you can use PayU test credentials',
-            'Add both PAYU_MERCHANT_KEY and PAYU_SALT to environment variables'
+            'Add both PAYU_MERCHANT_KEY and PAYU_MERCHANT_SALT to environment variables'
         ],
         exampleValue: 'rjQUPktU (test key)',
         testEndpoint: 'PayU Payment Gateway'
@@ -135,7 +135,7 @@ export default function ApiKeySetupGuide({ service, onClose }: ApiKeySetupGuideP
     };
 
     const envVarExample = service === 'payu' 
-        ? `PAYU_MERCHANT_KEY=your_merchant_key_here\nPAYU_SALT=your_salt_here`
+        ? `PAYU_MERCHANT_KEY=your_merchant_key_here\nPAYU_MERCHANT_SALT=your_salt_here`
         : `${config.envVar}=your_api_key_here`;
 
     return (

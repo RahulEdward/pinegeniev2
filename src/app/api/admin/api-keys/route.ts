@@ -43,7 +43,7 @@ const getConfiguredApiKeys = () => {
   }
   
   // Check for PayU credentials
-  if (process.env.PAYU_MERCHANT_KEY && process.env.PAYU_SALT) {
+  if (process.env.PAYU_MERCHANT_KEY && process.env.PAYU_MERCHANT_SALT) {
     keys.push({
       id: 'payu-1',
       name: 'PayU Payment Gateway',

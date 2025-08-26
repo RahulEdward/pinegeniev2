@@ -15,7 +15,7 @@ const prisma = new PrismaClient();
 // PayU configuration
 const PAYU_CONFIG = {
   merchantKey: process.env.PAYU_MERCHANT_KEY || 'gtKFFx',
-  salt: process.env.PAYU_SALT || 'eCwWELxi',
+  salt: process.env.PAYU_MERCHANT_SALT || 'eCwWELxi',
   baseUrl: process.env.PAYU_BASE_URL || 'https://test.payu.in', // Use https://secure.payu.in for production
   successUrl: process.env.NEXT_PUBLIC_BASE_URL + '/payment/success',
   failureUrl: process.env.NEXT_PUBLIC_BASE_URL + '/payment/failure',
@@ -90,38 +90,8 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // Generate PayU hash
-    const hashString = `${PAYU_CONFIG.merchantKey}|${txnid}|${amount}|${plan.displayName}|${customerInfo.firstName}|${customerInfo.email}|||||||||||${PAYU_CONFIG.salt}`;
-    const hash = crypto.createHash('sha512').update(hashString).digest('hex');
-
-    // Create PayU form data
-    const payuData = {
-      key: PAYU_CONFIG.merchantKey,
-      txnid: txnid,
-      amount: amount.toString(),
-      productinfo: plan.displayName,
-      firstname: customerInfo.firstName,
-      lastname: customerInfo.lastName || '',
-      email: customerInfo.email,
-      phone: customerInfo.phone,
-      address1: customerInfo.address || '',
-      city: customerInfo.city || '',
-      state: customerInfo.state || '',
-      zipcode: customerInfo.zipcode || '',
-      country: customerInfo.country || 'IN',
-      surl: PAYU_CONFIG.successUrl,
-      furl: PAYU_CONFIG.failureUrl,
-      curl: PAYU_CONFIG.cancelUrl,
-      hash: hash,
-      udf1: planId,
-      udf2: billingCycle,
-      udf3: session.user.id,
-      udf4: payment.id,
-      udf5: ''
-    };
-
-    // Generate PayU payment URL
-    const paymentUrl = generatePayUUrl(payuData);
+    // Use direct PayU payment link
+    const paymentUrl = 'https://pmny.in/aIiKqENQTP4m';
 
     return NextResponse.json({
       success: true,
@@ -132,8 +102,7 @@ export async function POST(request: NextRequest) {
         currency: plan.currency,
         status: 'PENDING'
       },
-      paymentUrl: paymentUrl,
-      payuData: payuData
+      paymentUrl: paymentUrl
     });
 
   } catch (error) {
@@ -165,36 +134,8 @@ async function handleExtraCreditsPayment(userId: string, customerInfo: any) {
     }
   });
 
-  // Generate PayU hash for credits
-  const hashString = `${PAYU_CONFIG.merchantKey}|${txnid}|${amount}|500 Extra AI Credits|${customerInfo.firstName}|${customerInfo.email}|||||||||||${PAYU_CONFIG.salt}`;
-  const hash = crypto.createHash('sha512').update(hashString).digest('hex');
-
-  const payuData = {
-    key: PAYU_CONFIG.merchantKey,
-    txnid: txnid,
-    amount: amount.toString(),
-    productinfo: '500 Extra AI Credits',
-    firstname: customerInfo.firstName,
-    lastname: customerInfo.lastName || '',
-    email: customerInfo.email,
-    phone: customerInfo.phone,
-    address1: customerInfo.address || '',
-    city: customerInfo.city || '',
-    state: customerInfo.state || '',
-    zipcode: customerInfo.zipcode || '',
-    country: customerInfo.country || 'IN',
-    surl: PAYU_CONFIG.successUrl,
-    furl: PAYU_CONFIG.failureUrl,
-    curl: PAYU_CONFIG.cancelUrl,
-    hash: hash,
-    udf1: 'extra-credits',
-    udf2: 'one-time',
-    udf3: userId,
-    udf4: payment.id,
-    udf5: '500'
-  };
-
-  const paymentUrl = generatePayUUrl(payuData);
+  // Use direct PayU payment link for credits too
+  const paymentUrl = 'https://pmny.in/aIiKqENQTP4m';
 
   return NextResponse.json({
     success: true,
@@ -205,8 +146,7 @@ async function handleExtraCreditsPayment(userId: string, customerInfo: any) {
       currency: 'INR',
       status: 'PENDING'
     },
-    paymentUrl: paymentUrl,
-    payuData: payuData
+    paymentUrl: paymentUrl
   });
 }
 
