@@ -1,9 +1,41 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function PaymentFailurePage() {
   const router = useRouter();
+
+  useEffect(() => {
+    // Handle payment failure
+    const handlePaymentFailure = async () => {
+      const pendingPayment = localStorage.getItem('pendingPayment');
+      if (pendingPayment) {
+        const paymentData = JSON.parse(pendingPayment);
+        
+        // Update payment status to failed
+        try {
+          await fetch('/api/payment/verify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              paymentId: paymentData.paymentId,
+              status: 'failed'
+            })
+          });
+        } catch (error) {
+          console.error('Error updating payment status:', error);
+        }
+        
+        // Clear pending payment data
+        localStorage.removeItem('pendingPayment');
+      }
+    };
+
+    handlePaymentFailure();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center">

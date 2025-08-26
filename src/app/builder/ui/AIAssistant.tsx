@@ -414,7 +414,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
                   className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium py-4 px-6 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
                 >
                   <Crown className="h-5 w-5" />
-                  <span>Upgrade to Pro - ₹24.99/month</span>
+                  <span>Upgrade to Pro - ₹2,498/month</span>
                 </button>
                 
                 <button
