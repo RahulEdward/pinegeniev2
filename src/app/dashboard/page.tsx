@@ -816,42 +816,7 @@ export default function PineGenieDashboard() {
             </button>
           </div>
 
-          {/* User Profile Section */}
-          {sidebarOpen && session && (
-            <div className={`p-4 border-b transition-colors ${darkMode ? 'border-slate-700/50' : 'border-gray-200'
-              }`}>
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-full ring-2 ring-blue-500/20 overflow-hidden">
-                  {session.user.image ? (
-                    <Image
-                      src={session.user.image}
-                      alt={session.user.name || 'User'}
-                      width={40}
-                      height={40}
-                      className="object-cover w-full h-full"
-                      priority
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                      <span className="text-white text-sm font-semibold">
-                        {session.user.name?.charAt(0)?.toUpperCase() || session.user.email?.charAt(0)?.toUpperCase() || 'U'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium truncate transition-colors ${darkMode ? 'text-white' : 'text-gray-900'
-                    }`}>
-                    {session.user.name || 'User'}
-                  </p>
-                  <p className={`text-xs truncate transition-colors ${darkMode ? 'text-slate-400' : 'text-gray-500'
-                    }`}>
-                    {session.user.email || 'user@example.com'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
+
 
           {/* Navigation Menu */}
           <div className="flex-1 px-3 py-4">
@@ -950,6 +915,43 @@ export default function PineGenieDashboard() {
                 );
               })}
             </nav>
+
+            {/* User Profile Section - Moved to Bottom */}
+            {sidebarOpen && session && (
+              <div className={`mt-4 p-3 border-t transition-colors ${darkMode ? 'border-slate-700/50' : 'border-gray-200'
+                }`}>
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full ring-2 ring-blue-500/20 overflow-hidden">
+                    {session.user.image ? (
+                      <Image
+                        src={session.user.image}
+                        alt={session.user.name || 'User'}
+                        width={40}
+                        height={40}
+                        className="object-cover w-full h-full"
+                        priority
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                        <span className="text-white text-sm font-semibold">
+                          {session.user.name?.charAt(0)?.toUpperCase() || session.user.email?.charAt(0)?.toUpperCase() || 'U'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-sm font-medium truncate transition-colors ${darkMode ? 'text-white' : 'text-gray-900'
+                      }`}>
+                      {session.user.name || 'User'}
+                    </p>
+                    <p className={`text-xs truncate transition-colors ${darkMode ? 'text-slate-400' : 'text-gray-500'
+                      }`}>
+                      {session.user.email || 'user@example.com'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
