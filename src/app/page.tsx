@@ -951,6 +951,9 @@ function PineGenieLanding() {
                 <a href="#faq" className={`${colors.text.secondary} hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors`}>
                   FAQ
                 </a>
+                <a href="#extension" className={`${colors.text.secondary} hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors`}>
+                  Extension
+                </a>
                 <button
                   onClick={() => setCurrentPage('canvas')}
                   className={`${colors.text.secondary} hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors`}
@@ -1005,6 +1008,7 @@ function PineGenieLanding() {
               <a href="#features" className={`block px-3 py-2 ${colors.text.secondary}`}>Features</a>
               <a href="#pricing" className={`block px-3 py-2 ${colors.text.secondary}`}>Pricing</a>
               <a href="#faq" className={`block px-3 py-2 ${colors.text.secondary}`}>FAQ</a>
+              <a href="#extension" className={`block px-3 py-2 ${colors.text.secondary}`}>Extension</a>
               <button
                 onClick={() => setCurrentPage('canvas')}
                 className={`block w-full text-left px-3 py-2 ${colors.text.secondary}`}
@@ -1422,6 +1426,339 @@ function PineGenieLanding() {
                 <Code className="w-4 h-4 text-purple-500 mr-2" />
                 <span className={colors.text.tertiary}>24/7 support</span>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Extension Section */}
+      <section id="extension" className={`py-24 ${colors.bg.primary}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <AnimatedText delay={200}>
+              <h2 className={`text-3xl lg:text-4xl font-bold ${colors.text.primary} mb-4`}>
+                Pine Genie <GradientText delay={400}>Chrome Extension</GradientText>
+              </h2>
+            </AnimatedText>
+            <AnimatedText delay={400}>
+              <p className={`text-xl ${colors.text.secondary} max-w-3xl mx-auto`}>
+                Optimize your TradingView strategies 10x faster with our powerful Chrome extension featuring AI-powered parameter optimization
+              </p>
+            </AnimatedText>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Extension Features */}
+            <div className="space-y-8">
+              <AnimatedText delay={600}>
+                <div className={`${colors.bg.glass} ${colors.border.primary} border rounded-2xl p-8`}>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className={`p-3 bg-gradient-to-r ${colors.accent.blue} rounded-xl`}>
+                      <Download className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className={`text-xl font-bold ${colors.text.primary}`}>Strategy Optimizer Pro</h3>
+                      <p className={`${colors.text.secondary}`}>Advanced parameter optimization for TradingView</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span className={`${colors.text.secondary}`}>Simulated Annealing Algorithm</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                      <span className={`${colors.text.secondary}`}>3D Result Visualization</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                      <span className={`${colors.text.secondary}`}>CSV Export/Import</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                      <span className={`${colors.text.secondary}`}>Real-time Progress Tracking</span>
+                    </div>
+                  </div>
+                </div>
+              </AnimatedText>
+
+              <AnimatedText delay={800}>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className={`${colors.bg.card} rounded-xl p-4 text-center`}>
+                    <div className="text-2xl font-bold text-green-400 mb-1">10,000+</div>
+                    <div className={`text-xs ${colors.text.tertiary}`}>Active Users</div>
+                  </div>
+                  <div className={`${colors.bg.card} rounded-xl p-4 text-center`}>
+                    <div className="text-2xl font-bold text-blue-400 mb-1">1M+</div>
+                    <div className={`text-xs ${colors.text.tertiary}`}>Optimizations</div>
+                  </div>
+                  <div className={`${colors.bg.card} rounded-xl p-4 text-center`}>
+                    <div className="text-2xl font-bold text-purple-400 mb-1">85%</div>
+                    <div className={`text-xs ${colors.text.tertiary}`}>Time Saved</div>
+                  </div>
+                </div>
+              </AnimatedText>
+            </div>
+
+            {/* Extension Preview */}
+            <div className="relative">
+              <FloatingElement delay={1000}>
+                <div className={`${colors.bg.glass} ${colors.border.primary} border rounded-3xl p-8 shadow-2xl`}>
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                      <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                    </div>
+                    <span className={`text-sm ${colors.text.secondary}`}>Pine Genie Optimizer</span>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className={`${colors.bg.secondary} rounded-lg p-4`}>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className={`text-sm ${colors.text.primary}`}>Optimization Progress</span>
+                        <span className={`text-sm ${colors.text.secondary}`}>73%</span>
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-2">
+                        <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full" style={{width: '73%'}}></div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className={`${colors.bg.secondary} rounded-lg p-3 text-center`}>
+                        <div className="text-lg font-bold text-green-400">+247.3%</div>
+                        <div className={`text-xs ${colors.text.tertiary}`}>Best Return</div>
+                      </div>
+                      <div className={`${colors.bg.secondary} rounded-lg p-3 text-center`}>
+                        <div className="text-lg font-bold text-blue-400">2.84</div>
+                        <div className={`text-xs ${colors.text.tertiary}`}>Profit Factor</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </FloatingElement>
+            </div>
+          </div>
+
+          {/* Download Button */}
+          <div className="text-center mt-16">
+            <AnimatedText delay={1200}>
+              <div className="flex justify-center">
+                <a
+                  href="https://chrome.google.com/webstore/detail/pine-genie"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`bg-gradient-to-r ${colors.accent.blue} text-white px-10 py-4 rounded-xl font-semibold hover:opacity-90 transition-all flex items-center gap-3 shadow-lg hover:shadow-xl text-lg`}
+                >
+                  <Download className="w-6 h-6" />
+                  Install from Chrome Web Store
+                </a>
+              </div>
+            </AnimatedText>
+            
+            <AnimatedText delay={1400}>
+              <div className="flex justify-center gap-8 mt-8 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <span className={`${colors.text.secondary}`}>Free 7-day trial</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                  <span className={`${colors.text.secondary}`}>No credit card required</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                  <span className={`${colors.text.secondary}`}>Cancel anytime</span>
+                </div>
+              </div>
+            </AnimatedText>
+          </div>
+
+          {/* Extension Pricing Table */}
+          <div className="mt-24">
+            <div className="text-center mb-16">
+              <AnimatedText delay={1600}>
+                <h3 className={`text-2xl lg:text-3xl font-bold ${colors.text.primary} mb-4`}>
+                  Extension <GradientText delay={1800}>Pricing Plans</GradientText>
+                </h3>
+              </AnimatedText>
+              <AnimatedText delay={1800}>
+                <p className={`text-lg ${colors.text.secondary} max-w-2xl mx-auto`}>
+                  Choose the perfect plan for your trading optimization needs
+                </p>
+              </AnimatedText>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              {/* Free Plan */}
+              <AnimatedText delay={2000}>
+                <div className={`${colors.bg.glass} ${colors.border.primary} border rounded-3xl p-8 relative overflow-hidden`}>
+                  <div className="relative z-10">
+                    <div className="text-center mb-8">
+                      <h4 className={`text-2xl font-bold ${colors.text.primary} mb-2`}>Free Trial</h4>
+                      <div className="flex items-baseline justify-center gap-2">
+                        <span className={`text-4xl font-bold ${colors.text.primary}`}>₹0</span>
+                        <span className={`${colors.text.secondary}`}>/7 days</span>
+                      </div>
+                      <p className={`${colors.text.secondary} mt-2`}>Try all Pro features free</p>
+                    </div>
+
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs">✓</span>
+                        </div>
+                        <span className={`${colors.text.secondary} text-sm`}>10 optimizations per day</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs">✓</span>
+                        </div>
+                        <span className={`${colors.text.secondary} text-sm`}>Basic algorithm & CSV export</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs">✓</span>
+                        </div>
+                        <span className={`${colors.text.secondary} text-sm`}>Progress tracking & community support</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs">✗</span>
+                        </div>
+                        <span className={`${colors.text.tertiary} text-sm`}>3D visualization & AI suggestions</span>
+                      </div>
+                    </div>
+
+                    <button className={`w-full ${colors.bg.secondary} ${colors.border.primary} border ${colors.text.primary} py-3 rounded-xl font-semibold hover:bg-opacity-80 transition-all`}>
+                      Start 7-Day Trial
+                    </button>
+                  </div>
+                </div>
+              </AnimatedText>
+
+              {/* Pro Plan */}
+              <AnimatedText delay={2200}>
+                <div className={`${colors.bg.glass} ${colors.border.accent} border-2 rounded-3xl p-8 relative overflow-hidden`}>
+                  <div className="relative z-10">
+                    <div className="text-center mb-8">
+                      <h4 className={`text-2xl font-bold ${colors.text.primary} mb-2`}>Pro Plan</h4>
+                      <div className="flex items-baseline justify-center gap-2">
+                        <span className={`text-4xl font-bold bg-gradient-to-r ${colors.accent.blue} bg-clip-text text-transparent`}>₹1,580</span>
+                        <span className={`${colors.text.secondary}`}>/month</span>
+                      </div>
+                      <p className={`${colors.text.secondary} mt-2`}>For serious traders</p>
+                      <div className={`text-sm ${colors.text.tertiary} mt-1`}>
+                        Annual: ₹15,800/year (2 months free!)
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs">✓</span>
+                        </div>
+                        <span className={`${colors.text.secondary} text-sm`}><strong>Unlimited optimizations</strong></span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs">✓</span>
+                        </div>
+                        <span className={`${colors.text.secondary} text-sm`}>All AI algorithms & 3D visualization</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs">✓</span>
+                        </div>
+                        <span className={`${colors.text.secondary} text-sm`}>Priority support & AI suggestions</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs">✓</span>
+                        </div>
+                        <span className={`${colors.text.secondary} text-sm`}>Advanced analytics & templates</span>
+                      </div>
+                    </div>
+
+                    <button className={`w-full bg-gradient-to-r ${colors.accent.blue} text-white py-3 rounded-xl font-semibold hover:opacity-90 transition-all shadow-lg hover:shadow-xl`}>
+                      Start Pro Trial
+                    </button>
+                  </div>
+
+                  {/* Glow Effect */}
+                  <div className={`absolute inset-0 bg-gradient-to-r ${colors.accent.blue} opacity-5 rounded-3xl`}></div>
+                </div>
+              </AnimatedText>
+            </div>
+
+            {/* Comparison Table */}
+            <div className="mt-16">
+              <AnimatedText delay={2400}>
+                <div className={`${colors.bg.glass} ${colors.border.primary} border rounded-2xl p-8 overflow-x-auto`}>
+                  <h4 className={`text-xl font-bold ${colors.text.primary} mb-6 text-center`}>Feature Comparison</h4>
+                  <table className="w-full">
+                    <thead>
+                      <tr className={`${colors.border.primary} border-b`}>
+                        <th className={`text-left py-3 ${colors.text.primary}`}>Feature</th>
+                        <th className={`text-center py-3 ${colors.text.primary}`}>Free</th>
+                        <th className={`text-center py-3 ${colors.text.primary}`}>Pro</th>
+                      </tr>
+                    </thead>
+                    <tbody className="space-y-2">
+                      <tr className={`${colors.border.primary} border-b border-opacity-30`}>
+                        <td className={`py-3 ${colors.text.secondary}`}>Daily Optimizations</td>
+                        <td className={`text-center py-3 ${colors.text.secondary}`}>10</td>
+                        <td className={`text-center py-3 text-green-400 font-semibold`}>Unlimited</td>
+                      </tr>
+                      <tr className={`${colors.border.primary} border-b border-opacity-30`}>
+                        <td className={`py-3 ${colors.text.secondary}`}>AI Algorithms</td>
+                        <td className={`text-center py-3 ${colors.text.secondary}`}>Basic</td>
+                        <td className={`text-center py-3 text-green-400 font-semibold`}>All Advanced</td>
+                      </tr>
+                      <tr className={`${colors.border.primary} border-b border-opacity-30`}>
+                        <td className={`py-3 ${colors.text.secondary}`}>3D Visualization</td>
+                        <td className={`text-center py-3 text-red-400`}>✗</td>
+                        <td className={`text-center py-3 text-green-400`}>✓</td>
+                      </tr>
+                      <tr className={`${colors.border.primary} border-b border-opacity-30`}>
+                        <td className={`py-3 ${colors.text.secondary}`}>Priority Support</td>
+                        <td className={`text-center py-3 text-red-400`}>✗</td>
+                        <td className={`text-center py-3 text-green-400`}>✓</td>
+                      </tr>
+                      <tr>
+                        <td className={`py-3 ${colors.text.secondary}`}>AI Suggestions</td>
+                        <td className={`text-center py-3 text-red-400`}>✗</td>
+                        <td className={`text-center py-3 text-green-400`}>✓</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </AnimatedText>
+            </div>
+
+            {/* Payment Info */}
+            <div className="text-center mt-12">
+              <AnimatedText delay={2600}>
+                <div className="flex flex-wrap justify-center gap-6 text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                    <span className={`${colors.text.secondary}`}>7-day free trial</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                    <span className={`${colors.text.secondary}`}>Cancel anytime</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                    <span className={`${colors.text.secondary}`}>30-day money back</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
+                    <span className={`${colors.text.secondary}`}>All payment methods</span>
+                  </div>
+                </div>
+              </AnimatedText>
             </div>
           </div>
         </div>
