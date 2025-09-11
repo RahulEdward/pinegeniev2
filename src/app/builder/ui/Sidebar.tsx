@@ -55,11 +55,24 @@ const nodeTemplates = {
     { type: 'data', label: 'Volume Data', description: 'Trading volume data' },
   ],
   'Technical Analysis': [
-    { type: 'indicator', label: 'Moving Average', description: 'SMA/EMA with adaptive periods' },
-    { type: 'indicator', label: 'RSI', description: 'Momentum oscillator' },
-    { type: 'indicator', label: 'MACD', description: 'Trend following momentum' },
-    { type: 'indicator', label: 'Bollinger Bands', description: 'Volatility bands' },
-    { type: 'indicator', label: 'Stochastic', description: 'Momentum oscillator' },
+    { type: 'indicator', label: 'SMA', description: 'Simple Moving Average' },
+    { type: 'indicator', label: 'EMA', description: 'Exponential Moving Average' },
+    { type: 'indicator', label: 'RSI', description: 'Relative Strength Index (14)' },
+    { type: 'indicator', label: 'MACD', description: 'Moving Average Convergence Divergence' },
+    { type: 'indicator', label: 'Bollinger Bands', description: 'Volatility bands with SMA' },
+    { type: 'indicator', label: 'Stochastic', description: 'Stochastic Oscillator (%K, %D)' },
+    { type: 'indicator', label: 'ATR', description: 'Average True Range (Volatility)' },
+    { type: 'indicator', label: 'Volume', description: 'Volume analysis & VWAP' },
+    { type: 'indicator', label: 'Williams %R', description: 'Williams Percent Range (-100 to 0)' },
+    { type: 'indicator', label: 'CCI', description: 'Commodity Channel Index' },
+    { type: 'indicator', label: 'ADX', description: 'Average Directional Index (Trend Strength)' },
+    { type: 'indicator', label: 'Parabolic SAR', description: 'Stop and Reverse (Trend Following)' },
+    { type: 'indicator', label: 'Ichimoku', description: 'Ichimoku Kinko Hyo (Complete System)' },
+    { type: 'indicator', label: 'MFI', description: 'Money Flow Index (Volume-weighted RSI)' },
+    { type: 'indicator', label: 'OBV', description: 'On Balance Volume (Volume Flow)' },
+    { type: 'indicator', label: 'Aroon', description: 'Aroon Oscillator (Trend Change)' },
+    { type: 'indicator', label: 'VWMA', description: 'Volume Weighted Moving Average' },
+    { type: 'indicator', label: 'Keltner Channels', description: 'Keltner Channels (ATR-based Bands)' },
   ],
   'Conditions': [
     { type: 'condition', label: 'Price Crossover', description: 'Price crosses indicator' },
@@ -149,6 +162,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onNodeAdd, isCollapsed, onToggleColla
         <p className={`text-sm ${colors.text.tertiary}`}>
           Click to add components to your strategy
         </p>
+        <div className={`text-xs ${colors.text.tertiary} mt-2`}>
+          {nodeTemplates[categoryKeys[activeCategory]]?.length || 0} components available
+        </div>
       </div>
       {/* Category tabs */}
       <div className={`p-4 ${colors.border.primary} border-b`}>
@@ -175,9 +191,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onNodeAdd, isCollapsed, onToggleColla
         </div>
       </div>
       {/* Component list */}
-      <div className="p-4 overflow-y-auto overflow-x-hidden" style={{ maxHeight: 'calc(100vh - 200px)' }}>
-        <div className="space-y-3" style={{ maxHeight: 'none', overflow: 'visible' }}>
-          {nodeTemplates[categoryKeys[activeCategory]]?.slice(0, 6).map((node, nodeIdx) => {
+      <div className="p-4 overflow-y-auto overflow-x-hidden flex-1" style={{ maxHeight: 'calc(100vh - 220px)' }}>
+        <div className="space-y-3">
+          {nodeTemplates[categoryKeys[activeCategory]]?.map((node, nodeIdx) => {
             const nodeType = NODE_TYPES[node.type as NodeTypeKey];
             const IconComponent = nodeType.icon;
             const accentColor = colors.accent[nodeType.color as keyof typeof colors.accent];

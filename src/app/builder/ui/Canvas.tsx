@@ -632,7 +632,16 @@ const Canvas: React.FC = () => {
           backgroundType={backgroundType}
           setBackgroundType={setBackgroundType}
           openUserManual={() => setIsManualOpen(true)}
-          openAIAssistant={() => setIsAIAssistantOpen(true)}
+          openAIAssistant={() => {
+            console.log('🤖 PineGenie AI button clicked!');
+            console.log('🤖 Current isAIAssistantOpen:', isAIAssistantOpen);
+            setIsAIAssistantOpen(true);
+            console.log('🤖 Setting isAIAssistantOpen to true');
+            // Force a re-render check
+            setTimeout(() => {
+              console.log('🤖 After setState - isAIAssistantOpen should be true');
+            }, 100);
+          }}
         />
         <div className="flex-1 relative overflow-hidden">
           <div
@@ -890,6 +899,29 @@ const Canvas: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* DEBUG: Direct Test Button */}
+      <button
+        onClick={() => {
+          console.log('🔥 DIRECT TEST BUTTON CLICKED');
+          alert('Direct test button clicked!');
+          setIsAIAssistantOpen(true);
+        }}
+        style={{
+          position: 'fixed',
+          top: '10px',
+          right: '10px',
+          zIndex: 10000,
+          backgroundColor: 'red',
+          color: 'white',
+          padding: '10px',
+          border: 'none',
+          borderRadius: '5px',
+          cursor: 'pointer'
+        }}
+      >
+        🔥 TEST AI MODAL
+      </button>
 
       {/* AI Assistant Modal */}
       <AIAssistant

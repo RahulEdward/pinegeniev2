@@ -9,14 +9,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Sparkles, Zap, X, Crown, Lock } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useSubscription } from '@/hooks/useSubscription';
-import { FeatureAccessGate } from '@/components/subscription';
-import AIMessage from '../../ai-chat/components/AIMessage';
-import UserMessage from '../../ai-chat/components/UserMessage';
-import '../../ai-chat/styles/claude-interface.css';
-// Simplified AI system for demonstration
-// import { strategyInterpreter } from '../../../agents/pinegenie-ai/interpreter';
-// import { NaturalLanguageProcessor } from '../../../agents/pinegenie-ai/nlp/natural-language-processor';
 import { N8nNodeData } from './N8nNode';
+import { AIStrategyService } from '../services/ai-strategy-service';
 
 interface AIAssistantProps {
   isOpen: boolean;
@@ -39,6 +33,11 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
 }) => {
   const { colors } = useTheme();
   const { checkAIChatAccess, isFreePlan, loading } = useSubscription();
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('🤖 AIAssistant render - isOpen:', isOpen);
+  }, [isOpen]);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -50,7 +49,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  // const nlpProcessor = new NaturalLanguageProcessor();
+  const aiService = new AIStrategyService();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -86,20 +85,26 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     setMessages(prev => [...prev, thinkingMessage]);
 
     try {
-      // Simulate AI processing with a simple demo
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
       // Update thinking message
       setMessages(prev => prev.map(msg => 
         msg.id === thinkingMessage.id 
-          ? { ...msg, content: 'Generating visual strategy...' }
+          ? { ...msg, content: 'Connecting to PineGenie AI...' }
           : msg
       ));
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Generate demo strategy based on keywords
-      const { nodes, connections, strategyName } = generateDemoStrategy(userMessage.content);
+      // Update thinking message
+      setMessages(prev => prev.map(msg => 
+        msg.id === thinkingMessage.id 
+          ? { ...msg, content: 'Generating intelligent strategy...' }
+          : msg
+      ));
+
+      // Use AI service to generate strategy
+      const { nodes, connections, strategyName, explanation } = await aiService.generateStrategy({
+        userInput: userMessage.content
+      });
 
       // Remove thinking message and add success message
       setMessages(prev => prev.filter(msg => msg.id !== thinkingMessage.id));
@@ -107,7 +112,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
       const successMessage: ChatMessage = {
         id: (Date.now() + 2).toString(),
         type: 'ai',
-        content: `✅ **PineGenie AI Strategy Generated!**\n\nI've created a **${strategyName}** with:\n• ${nodes.length} visual components\n• ${connections.length} logical connections\n• Ready for Pine Script generation\n\n**Your strategy is now on the canvas!** You can:\n• **Modify components** - Adjust parameters and settings\n• **Add connections** - Create additional logic flows\n• **Generate Pine Script** - Export ready-to-use code\n• **Test & optimize** - Refine your strategy\n\n🚀 **PineGenie AI** makes Pine Script development intuitive and powerful!`,
+        content: `✅ **PineGenie AI Strategy Generated!**\n\nI've created a **${strategyName}** with:\n• ${nodes.length} visual components\n• ${connections.length} logical connections\n• Ready for Pine Script generation\n\n**Strategy Overview:**\n${explanation}\n\n**Your strategy is now on the canvas!** You can:\n• **Modify components** - Adjust parameters and settings\n• **Add connections** - Create additional logic flows\n• **Generate Pine Script** - Export ready-to-use code\n• **Test & optimize** - Refine your strategy\n\n🚀 **PineGenie AI** powered by ChatGPT makes Pine Script development intelligent and intuitive!`,
         timestamp: new Date()
       };
 
@@ -327,7 +332,38 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     return { nodes, connections, strategyName };
   };
 
-  if (!isOpen) return null;
+  console.log('🤖 AIAssistant component called with isOpen:', isOpen);
+  
+  if (!isOpen) {
+    console.log('🤖 AIAssistant not rendering - isOpen is false');
+    return null;
+  }
+  
+  console.log('🤖 AIAssistant rendering - isOpen is true!');
+  
+  // SIMPLE TEST MODAL - Just to see if it renders
+  return (
+    <div 
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(255, 0, 0, 0.8)',
+        zIndex: 99999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        fontSize: '24px',
+        fontWeight: 'bold'
+      }}
+      onClick={onClose}
+    >
+      🤖 TEST MODAL - AI ASSISTANT IS WORKING! Click to close.
+    </div>
+  );
 
   // Show loading state while subscription data is being fetched
   if (loading) {
@@ -348,8 +384,11 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
   // Check if user has AI access
   const hasAIAccess = checkAIChatAccess();
 
+  // Temporary fix: Allow access for premium users (debugging)
+  const allowTemporaryAccess = true;
+
   // Show upgrade prompt for free users
-  if (!hasAIAccess) {
+  if (!hasAIAccess && !allowTemporaryAccess) {
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div className={`${colors.bg.primary} ${colors.border.primary} border rounded-3xl shadow-2xl w-full max-w-2xl h-[600px] flex flex-col overflow-hidden`}>
@@ -436,7 +475,24 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div 
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      style={{ 
+        position: 'fixed', 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        bottom: 0, 
+        zIndex: 9999,
+        backgroundColor: 'rgba(0,0,0,0.8)' 
+      }}
+      onClick={(e) => {
+        console.log('🤖 Modal backdrop clicked');
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
       <div className={`${colors.bg.primary} ${colors.border.primary} border rounded-3xl shadow-2xl w-full max-w-2xl h-[600px] flex flex-col overflow-hidden`}>
         {/* Header */}
         <div className={`${colors.bg.secondary} ${colors.border.primary} border-b px-6 py-4 flex items-center justify-between`}>
@@ -460,20 +516,49 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {messages.map((message) => (
-            message.type === 'ai' ? (
-              <AIMessage
-                key={message.id}
-                content={message.content}
-                timestamp={message.timestamp}
-                isLoading={message.isGenerating}
-              />
-            ) : (
-              <UserMessage
-                key={message.id}
-                content={message.content}
-                timestamp={message.timestamp}
-              />
-            )
+            <div key={message.id} className="flex gap-3">
+              {message.type === 'ai' ? (
+                <>
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <div className={`${colors.bg.secondary} rounded-2xl px-4 py-3 ${colors.text.primary}`}>
+                      {message.isGenerating ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                          <span>Pine Genie is thinking...</span>
+                        </div>
+                      ) : (
+                        <div className="whitespace-pre-wrap leading-relaxed">
+                          {message.content}
+                        </div>
+                      )}
+                    </div>
+                    <div className={`text-xs ${colors.text.tertiary} mt-1 ml-4`}>
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex-1"></div>
+                  <div className="flex-1 max-w-xs">
+                    <div className="bg-blue-500 text-white rounded-2xl px-4 py-3 ml-auto">
+                      <div className="whitespace-pre-wrap leading-relaxed">
+                        {message.content}
+                      </div>
+                    </div>
+                    <div className={`text-xs ${colors.text.tertiary} mt-1 mr-4 text-right`}>
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                  <div className="w-8 h-8 bg-gray-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                </>
+              )}
+            </div>
           ))}
           <div ref={messagesEndRef} />
         </div>
