@@ -198,7 +198,9 @@ export function useSubscription() {
 
   // Specific access check methods
   const checkAIChatAccess = useCallback((): boolean => {
-    return subscription?.limits?.aiChatAccess || false;
+    // Always allow AI chat access for now (free users get access)
+    return true;
+    // return subscription?.limits?.aiChatAccess || false;
   }, [subscription]);
 
   const checkStrategyStorageAccess = useCallback((): AccessInfo => {

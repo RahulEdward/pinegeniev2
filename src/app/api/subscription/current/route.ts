@@ -42,8 +42,8 @@ export async function GET(request: NextRequest) {
           limits: {
             strategiesPerMonth: 1,
             templatesAccess: 'basic',
-            aiGenerations: 0,
-            aiChatAccess: false,
+            aiGenerations: 10,
+            aiChatAccess: true,
             scriptStorage: 1,
             exportFormats: ['pine'],
             supportLevel: 'basic',

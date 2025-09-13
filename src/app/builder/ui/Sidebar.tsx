@@ -3,6 +3,65 @@ import { useTheme } from './ThemeProvider';
 import {
   BarChart3, TrendingUp, GitBranch, Zap, Shield, Calculator, Timer, Menu, Sparkles
 } from 'lucide-react';
+import { indicatorDefinitions, getIndicatorsByCategory, type IndicatorDefinition } from '../data/indicator-defs';
+
+const CATEGORY_CONFIG = {
+  'Data Sources': {
+    icon: BarChart3,
+    color: 'purple',
+    nodeType: 'data'
+  },
+  'Trend': {
+    icon: TrendingUp,
+    color: 'blue',
+    nodeType: 'indicator'
+  },
+  'Momentum': {
+    icon: Zap,
+    color: 'orange',
+    nodeType: 'indicator'
+  },
+  'Volatility': {
+    icon: BarChart3,
+    color: 'red',
+    nodeType: 'indicator'
+  },
+  'Volume': {
+    icon: BarChart3,
+    color: 'purple',
+    nodeType: 'indicator'
+  },
+  'Support/Resistance': {
+    icon: Shield,
+    color: 'green',
+    nodeType: 'indicator'
+  },
+  'Custom': {
+    icon: Sparkles,
+    color: 'indigo',
+    nodeType: 'indicator'
+  },
+  'Conditions': {
+    icon: GitBranch,
+    color: 'orange',
+    nodeType: 'condition'
+  },
+  'Actions': {
+    icon: Zap,
+    color: 'green',
+    nodeType: 'action'
+  },
+  'Risk Management': {
+    icon: Shield,
+    color: 'red',
+    nodeType: 'risk'
+  },
+  'Math & Logic': {
+    icon: Calculator,
+    color: 'indigo',
+    nodeType: 'math'
+  }
+};
 
 const NODE_TYPES = {
   data: {
@@ -13,7 +72,7 @@ const NODE_TYPES = {
   },
   indicator: {
     icon: TrendingUp,
-    category: 'Technical Analysis',
+    category: 'Trend',
     color: 'blue',
     defaultProps: { period: 14, type: 'sma' }
   },
@@ -49,18 +108,56 @@ const NODE_TYPES = {
   }
 };
 
+// Get indicators organized by category
+const indicatorsByCategory = getIndicatorsByCategory();
+
 const nodeTemplates = {
   'Data Sources': [
     { type: 'data', label: 'Price Data', description: 'OHLCV price data (handled by TradingView)' },
     { type: 'data', label: 'Volume Data', description: 'Trading volume data' },
   ],
-  'Technical Analysis': [
-    { type: 'indicator', label: 'Moving Average', description: 'SMA/EMA with adaptive periods' },
-    { type: 'indicator', label: 'RSI', description: 'Momentum oscillator' },
-    { type: 'indicator', label: 'MACD', description: 'Trend following momentum' },
-    { type: 'indicator', label: 'Bollinger Bands', description: 'Volatility bands' },
-    { type: 'indicator', label: 'Stochastic', description: 'Momentum oscillator' },
-  ],
+  'Trend': indicatorsByCategory.Trend?.map(indicator => ({
+    type: 'indicator' as const,
+    label: indicator.name,
+    description: indicator.description,
+    indicatorId: indicator.id,
+    indicatorData: indicator
+  })) || [],
+  'Momentum': indicatorsByCategory.Momentum?.map(indicator => ({
+    type: 'indicator' as const,
+    label: indicator.name,
+    description: indicator.description,
+    indicatorId: indicator.id,
+    indicatorData: indicator
+  })) || [],
+  'Volatility': indicatorsByCategory.Volatility?.map(indicator => ({
+    type: 'indicator' as const,
+    label: indicator.name,
+    description: indicator.description,
+    indicatorId: indicator.id,
+    indicatorData: indicator
+  })) || [],
+  'Volume': indicatorsByCategory.Volume?.map(indicator => ({
+    type: 'indicator' as const,
+    label: indicator.name,
+    description: indicator.description,
+    indicatorId: indicator.id,
+    indicatorData: indicator
+  })) || [],
+  'Support/Resistance': indicatorsByCategory['Support/Resistance']?.map(indicator => ({
+    type: 'indicator' as const,
+    label: indicator.name,
+    description: indicator.description,
+    indicatorId: indicator.id,
+    indicatorData: indicator
+  })) || [],
+  'Custom': indicatorsByCategory.Custom?.map(indicator => ({
+    type: 'indicator' as const,
+    label: indicator.name,
+    description: indicator.description,
+    indicatorId: indicator.id,
+    indicatorData: indicator
+  })) || [],
   'Conditions': [
     { type: 'condition', label: 'Price Crossover', description: 'Price crosses indicator' },
     { type: 'condition', label: 'Breakout', description: 'Support/resistance breaks' },
@@ -92,6 +189,8 @@ interface NodeTemplate {
   type: NodeTypeKey;
   label: string;
   description: string;
+  indicatorId?: string;
+  indicatorData?: IndicatorDefinition;
 }
 
 interface SidebarProps {
@@ -154,9 +253,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onNodeAdd, isCollapsed, onToggleColla
       <div className={`p-4 ${colors.border.primary} border-b`}>
         <div className="grid grid-cols-2 gap-2">
           {categoryKeys.map((category, idx) => {
-            const nodeType = Object.values(NODE_TYPES).find(nt => nt.category === category) || NODE_TYPES.data;
-            const IconComponent = nodeType.icon;
-            const accentColor = colors.accent[nodeType.color as keyof typeof colors.accent];
+            const categoryConfig = CATEGORY_CONFIG[category as keyof typeof CATEGORY_CONFIG];
+            const IconComponent = categoryConfig?.icon || BarChart3;
+            const accentColor = colors.accent[categoryConfig?.color as keyof typeof colors.accent] || colors.accent.blue;
             return (
               <button
                 key={idx}
@@ -177,10 +276,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onNodeAdd, isCollapsed, onToggleColla
       {/* Component list */}
       <div className="p-4 overflow-y-auto overflow-x-hidden" style={{ maxHeight: 'calc(100vh - 200px)' }}>
         <div className="space-y-3" style={{ maxHeight: 'none', overflow: 'visible' }}>
-          {nodeTemplates[categoryKeys[activeCategory]]?.slice(0, 6).map((node, nodeIdx) => {
-            const nodeType = NODE_TYPES[node.type as NodeTypeKey];
-            const IconComponent = nodeType.icon;
-            const accentColor = colors.accent[nodeType.color as keyof typeof colors.accent];
+          {nodeTemplates[categoryKeys[activeCategory]]?.map((node, nodeIdx) => {
+            const currentCategory = categoryKeys[activeCategory];
+            const categoryConfig = CATEGORY_CONFIG[currentCategory as keyof typeof CATEGORY_CONFIG];
+            const IconComponent = categoryConfig?.icon || BarChart3;
+            const accentColor = colors.accent[categoryConfig?.color as keyof typeof colors.accent] || colors.accent.blue;
+            
             return (
               <div
                 key={nodeIdx}
@@ -198,6 +299,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onNodeAdd, isCollapsed, onToggleColla
                     <p className={`text-xs ${colors.text.tertiary} mt-1 leading-relaxed`}>
                       {node.description}
                     </p>
+                    {node.indicatorData && (
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className={`text-xs px-2 py-1 rounded-full ${colors.bg.tertiary} ${colors.text.secondary}`}>
+                          {node.indicatorData.difficulty}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${colors.bg.tertiary} ${colors.text.secondary}`}>
+                          {node.indicatorData.type}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

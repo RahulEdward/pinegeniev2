@@ -57,7 +57,7 @@ const bottomSidebarItems = [
 // My Scripts Section Component
 function MyScriptsSection({ darkMode, setActivePage }: { darkMode: boolean; setActivePage: (page: string) => void }) {
   const { data: session } = useSession();
-  const { subscription, checkScriptStorageLimit } = useSubscription();
+  const { subscription, checkStrategyStorageAccess } = useSubscription();
   const [scripts, setScripts] = useState<Array<Record<string, unknown>>>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -83,7 +83,7 @@ function MyScriptsSection({ darkMode, setActivePage }: { darkMode: boolean; setA
 
   const checkScriptLimits = async () => {
     try {
-      const limitInfo = await checkScriptStorageLimit();
+      const limitInfo = checkStrategyStorageAccess();
       setScriptLimitInfo(limitInfo);
     } catch (error) {
       console.error('Error checking script limits:', error);

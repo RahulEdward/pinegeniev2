@@ -1,0 +1,31 @@
+[33mcommit 97fe0f188ee136fc2f225a574843084462f323af[m
+Author: RahulEdward <neehulindia@gmail.com>
+Date:   Tue Aug 26 18:17:15 2025 +0530
+
+    ✅ Complete PayU Payment Integration & UI Fixes
+    
+    🔧 PayU Payment System:
+    - Integrated direct PayU payment link: https://pmny.in/aIiKqENQTP4m
+    - Updated payment flow to use direct link instead of form submission
+    - Added payment verification API for success/failure handling
+    - Created proper success/failure pages with auto-redirect
+    - Fixed PayU environment variable naming consistency (PAYU_MERCHANT_SALT)
+    
+    💰 Pricing Updates:
+    - Fixed PineGenie AI Assistant upgrade popup amount to 2,498/month
+    - Updated all PayU references for consistency across codebase
+    
+    🎯 Payment Flow:
+    - User fills subscription form → API creates payment record
+    - Direct redirect to PayU link → Payment completion
+    - Success/failure handling → Auto-redirect to dashboard
+    - Subscription activation → User account updated
+    
+    ✅ Build Status: 34 static pages generated successfully
+    🚀 Ready for production deployment!
+
+src/app/api/payment/verify/route.ts
+src/app/builder/ui/AIAssistant.tsx
+src/app/payment/failure/page.tsx
+src/app/payment/success/page.tsx
+src/components/payment/PayUPaymentForm.tsx
