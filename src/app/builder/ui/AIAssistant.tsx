@@ -1,22 +1,29 @@
 /**
- * PineGenie AI Assistant Component for Strategy Builder
+ * Enhanced PineGenie AI Assistant Component for Strategy Builder
  * 
- * Enhanced AI assistant with subscription-based access control.
- * Free users see upgrade prompts, paid users get full AI functionality.
+ * Features:
+ * - Multiple AI model support (ChatGPT-4, GPT-3.5, PineGenie AI)
+ * - Real-time strategy generation
+ * - Visual component creation
+ * - Pine Script code generation
+ * - Subscription-based access control
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Sparkles, Zap, X, Crown, Lock } from 'lucide-react';
+import { Send, Bot, User, Sparkles, Zap, X, Crown, Lock, Settings, ChevronDown } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useSubscription } from '@/hooks/useSubscription';
 import { FeatureAccessGate } from '@/components/subscription';
-import AIMessage from '../../ai-chat/components/AIMessage';
-import UserMessage from '../../ai-chat/components/UserMessage';
-import '../../ai-chat/styles/claude-interface.css';
-// Simplified AI system for demonstration
-// import { strategyInterpreter } from '../../../agents/pinegenie-ai/interpreter';
-// import { NaturalLanguageProcessor } from '../../../agents/pinegenie-ai/nlp/natural-language-processor';
 import { N8nNodeData } from './N8nNode';
+
+interface AIModel {
+  id: string;
+  name: string;
+  provider: string;
+  tier: 'free' | 'paid';
+  description: string;
+  maxTokens: number;
+}
 
 interface AIAssistantProps {
   isOpen: boolean;
@@ -30,6 +37,14 @@ interface ChatMessage {
   content: string;
   timestamp: Date;
   isGenerating?: boolean;
+  model?: string;
+  strategy?: {
+    name: string;
+    nodes: N8nNodeData[];
+    connections: any[];
+    pineScript?: string;
+  };
+  suggestions?: string[];
 }
 
 const AIAssistant: React.FC<AIAssistantProps> = ({
@@ -43,14 +58,17 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     {
       id: '1',
       type: 'ai',
-      content: "Hello! I'm **PineGenie AI**, your intelligent trading strategy assistant. I can help you create professional Pine Script strategies through natural language.\n\n**What I can do:**\n• Transform your trading ideas into visual strategy components\n• Generate complete Pine Script code ready for TradingView\n• Create strategies with proper risk management\n• Optimize indicator parameters and logic\n\n**Try these examples:**\n• *\"Create an RSI mean reversion strategy\"*\n• *\"Build a moving average crossover with SMAs\"*\n• *\"Make a Bollinger Bands breakout strategy\"*\n• *\"Design a MACD signal strategy\"*\n\nDescribe your trading strategy in plain English, and I'll build it visually on your canvas!",
-      timestamp: new Date()
+      content: "Hello! I'm **PineGenie AI**, your intelligent trading strategy assistant powered by advanced AI models. I can help you create professional Pine Script strategies through natural language.\n\n**🚀 Enhanced Capabilities:**\n• **Multi-Model Support**: Choose from ChatGPT-4, GPT-3.5, or PineGenie AI\n• **Visual Strategy Building**: Transform ideas into interactive components\n• **Complete Pine Script Generation**: Ready-to-use TradingView code\n• **Real-time Strategy Analysis**: Intelligent optimization suggestions\n\n**💡 Try these examples:**\n• *\"Create an RSI mean reversion strategy with 30/70 levels\"*\n• *\"Build a MACD crossover strategy with stop loss\"*\n• *\"Make a Bollinger Bands squeeze breakout strategy\"*\n• *\"Design a multi-timeframe trend following system\"*\n\n**🎯 Pro Tip**: Be specific about entry/exit rules, risk management, and timeframes for best results!\n\nSelect your preferred AI model and describe your trading strategy!",
+      timestamp: new Date(),
+      model: 'PineGenie AI'
     }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [availableModels, setAvailableModels] = useState<AIModel[]>([]);
+  const [selectedModel, setSelectedModel] = useState('gpt-4');
+  const [showModelSelector, setShowModelSelector] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  // const nlpProcessor = new NaturalLanguageProcessor();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -59,6 +77,52 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Close model selector when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showModelSelector) {
+        setShowModelSelector(false);
+      }
+    };
+
+    if (showModelSelector) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showModelSelector]);
+
+  // Load available AI models
+  useEffect(() => {
+    const loadModels = async () => {
+      try {
+        const response = await fetch('/api/builder/ai-assistant');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setAvailableModels(data.models);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load AI models:', error);
+        // Fallback models
+        setAvailableModels([
+          {
+            id: 'pine-genie',
+            name: 'PineGenie AI',
+            provider: 'Custom',
+            tier: 'free',
+            description: 'Specialized Pine Script AI assistant',
+            maxTokens: 4096
+          }
+        ]);
+      }
+    };
+
+    if (isOpen) {
+      loadModels();
+    }
+  }, [isOpen]);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isProcessing) return;
@@ -78,53 +142,103 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
     const thinkingMessage: ChatMessage = {
       id: (Date.now() + 1).toString(),
       type: 'ai',
-      content: 'Analyzing your strategy request...',
+      content: `🤖 **${availableModels.find(m => m.id === selectedModel)?.name || 'AI'}** is analyzing your strategy request...`,
       timestamp: new Date(),
-      isGenerating: true
+      isGenerating: true,
+      model: selectedModel
     };
 
     setMessages(prev => [...prev, thinkingMessage]);
 
     try {
-      // Simulate AI processing with a simple demo
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Update thinking message
-      setMessages(prev => prev.map(msg => 
-        msg.id === thinkingMessage.id 
-          ? { ...msg, content: 'Generating visual strategy...' }
-          : msg
-      ));
+      // Prepare conversation history for AI
+      const conversationHistory = messages
+        .filter(msg => msg.type === 'user' || (msg.type === 'ai' && !msg.isGenerating))
+        .map(msg => ({
+          role: msg.type === 'user' ? 'user' as const : 'assistant' as const,
+          content: msg.content
+        }));
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Add current user message
+      conversationHistory.push({
+        role: 'user',
+        content: userMessage.content
+      });
 
-      // Generate demo strategy based on keywords
-      const { nodes, connections, strategyName } = generateDemoStrategy(userMessage.content);
+      // Call the enhanced AI API
+      const response = await fetch('/api/builder/ai-assistant', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: conversationHistory,
+          modelId: selectedModel,
+          context: {
+            currentNodes: [], // Could be passed from parent component
+            currentConnections: [],
+            strategyType: 'general'
+          }
+        })
+      });
 
-      // Remove thinking message and add success message
+      const data = await response.json();
+
+      // Remove thinking message
       setMessages(prev => prev.filter(msg => msg.id !== thinkingMessage.id));
 
-      const successMessage: ChatMessage = {
-        id: (Date.now() + 2).toString(),
-        type: 'ai',
-        content: `✅ **PineGenie AI Strategy Generated!**\n\nI've created a **${strategyName}** with:\n• ${nodes.length} visual components\n• ${connections.length} logical connections\n• Ready for Pine Script generation\n\n**Your strategy is now on the canvas!** You can:\n• **Modify components** - Adjust parameters and settings\n• **Add connections** - Create additional logic flows\n• **Generate Pine Script** - Export ready-to-use code\n• **Test & optimize** - Refine your strategy\n\n🚀 **PineGenie AI** makes Pine Script development intuitive and powerful!`,
-        timestamp: new Date()
-      };
+      if (data.success && data.response) {
+        const aiResponse = data.response;
+        
+        // Create AI response message
+        const aiMessage: ChatMessage = {
+          id: (Date.now() + 2).toString(),
+          type: 'ai',
+          content: aiResponse.message,
+          timestamp: new Date(),
+          model: data.model,
+          strategy: aiResponse.strategy,
+          suggestions: aiResponse.suggestions
+        };
 
-      setMessages(prev => [...prev, successMessage]);
+        setMessages(prev => [...prev, aiMessage]);
 
-      // Add strategy to canvas
-      onStrategyGenerated(nodes, connections);
+        // If strategy was generated, add it to canvas
+        if (aiResponse.strategy && aiResponse.strategy.nodes) {
+          onStrategyGenerated(aiResponse.strategy.nodes, aiResponse.strategy.connections || []);
+        }
+
+      } else {
+        // Handle API error with fallback
+        const fallbackResponse = data.fallback || {
+          message: "I'm having trouble processing your request. Please try again with a simpler description.",
+          suggestions: ["Try using specific indicator names", "Describe entry and exit conditions clearly"]
+        };
+
+        const errorMessage: ChatMessage = {
+          id: (Date.now() + 3).toString(),
+          type: 'ai',
+          content: `⚠️ **Connection Issue**\n\n${fallbackResponse.message}`,
+          timestamp: new Date(),
+          model: selectedModel,
+          suggestions: fallbackResponse.suggestions
+        };
+
+        setMessages(prev => [...prev, errorMessage]);
+      }
 
     } catch (error) {
       // Remove thinking message and add error message
       setMessages(prev => prev.filter(msg => msg.id !== thinkingMessage.id));
 
+      console.error('AI Assistant Error:', error);
+
       const errorMessage: ChatMessage = {
-        id: (Date.now() + 3).toString(),
+        id: (Date.now() + 4).toString(),
         type: 'ai',
-        content: `❌ **PineGenie AI couldn't process that request.**\n\n${error instanceof Error ? error.message : 'Unknown error occurred'}\n\n**Try these proven strategies:**\n• *\"Create an RSI mean reversion strategy\"*\n• *\"Build a moving average crossover\"*\n• *\"Make a simple trend following strategy\"*\n\n**💡 Tip:** Be specific about indicators, entry/exit conditions, and timeframes for best results.\n\n🤖 **PineGenie AI** is continuously learning to understand more trading concepts!`,
-        timestamp: new Date()
+        content: `❌ **Network Error**\n\nUnable to connect to AI service. Please check your connection and try again.\n\n**Quick Fallback Strategies:**\n• Use the manual component library in the sidebar\n• Try the Pine Script templates\n• Check the strategy examples in the documentation\n\n💡 **Tip**: The AI assistant works best with a stable internet connection.`,
+        timestamp: new Date(),
+        model: selectedModel
       };
 
       setMessages(prev => [...prev, errorMessage]);
@@ -446,34 +560,173 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
             </div>
             <div>
               <h3 className={`font-semibold ${colors.text.primary}`}>PineGenie AI</h3>
-              <p className={`text-sm ${colors.text.tertiary}`}>Intelligent Pine Script Strategy Assistant</p>
+              <p className={`text-sm ${colors.text.tertiary}`}>Enhanced with Multiple AI Models</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className={`p-2 ${colors.text.tertiary} hover:${colors.text.primary} rounded-lg transition-colors`}
-          >
-            <X className="w-5 h-5" />
-          </button>
+          
+          <div className="flex items-center gap-3">
+            {/* Model Selector */}
+            <div className="relative">
+              <button
+                onClick={() => setShowModelSelector(!showModelSelector)}
+                className={`flex items-center gap-2 px-3 py-2 ${colors.bg.tertiary} ${colors.border.secondary} border rounded-lg ${colors.text.secondary} hover:${colors.text.primary} transition-colors`}
+              >
+                <Settings className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  {availableModels.find(m => m.id === selectedModel)?.name || 'Select Model'}
+                </span>
+                <ChevronDown className="w-4 h-4" />
+              </button>
+              
+              {showModelSelector && (
+                <div className={`absolute top-full right-0 mt-2 w-64 ${colors.bg.primary} ${colors.border.primary} border rounded-xl shadow-2xl z-10 overflow-hidden`}>
+                  <div className={`px-4 py-3 ${colors.bg.secondary} ${colors.border.primary} border-b`}>
+                    <h4 className={`font-semibold ${colors.text.primary} text-sm`}>Select AI Model</h4>
+                    <p className={`text-xs ${colors.text.tertiary} mt-1`}>Choose your preferred AI assistant</p>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {availableModels.map((model) => (
+                      <button
+                        key={model.id}
+                        onClick={() => {
+                          setSelectedModel(model.id);
+                          setShowModelSelector(false);
+                        }}
+                        className={`w-full px-4 py-3 text-left hover:${colors.bg.tertiary} transition-colors ${
+                          selectedModel === model.id ? `${colors.bg.tertiary}` : ''
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className={`font-medium ${colors.text.primary} text-sm`}>
+                              {model.name}
+                            </div>
+                            <div className={`text-xs ${colors.text.tertiary} mt-1`}>
+                              {model.description}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              model.tier === 'free' 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-blue-100 text-blue-800'
+                            }`}>
+                              {model.tier}
+                            </span>
+                            {selectedModel === model.id && (
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <button
+              onClick={onClose}
+              className={`p-2 ${colors.text.tertiary} hover:${colors.text.primary} rounded-lg transition-colors`}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {messages.map((message) => (
-            message.type === 'ai' ? (
-              <AIMessage
-                key={message.id}
-                content={message.content}
-                timestamp={message.timestamp}
-                isLoading={message.isGenerating}
-              />
-            ) : (
-              <UserMessage
-                key={message.id}
-                content={message.content}
-                timestamp={message.timestamp}
-              />
-            )
+            <div key={message.id}>
+              {message.type === 'ai' ? (
+                <div>
+                  {/* AI Message */}
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className={`p-2 bg-gradient-to-r ${colors.accent.blue} rounded-lg flex-shrink-0`}>
+                      <Bot className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className={`${colors.bg.secondary} rounded-2xl p-4 ${colors.text.primary}`}>
+                        {message.isGenerating ? (
+                          <div className="flex items-center gap-2">
+                            <div className="flex space-x-1">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                            </div>
+                            <span className={colors.text.secondary}>{message.content}</span>
+                          </div>
+                        ) : (
+                          <div 
+                            className="prose prose-sm max-w-none"
+                            style={{ color: '#e6edf3' }}
+                            dangerouslySetInnerHTML={{ 
+                              __html: message.content
+                                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                .replace(/\n/g, '<br>')
+                            }} 
+                          />
+                        )}
+                      </div>
+                      <div className={`text-xs ${colors.text.tertiary} mt-1 ml-4`}>
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Model and Strategy Info */}
+                  {message.model && !message.isGenerating && (
+                    <div className={`ml-12 mb-2 flex items-center gap-4 text-xs ${colors.text.tertiary}`}>
+                      <div className="flex items-center gap-1">
+                        <Bot className="w-3 h-3" />
+                        <span>Generated by {message.model}</span>
+                      </div>
+                      {message.strategy && (
+                        <div className="flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" />
+                          <span>Strategy: {message.strategy.name}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Suggestions */}
+                  {message.suggestions && message.suggestions.length > 0 && (
+                    <div className={`ml-12 mt-3 p-3 ${colors.bg.tertiary} rounded-lg`}>
+                      <div className={`text-sm font-medium ${colors.text.primary} mb-2`}>💡 Suggestions:</div>
+                      <ul className={`text-sm ${colors.text.secondary} space-y-1`}>
+                        {message.suggestions.map((suggestion, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <span className="text-blue-500 mt-1">•</span>
+                            <span>{suggestion}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* User Message */
+                <div className="flex items-start gap-3 mb-4 justify-end">
+                  <div className="flex-1 min-w-0 flex justify-end">
+                    <div className="max-w-[80%]">
+                      <div className={`bg-gradient-to-r ${colors.accent.blue} rounded-2xl p-4 text-white`}>
+                        <div style={{ color: 'white' }}>
+                          {message.content}
+                        </div>
+                      </div>
+                      <div className={`text-xs ${colors.text.tertiary} mt-1 mr-4 text-right`}>
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  </div>
+                  <div className={`p-2 ${colors.bg.tertiary} rounded-lg flex-shrink-0`}>
+                    <User className="w-4 h-4" />
+                  </div>
+                </div>
+              )}
+            </div>
           ))}
           <div ref={messagesEndRef} />
         </div>
@@ -505,13 +758,18 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
             </button>
           </div>
           
-          <div className="flex items-center gap-4 mt-3 text-xs">
-            <div className={`flex items-center gap-2 ${colors.text.tertiary}`}>
-              <Zap className="w-3 h-3" />
-              <span>Powered by PineGenie AI</span>
+          <div className="flex items-center justify-between mt-3 text-xs">
+            <div className="flex items-center gap-4">
+              <div className={`flex items-center gap-2 ${colors.text.tertiary}`}>
+                <Zap className="w-3 h-3" />
+                <span>Using {availableModels.find(m => m.id === selectedModel)?.name || 'AI Model'}</span>
+              </div>
+              <div className={`${colors.text.tertiary}`}>
+                Press Enter to send, Shift+Enter for new line
+              </div>
             </div>
-            <div className={`${colors.text.tertiary}`}>
-              Press Enter to send, Shift+Enter for new line
+            <div className={`flex items-center gap-2 ${colors.text.tertiary}`}>
+              <span>{availableModels.length} models available</span>
             </div>
           </div>
         </div>
