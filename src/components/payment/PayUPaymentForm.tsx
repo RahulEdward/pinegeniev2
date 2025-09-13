@@ -150,8 +150,8 @@ export function PayUPaymentForm({
         throw new Error(result.error || 'Failed to create payment');
       }
 
-      if (result.paymentUrl && result.payuData) {
-        // Redirect to PayU payment page using form submission
+      if (result.paymentUrl) {
+        // Redirect to PayU payment page using direct link
         setStep('redirect');
         setPaymentData(result.payment);
         
@@ -161,11 +161,14 @@ export function PayUPaymentForm({
           planId,
           planName,
           amount,
-          currency
+          currency,
+          customerInfo
         }));
 
-        // Create and submit PayU form
-        submitPayUForm(result.payuData);
+        // Redirect to PayU payment link
+        setTimeout(() => {
+          window.location.href = result.paymentUrl;
+        }, 2000);
       } else {
         // Free plan or direct activation
         toast.success('Subscription activated successfully!');

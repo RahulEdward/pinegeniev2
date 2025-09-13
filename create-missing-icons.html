@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Missing Icons for Chrome Extension</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .icon-generator {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        canvas {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 10px;
+        }
+        .download-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #e8f5e8;
+            border-radius: 8px;
+        }
+        button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #3367d6;
+        }
+        .icon-preview {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+        }
+        .info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 Chrome Extension Icons Generator</h1>
+    
+    <div class="info">
+        <h3>📋 Required Icons for Chrome Web Store:</h3>
+        <ul>
+            <li><strong>16x16</strong> - Extension favicon (आपके पास है ✅)</li>
+            <li><strong>48x48</strong> - Extension management page</li>
+            <li><strong>128x128</strong> - Chrome Web Store listing</li>
+        </ul>
+    </div>
+
+    <div class="icon-generator">
+        <h2>Pine Genie Icon Generator</h2>
+        
+        <div class="icon-preview">
+            <h3>16x16 (Current)</h3>
+            <canvas id="icon16" width="16" height="16"></canvas>
+        </div>
+        
+        <div class="icon-preview">
+            <h3>48x48 (Need to create)</h3>
+            <canvas id="icon48" width="48" height="48"></canvas>
+        </div>
+        
+        <div class="icon-preview">
+            <h3>128x128 (Need to create)</h3>
+            <canvas id="icon128" width="128" height="128"></canvas>
+        </div>
+        
+        <div class="download-section">
+            <h3>📥 Download Icons:</h3>
+            <button onclick="downloadIcon('icon48', 'icon48.png')">Download 48x48</button>
+            <button onclick="downloadIcon('icon128', 'icon128.png')">Download 128x128</button>
+            <button onclick="downloadAllIcons()">Download All Icons</button>
+        </div>
+    </div>
+
+    <div class="info">
+        <h3>🚀 Next Steps:</h3>
+        <ol>
+            <li>Download करें सभी icons</li>
+            <li>इन्हें अपने extension के <code>icons/</code> folder में add करें</li>
+            <li><code>manifest.json</code> में icon paths update करें</li>
+            <li>नई ZIP file बनाएं</li>
+            <li>Chrome Web Store पर upload करें</li>
+        </ol>
+    </div>
+
+    <script>
+        // Pine Genie brand colors
+        const brandColors = {
+            primary: '#6366f1',    // Indigo
+            secondary: '#8b5cf6',  // Purple  
+            accent: '#06d6a0',     // Teal
+            text: '#ffffff'
+        };
+
+        function createPineGenieIcon(canvas, size) {
+            const ctx = canvas.getContext('2d');
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, brandColors.primary);
+            gradient.addColorStop(1, brandColors.secondary);
+            
+            // Draw background
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Draw pine tree icon (simplified)
+            ctx.fillStyle = brandColors.accent;
+            
+            const centerX = size / 2;
+            const centerY = size / 2;
+            const scale = size / 64; // Base scale
+            
+            // Tree trunk
+            const trunkWidth = 4 * scale;
+            const trunkHeight = 12 * scale;
+            ctx.fillRect(centerX - trunkWidth/2, centerY + 8*scale, trunkWidth, trunkHeight);
+            
+            // Tree layers (simplified pine)
+            ctx.fillStyle = brandColors.accent;
+            
+            // Top layer
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - 20*scale);
+            ctx.lineTo(centerX - 8*scale, centerY - 5*scale);
+            ctx.lineTo(centerX + 8*scale, centerY - 5*scale);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Middle layer
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - 12*scale);
+            ctx.lineTo(centerX - 12*scale, centerY + 3*scale);
+            ctx.lineTo(centerX + 12*scale, centerY + 3*scale);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Bottom layer
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - 4*scale);
+            ctx.lineTo(centerX - 16*scale, centerY + 8*scale);
+            ctx.lineTo(centerX + 16*scale, centerY + 8*scale);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Add subtle border
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(0, 0, size, size);
+        }
+
+        // Generate all icons
+        function generateIcons() {
+            createPineGenieIcon(document.getElementById('icon16'), 16);
+            createPineGenieIcon(document.getElementById('icon48'), 48);
+            createPineGenieIcon(document.getElementById('icon128'), 128);
+        }
+
+        function downloadIcon(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        function downloadAllIcons() {
+            setTimeout(() => downloadIcon('icon48', 'icon48.png'), 100);
+            setTimeout(() => downloadIcon('icon128', 'icon128.png'), 200);
+        }
+
+        // Generate icons on page load
+        window.onload = generateIcons;
+    </script>
+</body>
+</html>

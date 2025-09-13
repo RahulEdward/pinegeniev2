@@ -12,11 +12,39 @@ export default function PaymentSuccessPage() {
   useEffect(() => {
     const processPaymentSuccess = async () => {
       try {
-        // Wait a moment for payment to be processed
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Redirect to dashboard
-        router.push('/dashboard');
+        // Get pending payment data
+        const pendingPayment = localStorage.getItem('pendingPayment');
+        if (pendingPayment) {
+          const paymentData = JSON.parse(pendingPayment);
+          
+          // Verify payment status with backend
+          const response = await fetch('/api/payment/verify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              paymentId: paymentData.paymentId,
+              status: 'success'
+            })
+          });
+
+          if (response.ok) {
+            // Clear pending payment data
+            localStorage.removeItem('pendingPayment');
+            
+            // Wait a moment for subscription to be activated
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // Redirect to dashboard
+            router.push('/dashboard');
+          } else {
+            throw new Error('Payment verification failed');
+          }
+        } else {
+          // No pending payment, redirect to dashboard
+          router.push('/dashboard');
+        }
       } catch (error) {
         console.error('Error processing payment success:', error);
         setIsProcessing(false);

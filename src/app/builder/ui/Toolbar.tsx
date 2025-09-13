@@ -152,7 +152,11 @@ const Toolbar: React.FC<ToolbarProps> = ({
         </div>
         {/* PineGenie AI Button */}
         <button
-          onClick={openAIAssistant}
+          onClick={() => {
+            console.log('🤖 Toolbar button clicked!');
+            alert('PineGenie AI button clicked!');
+            openAIAssistant();
+          }}
           className={`flex items-center gap-2 px-4 py-2 text-sm bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white rounded-xl transition-all duration-200 shadow-lg animate-pulse`}
           title="Open PineGenie AI - Create strategies with natural language"
         >

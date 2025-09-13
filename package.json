@@ -10,7 +10,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-
     "vercel-build": "prisma generate && next build",
     "postinstall": "echo 'Skipping prisma generate for now'",
     "db:seed": "tsx prisma/seed.ts",
@@ -34,6 +33,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/uuid": "^10.0.0",
     "bcryptjs": "^3.0.2",
+    "canvas": "^3.2.0",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.6",
     "geist": "^1.4.2",

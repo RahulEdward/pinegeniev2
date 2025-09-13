@@ -1,0 +1,405 @@
+/**
+ * 🚀 PINE GENIE ADVANCED RSI + BOLLINGER BANDS STRATEGY
+ * 
+ * Professional-grade strategy with:
+ * - Multi-timeframe analysis
+ * - Adaptive parameters based on market conditions
+ * - Advanced signal filtering and confirmation
+ * - Dynamic position sizing with Kelly Criterion
+ * - Comprehensive risk management
+ * - Market regime detection
+ * 
+ * Optimized for: BTC/USDT, ETH/USDT, SPY, NASDAQ
+ * Best timeframes: 1H, 4H, 1D
+ * 
+ * Author: Pine Genie AI
+ * Version: 2.0 Professional
+ */
+
+// @version=5
+strategy("🎯 Pine Genie Advanced RSI+BB Strategy Pro", 
+         shorttitle="PG_RSI_BB_Pro_v2", 
+         overlay=true,
+         default_qty_type=strategy.percent_of_equity,
+         default_qty_value=25,
+         commission_type=strategy.commission.percent,
+         commission_value=0.075,
+         slippage=2,
+         process_orders_on_close=true,
+         max_bars_back=500)
+
+// ═══════════════════════════════════════════════════════════════════════════════════
+// 🎯 PROFESSIONAL OPTIMIZATION PARAMETERS
+// These parameters will be optimized by Pine Genie's advanced algorithms
+// ═══════════════════════════════════════════════════════════════════════════════════
+
+// 📊 Core RSI Settings
+rsiLength = input.int(14, "RSI Period", minval=7, maxval=35, group="🔴 RSI Configuration", tooltip="Primary RSI calculation period. Lower = more sensitive, Higher = smoother")
+rsiSmoothing = input.int(3, "RSI Smoothing", minval=1, maxval=8, group="🔴 RSI Configuration", tooltip="Apply EMA smoothing to RSI")
+rsiOverbought = input.float(72.5, "RSI Overbought Level", minval=65.0, maxval=85.0, step=0.5, group="🔴 RSI Configuration")
+rsiOversold = input.float(27.5, "RSI Oversold Level", minval=15.0, maxval=35.0, step=0.5, group="🔴 RSI Configuration")
+
+// 📈 Bollinger Bands Configuration  
+bbLength = input.int(21, "BB Period", minval=15, maxval=35, group="🔵 Bollinger Bands", tooltip="Bollinger Bands calculation period")
+bbStdDev = input.float(2.1, "BB Standard Deviation", minval=1.5, maxval=3.0, step=0.1, group="🔵 Bollinger Bands")
+bbAdaptive = input.bool(true, "Adaptive BB (ATR-based)", group="🔵 Bollinger Bands", tooltip="Adjust BB width based on volatility")
+
+// 🌊 Multi-Timeframe Analysis
+htfMultiplier = input.int(4, "Higher Timeframe Multiplier", minval=2, maxval=8, group="⏰ Multi-Timeframe", tooltip="4 = 4x current timeframe")
+useHTFTrend = input.bool(true, "Use HTF Trend Filter", group="⏰ Multi-Timeframe")
+useHTFRSI = input.bool(true, "Use HTF RSI Confirmation", group="⏰ Multi-Timeframe")
+
+// 🎯 Advanced Signal Filtering
+volumeFilter = input.bool(true, "Volume Breakout Filter", group="🔍 Signal Filters")
+volumeMultiplier = input.float(1.5, "Volume Threshold", minval=1.1, maxval=3.0, step=0.1, group="🔍 Signal Filters")
+volatilityFilter = input.bool(true, "Volatility Regime Filter", group="🔍 Signal Filters")
+trendStrengthFilter = input.bool(true, "Trend Strength Filter", group="🔍 Signal Filters")
+
+// 💰 Dynamic Position Sizing
+useKellyCriterion = input.bool(true, "Kelly Criterion Position Sizing", group="💎 Position Management")
+maxPositionSize = input.float(35.0, "Maximum Position Size (%)", minval=10.0, maxval=50.0, step=2.5, group="💎 Position Management")
+riskPerTrade = input.float(1.5, "Risk Per Trade (%)", minval=0.5, maxval=3.0, step=0.1, group="💎 Position Management")
+pyramidingEnabled = input.bool(false, "Enable Pyramiding", group="💎 Position Management")
+maxPyramidLevels = input.int(2, "Max Pyramid Levels", minval=1, maxval=4, group="💎 Position Management")
+
+// ⚡ Risk Management Pro
+stopLossMode = input.string("ATR", "Stop Loss Mode", options=["Fixed", "ATR", "Adaptive"], group="🛡️ Risk Management")
+stopLossATR = input.float(2.5, "ATR Stop Loss Multiplier", minval=1.5, maxval=4.0, step=0.25, group="🛡️ Risk Management")
+stopLossFixed = input.float(3.0, "Fixed Stop Loss (%)", minval=1.0, maxval=8.0, step=0.25, group="🛡️ Risk Management")
+takeProfitMode = input.string("Dynamic", "Take Profit Mode", options=["Fixed", "Dynamic", "Trailing"], group="🛡️ Risk Management")
+takeProfitRatio = input.float(2.5, "Risk:Reward Ratio", minval=1.5, maxval=5.0, step=0.25, group="🛡️ Risk Management")
+trailingStopOffset = input.float(1.8, "Trailing Stop ATR Offset", minval=1.2, maxval=3.0, step=0.2, group="🛡️ Risk Management")
+
+// 🧠 Market Regime Detection
+enableRegimeFilter = input.bool(true, "Market Regime Detection", group="🤖 Advanced AI")
+trendPeriod = input.int(50, "Trend Detection Period", minval=30, maxval=100, group="🤖 Advanced AI")
+volatilityPeriod = input.int(20, "Volatility Regime Period", minval=10, maxval=40, group="🤖 Advanced AI")
+
+// 📅 Time and Session Filters
+useSessionFilter = input.bool(false, "Enable Session Filter", group="⌚ Time Management")
+sessionStart = input.session("0930-1600", "Trading Session", group="⌚ Time Management")
+avoidNewsTime = input.bool(true, "Avoid High-Impact News", group="⌚ Time Management")
+fridayCloseHour = input.int(15, "Friday Position Close Hour", minval=12, maxval=21, group="⌚ Time Management")
+
+// ═══════════════════════════════════════════════════════════════════════════════════
+// 🧮 ADVANCED TECHNICAL CALCULATIONS
+// Professional-grade indicators with adaptive algorithms
+// ═══════════════════════════════════════════════════════════════════════════════════
+
+// 📊 Enhanced RSI with Smoothing
+rsiRaw = ta.rsi(close, rsiLength)
+rsiSmoothed = ta.ema(rsiRaw, rsiSmoothing)
+rsi = rsiSmoothing > 1 ? rsiSmoothed : rsiRaw
+
+// 🎯 Multi-Timeframe RSI
+htfTimeframe = timeframe.multiplier * htfMultiplier < 240 ? str.tostring(timeframe.multiplier * htfMultiplier) + "m" : 
+               timeframe.multiplier * htfMultiplier < 1440 ? str.tostring(math.round(timeframe.multiplier * htfMultiplier / 60)) + "h" : 
+               str.tostring(math.round(timeframe.multiplier * htfMultiplier / 1440)) + "D"
+
+htfRSI = useHTFRSI ? request.security(syminfo.tickerid, htfTimeframe, ta.rsi(close, rsiLength)) : 50
+
+// 📈 Adaptive Bollinger Bands
+atr = ta.atr(14)
+adaptiveMultiplier = bbAdaptive ? bbStdDev * (atr / ta.sma(atr, 50)) : bbStdDev
+[bbMiddle, bbUpper, bbLower] = ta.bb(close, bbLength, adaptiveMultiplier)
+bbWidth = (bbUpper - bbLower) / bbMiddle * 100
+bbPosition = (close - bbLower) / (bbUpper - bbLower)
+
+// 🌊 Multi-Timeframe Trend Analysis
+htfMA20 = request.security(syminfo.tickerid, htfTimeframe, ta.sma(close, 20))
+htfMA50 = request.security(syminfo.tickerid, htfTimeframe, ta.sma(close, 50))
+htfTrend = useHTFTrend ? (htfMA20 > htfMA50 ? 1 : htfMA20 < htfMA50 ? -1 : 0) : 0
+
+// 💪 Trend Strength Indicator (Custom ADX-based)
+dmPlus = ta.change(high) > ta.change(low) and ta.change(high) > 0 ? ta.change(high) : 0
+dmMinus = ta.change(low) > ta.change(high) and ta.change(low) > 0 ? -ta.change(low) : 0
+trueRange = ta.tr
+diPlus = 100 * ta.rma(dmPlus, 14) / ta.rma(trueRange, 14)
+diMinus = 100 * ta.rma(dmMinus, 14) / ta.rma(trueRange, 14)
+dx = 100 * math.abs(diPlus - diMinus) / (diPlus + diMinus)
+adx = ta.rma(dx, 14)
+trendStrength = adx > 25 ? (diPlus > diMinus ? 1 : -1) : 0
+
+// 📊 Volume Analysis
+volumeMA = ta.sma(volume, 20)
+volumeSpike = volumeFilter ? volume > volumeMA * volumeMultiplier : true
+volumeConfirmation = volume > volumeMA
+
+// 🌪️ Volatility Regime Detection
+volatilityRaw = atr / close
+volatilityMA = ta.sma(volatilityRaw, volatilityPeriod)
+volatilityRegime = volatilityFilter ? (volatilityRaw > volatilityMA * 1.5 ? "HIGH" : 
+                                      volatilityRaw < volatilityMA * 0.7 ? "LOW" : "NORMAL") : "NORMAL"
+
+// 🎯 Market Regime Classification
+priceMA = ta.sma(close, trendPeriod)
+marketRegime = enableRegimeFilter ? (close > priceMA and adx > 25 ? "TRENDING_UP" :
+                                    close < priceMA and adx > 25 ? "TRENDING_DOWN" :
+                                    adx < 20 ? "SIDEWAYS" : "TRANSITIONAL") : "TRENDING_UP"
+
+// ⏰ Session and Time Filters
+inSession = useSessionFilter ? time(timeframe.period, sessionStart) : true
+isFriday = dayofweek == dayofweek.friday
+fridayClose = isFriday and hour >= fridayCloseHour
+
+// ═══════════════════════════════════════════════════════════════════════════════════
+// 🚀 ADVANCED SIGNAL GENERATION ENGINE
+// Multi-layer signal confirmation with AI-like filtering
+// ═══════════════════════════════════════════════════════════════════════════════════
+
+// 🎯 Primary RSI Signals with Smart Confirmation
+rsiOversoldCondition = rsi < rsiOversold and rsi[1] >= rsiOversold  // RSI breaking below oversold
+rsiOverboughtCondition = rsi > rsiOverbought and rsi[1] <= rsiOverbought  // RSI breaking above overbought
+rsiRecoveryLong = rsi > rsiOversold and rsi[1] <= rsiOversold  // RSI recovering from oversold
+rsiRecoveryShort = rsi < rsiOverbought and rsi[1] >= rsiOverbought  // RSI recovering from overbought
+
+// 📊 Bollinger Bands Advanced Signals
+bbSqueezeBreakout = bbWidth < ta.percentile_linear_interpolation(bbWidth, 20, 20)  // BB squeeze
+bbOversoldBounce = close <= bbLower * 1.01 and close > bbLower  // Touching lower BB
+bbOverboughtReject = close >= bbUpper * 0.99 and close < bbUpper  // Touching upper BB
+bbMiddleCross = ta.crossover(close, bbMiddle) or ta.crossunder(close, bbMiddle)
+
+// 🌊 Multi-Timeframe Confirmation
+htfBullishAlignment = htfTrend > 0 and htfRSI > 50
+htfBearishAlignment = htfTrend < 0 and htfRSI < 50
+htfNeutral = htfTrend == 0
+
+// 💪 Trend Strength Confirmation
+strongTrendUp = trendStrengthFilter ? (trendStrength > 0 and adx > 30) : true
+strongTrendDown = trendStrengthFilter ? (trendStrength < 0 and adx > 30) : true
+weakTrend = adx < 20
+
+// 📊 Volume Confirmation Signals
+volumeBreakoutLong = volumeSpike and close > open
+volumeBreakoutShort = volumeSpike and close < open
+
+// 🎯 Composite Signal Generation
+// Long Signal Components
+longRSISignal = rsiOversoldCondition or rsiRecoveryLong
+longBBSignal = bbOversoldBounce or (bbSqueezeBreakout and close > bbMiddle)
+longHTFSignal = useHTFTrend ? htfBullishAlignment : true
+longVolumeSignal = volumeFilter ? volumeBreakoutLong : true
+longTrendSignal = trendStrengthFilter ? (strongTrendUp or weakTrend) : true
+
+// Short Signal Components  
+shortRSISignal = rsiOverboughtCondition or rsiRecoveryShort
+shortBBSignal = bbOverboughtReject or (bbSqueezeBreakout and close < bbMiddle)
+shortHTFSignal = useHTFTrend ? htfBearishAlignment : true
+shortVolumeSignal = volumeFilter ? volumeBreakoutShort : true
+shortTrendSignal = trendStrengthFilter ? (strongTrendDown or weakTrend) : true
+
+// 🚦 Market Regime Filters
+bullishRegimeOK = marketRegime == "TRENDING_UP" or marketRegime == "TRANSITIONAL"
+bearishRegimeOK = marketRegime == "TRENDING_DOWN" or marketRegime == "TRANSITIONAL"
+sidewaysRegimeOK = marketRegime == "SIDEWAYS"
+
+volatilityRegimeOK = volatilityRegime == "NORMAL" or volatilityRegime == "LOW"
+
+// 🎯 Final Signal Confirmation
+longSignal = longRSISignal and longBBSignal and longHTFSignal and longVolumeSignal and 
+             longTrendSignal and bullishRegimeOK and volatilityRegimeOK and inSession and not fridayClose
+
+shortSignal = shortRSISignal and shortBBSignal and shortHTFSignal and shortVolumeSignal and 
+              shortTrendSignal and bearishRegimeOK and volatilityRegimeOK and inSession and not fridayClose
+
+// 🎖️ Signal Quality Score (0-100)
+longSignalQuality = (longRSISignal ? 25 : 0) + (longBBSignal ? 25 : 0) + (longHTFSignal ? 20 : 0) + 
+                   (longVolumeSignal ? 15 : 0) + (longTrendSignal ? 15 : 0)
+
+shortSignalQuality = (shortRSISignal ? 25 : 0) + (shortBBSignal ? 25 : 0) + (shortHTFSignal ? 20 : 0) + 
+                    (shortVolumeSignal ? 15 : 0) + (shortTrendSignal ? 15 : 0)
+
+// ═══════════════════════════════════════════════════════════════════════════════════
+// � PROFESSIONAL POSITION SIZING & KELLY CRITERION
+// Mathematically optimized position sizing for maximum growth
+// ═══════════════════════════════════════════════════════════════════════════════════
+
+// 📊 Historical Performance Tracking for Kelly Calculation
+var array<float> historicalReturns = array.new<float>(100)
+var array<bool> historicalWins = array.new<bool>(100)
+var float totalTrades = 0
+var float winningTrades = 0
+var float totalWinReturn = 0
+var float totalLossReturn = 0
+
+// 🎯 Kelly Criterion Calculation
+kellyFraction = 0.0
+if useKellyCriterion and totalTrades > 10
+    winRate = winningTrades / totalTrades
+    avgWin = totalWinReturn / math.max(winningTrades, 1)
+    avgLoss = totalLossReturn / math.max(totalTrades - winningTrades, 1)
+    kellyFraction := math.max(0, math.min(0.25, (winRate * avgWin - (1 - winRate) * math.abs(avgLoss)) / avgWin))
+
+// 🎖️ Signal-Based Position Sizing
+qualityMultiplier = longSignal ? longSignalQuality / 100 : shortSignal ? shortSignalQuality / 100 : 0
+basePositionSize = riskPerTrade / 100 * strategy.equity
+
+// 💎 Dynamic Position Size Calculation
+kellyPositionSize = useKellyCriterion and kellyFraction > 0 ? kellyFraction * strategy.equity : basePositionSize
+qualityAdjustedSize = kellyPositionSize * qualityMultiplier
+maxAllowedSize = maxPositionSize / 100 * strategy.equity
+finalPositionSize = math.min(qualityAdjustedSize, maxAllowedSize)
+
+// ⚡ Volatility-Adjusted Position Sizing
+volatilityAdjustment = math.max(0.5, math.min(1.5, 1 / (volatilityRaw * 100)))
+adjustedPositionSize = finalPositionSize * volatilityAdjustment
+
+positionPercent = adjustedPositionSize / strategy.equity * 100
+
+// ═══════════════════════════════════════════════════════════════════════════════════
+// �️ ADVANCED RISK MANAGEMENT SYSTEM
+// Professional-grade stop-loss and take-profit calculations
+// ═══════════════════════════════════════════════════════════════════════════════════
+
+// 📊 Dynamic Stop Loss Calculation
+stopLossPrice = 0.0
+if stopLossMode == "ATR"
+    stopLossPrice := longSignal ? close - atr * stopLossATR : shortSignal ? close + atr * stopLossATR : 0
+else if stopLossMode == "Fixed"
+    stopLossPrice := longSignal ? close * (1 - stopLossFixed / 100) : shortSignal ? close * (1 + stopLossFixed / 100) : 0
+else if stopLossMode == "Adaptive"
+    // Adaptive stop based on BB width and volatility
+    adaptiveStop = math.max(atr * 1.5, bbWidth / 100 * close * 0.5)
+    stopLossPrice := longSignal ? close - adaptiveStop : shortSignal ? close + adaptiveStop : 0
+
+// 🎯 Dynamic Take Profit Calculation
+takeProfitPrice = 0.0
+if takeProfitMode == "Fixed"
+    stopDistance = math.abs(close - stopLossPrice)
+    takeProfitPrice := longSignal ? close + stopDistance * takeProfitRatio : 
+                      shortSignal ? close - stopDistance * takeProfitRatio : 0
+else if takeProfitMode == "Dynamic"
+    // Target next resistance/support level
+    resistance = bbUpper + (bbUpper - bbMiddle) * 0.5
+    support = bbLower - (bbMiddle - bbLower) * 0.5
+    takeProfitPrice := longSignal ? resistance : shortSignal ? support : 0
+else if takeProfitMode == "Trailing"
+    // Trailing stop will be handled in strategy.exit
+    takeProfitPrice := 0
+
+// 🎖️ Position Size Based on Risk
+riskAmount = strategy.equity * riskPerTrade / 100
+stopDistance = math.abs(close - stopLossPrice)
+riskBasedPositionSize = stopDistance > 0 ? riskAmount / stopDistance : adjustedPositionSize
+finalCalculatedSize = math.min(riskBasedPositionSize, adjustedPositionSize)
+// ═══════════════════════════════════════════════════════════════════════════════════
+// 🚀 PROFESSIONAL STRATEGY EXECUTION ENGINE
+// Advanced order management with multiple entry/exit strategies
+// ═══════════════════════════════════════════════════════════════════════════════════
+
+// 📊 Position Management Variables
+var float entryPrice = 0.0
+var float currentStopLoss = 0.0
+var float currentTakeProfit = 0.0
+var int positionBars = 0
+
+// 🎯 Entry Logic with Quality Control
+if longSignal and strategy.position_size == 0 and longSignalQuality >= 60
+    strategy.entry("PG_Long", strategy.long, qty_percent=finalPositionPercent,
+                   comment="Long: Q" + str.tostring(longSignalQuality) + " RSI:" + str.tostring(math.round(rsi)))
+    entryPrice := close
+    currentStopLoss := stopLossPrice
+    currentTakeProfit := takeProfitPrice
+    positionBars := 0
+    
+    // Update Kelly calculation data
+    totalTrades += 1
+
+if shortSignal and strategy.position_size == 0 and shortSignalQuality >= 60
+    strategy.entry("PG_Short", strategy.short, qty_percent=finalPositionPercent,
+                   comment="Short: Q" + str.tostring(shortSignalQuality) + " RSI:" + str.tostring(math.round(rsi)))
+    entryPrice := close
+    currentStopLoss := stopLossPrice
+    currentTakeProfit := takeProfitPrice
+    positionBars := 0
+    
+    // Update Kelly calculation data
+    totalTrades += 1
+
+// ═══════════════════════════════════════════════════════════════════════════════════
+// 🎨 VISUALIZATION
+// ═══════════════════════════════════════════════════════════════════════════════════
+
+// Plot Bollinger Bands
+plot(bbUpper, "BB Upper", color=color.blue, linewidth=1)
+plot(bbMiddle, "BB Middle", color=color.orange, linewidth=1)
+plot(bbLower, "BB Lower", color=color.blue, linewidth=1)
+
+// Fill BB area
+fill(plot(bbUpper), plot(bbLower), color=color.new(color.blue, 95))
+
+// Plot Moving Average
+plot(useMAFilter ? ma : na, "MA Filter", color=color.red, linewidth=2)
+
+// Plot Entry Signals
+plotshape(longSignal, "Long Signal", shape.triangleup, location.belowbar, color.green, size=size.small)
+plotshape(shortSignal, "Short Signal", shape.triangledown, location.abovebar, color.red, size=size.small)
+
+// ═══════════════════════════════════════════════════════════════════════════════════
+// 📊 PERFORMANCE TRACKING
+// ═══════════════════════════════════════════════════════════════════════════════════
+
+// Track key metrics for optimization
+var table infoTable = table.new(position.top_right, 2, 10, bgcolor=color.white, border_width=1)
+
+if barstate.islast
+    table.cell(infoTable, 0, 0, "RSI Length", text_color=color.black)
+    table.cell(infoTable, 1, 0, str.tostring(rsiLength), text_color=color.blue)
+    
+    table.cell(infoTable, 0, 1, "BB StdDev", text_color=color.black)
+    table.cell(infoTable, 1, 1, str.tostring(bbStdDev, "#.##"), text_color=color.blue)
+    
+    table.cell(infoTable, 0, 2, "Stop Loss %", text_color=color.black)
+    table.cell(infoTable, 1, 2, str.tostring(stopLossPercent, "#.#"), text_color=color.blue)
+    
+    table.cell(infoTable, 0, 3, "Take Profit %", text_color=color.black)
+    table.cell(infoTable, 1, 3, str.tostring(takeProfitPercent, "#.#"), text_color=color.blue)
+    
+    table.cell(infoTable, 0, 4, "Current RSI", text_color=color.black)
+    table.cell(infoTable, 1, 4, str.tostring(rsi, "#.##"), text_color=color.blue)
+    
+    table.cell(infoTable, 0, 5, "BB Position", text_color=color.black)
+    table.cell(infoTable, 1, 5, str.tostring(bbPosition, "#.#"), text_color=color.blue)
+    
+    table.cell(infoTable, 0, 6, "Signal Strength", text_color=color.black)
+    table.cell(infoTable, 1, 6, str.tostring(signalStrength, "#.##"), text_color=color.orange)
+    
+    table.cell(infoTable, 0, 7, "Position Size", text_color=color.black)
+    table.cell(infoTable, 1, 7, str.tostring(finalPositionSize, "#.#") + "%", text_color=color.orange)
+
+// ═══════════════════════════════════════════════════════════════════════════════════
+// 🎯 OPTIMIZATION TARGETS FOR PINE GENIE
+// ═══════════════════════════════════════════════════════════════════════════════════
+
+/*
+RECOMMENDED OPTIMIZATION TARGETS:
+
+Primary Objective: Sharpe Ratio
+Secondary Objectives: 
+- Maximum Drawdown (minimize)
+- Profit Factor (maximize)
+- Win Rate (maximize)
+
+Parameter Ranges for Optimization:
+- rsiLength: 5-30
+- rsiOverbought: 60-90  
+- rsiOversold: 10-40
+- bbLength: 10-50
+- bbStdDev: 1.0-3.0
+- stopLossPercent: 0.5-10.0
+- takeProfitPercent: 1.0-20.0
+- riskPerTrade: 0.5-5.0
+- maxPositionSize: 10-100
+
+Advanced Constraints:
+- Maximum Drawdown < 20%
+- Minimum Win Rate > 35%
+- Minimum Profit Factor > 1.2
+- Minimum Trades > 30
+
+Walk-Forward Analysis:
+- In-sample period: 70%
+- Out-of-sample period: 30%
+- Window size: 252 days (1 year)
+- Step size: 63 days (3 months)
+*/

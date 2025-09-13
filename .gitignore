@@ -41,3 +41,18 @@ Thumbs.db
 # Backup files
 *.backup
 *.bak
+
+# Pine Genie Extensions and Optimizers (exclude from GitHub)
+pine-genie-extension/
+pine-genie-extension-fixed.zip
+pine-genie-website/
+tradingview-optimizer/
+tradingview-optimizer.zip
+
+# Kiro directory
+.kiro/
+
+# Additional exclusions
+*.zip
+screenshot-guide.md
+testing-guide.md
