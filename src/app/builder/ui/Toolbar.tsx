@@ -48,6 +48,95 @@ const Toolbar: React.FC<ToolbarProps> = ({
   const handleZoomOut = () => setZoom(Math.max(0.1, zoom / 1.2));
   const handleResetZoom = () => setZoom(1);
 
+  // AI Model Testing Function
+  const testAIModels = async () => {
+    const testResults = {
+      pineGenieAI: { status: 'unknown', response: '', time: 0 },
+      chatGPT4: { status: 'unknown', response: '', time: 0 }
+    };
+
+    try {
+      // Show loading toast
+      console.log('🧪 Starting AI Model Tests...');
+      
+      // Test 1: PineGenie AI (Free) - General Chat
+      console.log('Testing PineGenie AI...');
+      const startTime1 = Date.now();
+      try {
+        const response1 = await fetch('/api/builder/ai-assistant', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: 'hello' }],
+            modelId: 'pine-genie'
+          })
+        });
+        const data1 = await response1.json();
+        testResults.pineGenieAI = {
+          status: data1.success ? 'success' : 'error',
+          response: data1.response?.message || 'No response',
+          time: Date.now() - startTime1
+        };
+      } catch (error) {
+        testResults.pineGenieAI = {
+          status: 'error',
+          response: `Error: ${error}`,
+          time: Date.now() - startTime1
+        };
+      }
+
+      // Test 2: ChatGPT-4 (Premium) - Strategy Request
+      console.log('Testing ChatGPT-4...');
+      const startTime2 = Date.now();
+      try {
+        const response2 = await fetch('/api/builder/ai-assistant', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [{ role: 'user', content: 'create simple RSI strategy' }],
+            modelId: 'gpt-4'
+          })
+        });
+        const data2 = await response2.json();
+        testResults.chatGPT4 = {
+          status: data2.success ? 'success' : 'error',
+          response: data2.response?.message || 'No response',
+          time: Date.now() - startTime2
+        };
+      } catch (error) {
+        testResults.chatGPT4 = {
+          status: 'error',
+          response: `Error: ${error}`,
+          time: Date.now() - startTime2
+        };
+      }
+
+      // Display Results
+      const resultMessage = `
+🧪 AI MODEL TEST RESULTS:
+
+📊 PineGenie AI (Free):
+Status: ${testResults.pineGenieAI.status.toUpperCase()}
+Response Time: ${testResults.pineGenieAI.time}ms
+Response: ${testResults.pineGenieAI.response.substring(0, 100)}...
+
+🤖 ChatGPT-4 (Premium):
+Status: ${testResults.chatGPT4.status.toUpperCase()}
+Response Time: ${testResults.chatGPT4.time}ms
+Response: ${testResults.chatGPT4.response.substring(0, 100)}...
+
+✅ Test completed! Check console for full details.
+      `;
+
+      alert(resultMessage);
+      console.log('🧪 Full Test Results:', testResults);
+
+    } catch (error) {
+      console.error('❌ Test failed:', error);
+      alert(`❌ AI Model Test Failed: ${error}`);
+    }
+  };
+
   return (
     <div className={`flex items-center justify-between p-4 border-b transition-colors ${
       isDark ? 'bg-slate-800/80 backdrop-blur-xl border-slate-700/50' : 'bg-white/80 backdrop-blur-xl border-gray-200/50'
@@ -154,7 +243,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
         <button
           onClick={() => {
             console.log('🤖 Toolbar button clicked!');
-            alert('PineGenie AI button clicked!');
             openAIAssistant();
           }}
           className={`flex items-center gap-2 px-4 py-2 text-sm bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 text-white rounded-xl transition-all duration-200 shadow-lg animate-pulse`}
@@ -162,6 +250,19 @@ const Toolbar: React.FC<ToolbarProps> = ({
         >
           <Sparkles className="w-4 h-4" />
           PineGenie AI
+        </button>
+        
+        {/* TEST AI MODEL Button */}
+        <button
+          onClick={async () => {
+            console.log('🧪 Testing AI Models...');
+            await testAIModels();
+          }}
+          className={`flex items-center gap-2 px-3 py-2 text-xs bg-gradient-to-r from-orange-500 to-red-500 hover:opacity-90 text-white rounded-lg transition-all duration-200 shadow-md`}
+          title="Test AI Model Connections and Responses"
+        >
+          <Bot className="w-4 h-4" />
+          TEST AI MODEL
         </button>
         {/* User Manual Button */}
         <button

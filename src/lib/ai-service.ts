@@ -58,8 +58,14 @@ class AIService {
       
       // Use OpenAI if available and model is GPT
       if (this.openai && (modelId.startsWith('gpt') || modelId === 'gpt-4' || modelId === 'gpt-3.5-turbo')) {
-        console.log('Using OpenAI API...');
+        console.log('Using OpenAI API with model:', modelId);
         return await this.generateOpenAIResponse(messages, modelId);
+      }
+      
+      // Use PineGenie AI for pine-genie model
+      if (modelId === 'pine-genie') {
+        console.log('Using PineGenie AI...');
+        return this.generatePineGenieResponse(messages);
       }
       
       console.log('Falling back to direct code generation...');
@@ -128,6 +134,112 @@ Generate working Pine Script v6 code immediately based on the user's request.`
     };
   }
 
+  // Helper method to detect if user wants to create a strategy
+  private isStrategyRequest(message: string): boolean {
+    const strategyKeywords = [
+      'create', 'build', 'make', 'generate', 'strategy', 'trading',
+      'rsi', 'macd', 'sma', 'ema', 'bollinger', 'stochastic', 'atr',
+      'buy', 'sell', 'entry', 'exit', 'signal', 'crossover', 'breakout',
+      'indicator', 'oscillator', 'momentum', 'trend', 'volume'
+    ];
+    
+    return strategyKeywords.some(keyword => message.includes(keyword));
+  }
+
+  // Generate PineGenie AI specific response
+  private generatePineGenieResponse(messages: ChatMessage[]): AIResponse {
+    const lastMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
+    
+    // Check if this is a general conversation or strategy request
+    const isStrategyRequest = this.isStrategyRequest(lastMessage);
+    
+    if (!isStrategyRequest) {
+      // Handle general conversation with PineGenie personality
+      return this.generatePineGenieConversation(lastMessage);
+    }
+    
+    // Handle strategy requests with PineGenie approach
+    return this.generatePineGenieStrategy(lastMessage);
+  }
+
+  // Generate conversational response for general chat
+  private generateConversationalResponse(message: string): AIResponse {
+    let response = '';
+    
+    if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
+      response = `Hello! I'm **PineGenie AI**, your Pine Script strategy assistant. 
+
+I'm here to help you create professional trading strategies! Here's what I can do:
+
+🚀 **Create Trading Strategies**
+• RSI mean reversion strategies
+• Moving average crossovers  
+• MACD signal strategies
+• Bollinger Bands breakouts
+• Custom indicator combinations
+
+💡 **Just tell me what you want to build:**
+• "Create an RSI strategy with 30/70 levels"
+• "Build a MACD crossover strategy"
+• "Make a Bollinger Bands squeeze strategy"
+
+What kind of trading strategy would you like to create today?`;
+    } else if (message.includes('how are you') || message.includes('how do you do')) {
+      response = `I'm doing great, thank you for asking! I'm **PineGenie AI** and I'm excited to help you build amazing trading strategies.
+
+I specialize in:
+• Converting your trading ideas into visual components
+• Generating complete Pine Script v6 code
+• Creating professional TradingView strategies
+
+What trading strategy can I help you build today?`;
+    } else if (message.includes('what can you do') || message.includes('help')) {
+      response = `I'm **PineGenie AI**, your specialized Pine Script assistant! Here's what I can help you with:
+
+🎯 **Strategy Creation**
+• Transform your trading ideas into visual components
+• Generate complete Pine Script v6 code ready for TradingView
+• Create strategies with proper risk management
+
+📊 **Supported Indicators**
+• RSI, MACD, Bollinger Bands, Stochastic
+• Moving Averages (SMA, EMA, WMA)
+• Volume indicators, ATR, ADX, and more
+
+💼 **Professional Features**
+• Stop loss and take profit logic
+• Entry/exit signal visualization
+• Parameter optimization suggestions
+
+Try saying: "Create a [indicator name] strategy" and I'll build it for you!`;
+    } else if (message.includes('thank') || message.includes('thanks')) {
+      response = `You're very welcome! I'm always happy to help you create amazing trading strategies.
+
+If you need any more strategies or have questions about Pine Script, just let me know. I'm here to make your trading ideas come to life! 🚀`;
+    } else {
+      response = `I understand you're chatting with me! I'm **PineGenie AI**, specialized in creating Pine Script trading strategies.
+
+While I love to chat, I'm most helpful when building trading strategies for you. Try asking me to:
+
+• "Create an RSI strategy"
+• "Build a moving average crossover"  
+• "Make a MACD signal strategy"
+• "Generate a Bollinger Bands strategy"
+
+What kind of trading strategy would you like me to create?`;
+    }
+
+    return {
+      content: response,
+      model: 'pine-genie-chat',
+      usage: {
+        promptTokens: message.length,
+        completionTokens: response.length,
+        totalTokens: message.length + response.length,
+      }
+    };
+  }
+
   // Helper method to extract trading intent from user message
   private extractTradingIntent(message: string): string[] {
     const keywords = [];
@@ -148,10 +260,106 @@ Generate working Pine Script v6 code immediately based on the user's request.`
     return keywords;
   }
 
+  // PineGenie AI conversational responses
+  private generatePineGenieConversation(message: string): AIResponse {
+    let response = '';
+    
+    if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
+      response = `Hello! I'm **PineGenie AI (Free)** 👋
+
+I'm your specialized Pine Script assistant, always available to help you create amazing trading strategies!
+
+🚀 **What I can do:**
+• Create visual trading strategies
+• Generate Pine Script v6 code
+• Help with indicator combinations
+• Provide trading strategy advice
+
+💡 **Try asking me:**
+• "Create an RSI strategy"
+• "Build a MACD crossover"
+• "Make a Bollinger Bands strategy"
+
+What trading strategy would you like to create today?`;
+    } else if (message.includes('how are you')) {
+      response = `I'm doing fantastic! I'm **PineGenie AI (Free)** and I'm excited to help you build profitable trading strategies! 🎯
+
+As your free Pine Script assistant, I'm always ready to:
+• Transform your trading ideas into code
+• Create visual strategy components
+• Generate professional Pine Script
+
+What kind of strategy can I help you build?`;
+    } else if (message.includes('what can you do') || message.includes('help')) {
+      response = `I'm **PineGenie AI (Free)** - your specialized Pine Script assistant! 🤖
+
+🎯 **My Specialties:**
+• **Strategy Creation** - Turn ideas into visual components
+• **Pine Script Generation** - Complete v6 code ready for TradingView
+• **Indicator Combinations** - RSI, MACD, Bollinger Bands, and more
+• **Risk Management** - Stop loss and take profit logic
+
+📊 **Popular Strategies I Can Build:**
+• RSI mean reversion strategies
+• Moving average crossovers
+• MACD signal strategies
+• Bollinger Bands breakouts
+• Volume-based strategies
+
+Just tell me what you want to build and I'll create it for you!`;
+    } else {
+      response = `I'm **PineGenie AI (Free)** - your friendly Pine Script assistant! 😊
+
+While I enjoy chatting, I'm most powerful when creating trading strategies for you. 
+
+🚀 **Ready to build something amazing?**
+Try saying: "Create a [strategy type] strategy" and I'll build it instantly!
+
+What trading strategy would you like me to create?`;
+    }
+
+    return {
+      content: response,
+      model: 'pine-genie-free',
+      usage: {
+        promptTokens: message.length,
+        completionTokens: response.length,
+        totalTokens: message.length + response.length,
+      }
+    };
+  }
+
+  // PineGenie AI strategy generation
+  private generatePineGenieStrategy(message: string): AIResponse {
+    // Use the existing strategy generation logic but with PineGenie branding
+    const result = this.generateDirectCodeResponse([{ role: 'user', content: message }]);
+    
+    // Add PineGenie branding to the response
+    const enhancedContent = `✅ **PineGenie AI (Free) Strategy Generated!**
+
+${result.content}
+
+🎯 **Strategy created by PineGenie AI** - Your free Pine Script assistant!`;
+
+    return {
+      content: enhancedContent,
+      model: 'pine-genie-free',
+      usage: result.usage
+    };
+  }
+
   private generateDirectCodeResponse(messages: ChatMessage[]): AIResponse {
     const lastMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
     
-    // Analyze user input and generate appropriate code immediately
+    // Check if this is a general conversation or strategy request
+    const isStrategyRequest = this.isStrategyRequest(lastMessage);
+    
+    if (!isStrategyRequest) {
+      // Handle general conversation
+      return this.generateConversationalResponse(lastMessage);
+    }
+    
+    // Analyze user input and generate appropriate code for strategy requests
     let codeResponse = '';
 
     // Enhanced keyword detection for better code generation
@@ -365,8 +573,8 @@ plotshape(shortCondition, title="Sell Signal", location=location.abovebar, style
     }
 
     return {
-      content: codeResponse,
-      model: 'pine-genie-direct',
+      content: `🔄 **Fallback Strategy Generator**\n\n${codeResponse}`,
+      model: 'pine-genie-fallback',
       usage: {
         promptTokens: messages.reduce((acc, msg) => acc + msg.content.length, 0),
         completionTokens: codeResponse.length,
