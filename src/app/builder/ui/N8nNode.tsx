@@ -10,7 +10,7 @@ export interface N8nNodeData {
   description?: string;
   props?: Record<string, string | number | boolean>;
   config?: Record<string, any>;
-  position: { x: number; y: number };
+  position?: { x: number; y: number };
 }
 
 interface N8nNodeProps {
@@ -180,8 +180,8 @@ const N8nNode: React.FC<N8nNodeProps> = ({
         isSelected ? 'z-40' : 'z-20'
       }`}
       style={{
-        left: node.position.x * zoom + canvasOffset.x,
-        top: node.position.y * zoom + canvasOffset.y,
+        left: (node.position?.x || 0) * zoom + canvasOffset.x,
+        top: (node.position?.y || 0) * zoom + canvasOffset.y,
         transform: isDragging ? 'none' : `${isSelected ? 'scale(1.05)' : ''} ${isHovered ? 'scale(1.02)' : ''}`,
         transformOrigin: 'top left'
       }}

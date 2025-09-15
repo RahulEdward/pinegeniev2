@@ -1,5 +1,51 @@
 // AI Service for real AI model integration
+import { color } from 'framer-motion';
+import { text } from 'stream/consumers';
+import { color } from 'framer-motion';
+import { color } from 'framer-motion';
+import style from 'styled-jsx/style';
+import { title } from 'process';
+import { text } from 'stream/consumers';
+import { color } from 'framer-motion';
+import { color } from 'framer-motion';
+import style from 'styled-jsx/style';
+import { title } from 'process';
+import { color } from 'framer-motion';
+import { color } from 'framer-motion';
+import { title } from 'process';
+import { color } from 'framer-motion';
+import { color } from 'framer-motion';
+import { title } from 'process';
+import { title } from 'process';
+import { title } from 'process';
+import { title } from 'process';
+import { title } from 'process';
+import { title } from 'process';
+import { text } from 'stream/consumers';
+import { color } from 'framer-motion';
+import { color } from 'framer-motion';
+import style from 'styled-jsx/style';
+import { title } from 'process';
+import { text } from 'stream/consumers';
+import { color } from 'framer-motion';
+import { color } from 'framer-motion';
+import style from 'styled-jsx/style';
+import { title } from 'process';
+import { color } from 'framer-motion';
+import { color } from 'framer-motion';
+import { color } from 'framer-motion';
+import { color } from 'framer-motion';
+import { title } from 'process';
+import { color } from 'framer-motion';
+import { color } from 'framer-motion';
+import { title } from 'process';
+import { color } from 'framer-motion';
 import OpenAI from 'openai';
+import { title } from 'process';
+import { title } from 'process';
+import { title } from 'process';
+import { title } from 'process';
+import { title } from 'process';
 
 interface AIModelConfig {
   id: string;
@@ -359,226 +405,372 @@ ${result.content}
       return this.generateConversationalResponse(lastMessage);
     }
     
-    // Analyze user input and generate appropriate code for strategy requests
-    let codeResponse = '';
+    // Generate visual strategy with nodes and connections
+    let strategyResponse = '';
 
-    // Enhanced keyword detection for better code generation
+    // Enhanced keyword detection for visual strategy generation
     if (lastMessage.includes('rsi') || lastMessage.includes('relative strength') || lastMessage.includes('oversold') || lastMessage.includes('overbought')) {
-      codeResponse = `\`\`\`pinescript
-//@version=6
-strategy("RSI Strategy", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=10)
-
-// Input parameters
-rsiLength = input.int(14, title="RSI Length", minval=1)
-oversoldLevel = input.int(30, title="Oversold Level", minval=1, maxval=50)
-overboughtLevel = input.int(70, title="Overbought Level", minval=50, maxval=99)
-stopLossPercent = input.float(2.0, title="Stop Loss %", minval=0.1, maxval=10.0)
-takeProfitPercent = input.float(4.0, title="Take Profit %", minval=0.1, maxval=20.0)
-
-// Calculate RSI
-rsiValue = ta.rsi(close, rsiLength)
-
-// Trading conditions
-longCondition = ta.crossover(rsiValue, oversoldLevel)
-shortCondition = ta.crossunder(rsiValue, overboughtLevel)
-
-// Execute trades
-if longCondition
-    strategy.entry("Long", strategy.long)
-    strategy.exit("Long Exit", "Long", stop=close * (1 - stopLossPercent/100), limit=close * (1 + takeProfitPercent/100))
-
-if shortCondition
-    strategy.entry("Short", strategy.short)
-    strategy.exit("Short Exit", "Short", stop=close * (1 + stopLossPercent/100), limit=close * (1 - takeProfitPercent/100))
-
-// Plot RSI
-plot(rsiValue, title="RSI", color=color.blue, linewidth=2)
-hline(overboughtLevel, title="Overbought", color=color.red, linestyle=hline.style_dashed)
-hline(oversoldLevel, title="Oversold", color=color.green, linestyle=hline.style_dashed)
-
-// Plot signals
-plotshape(longCondition, title="Buy Signal", location=location.belowbar, style=shape.labelup, color=color.green, text="BUY")
-plotshape(shortCondition, title="Sell Signal", location=location.abovebar, style=shape.labeldown, color=color.red, text="SELL")
-\`\`\`
-
-**RSI Mean Reversion Strategy** - Buy oversold, sell overbought with 2% SL and 4% TP.`;
+      strategyResponse = JSON.stringify({
+        "message": "I'll create an RSI mean reversion strategy for you!",
+        "strategy": {
+          "name": "RSI Mean Reversion Strategy",
+          "nodes": [
+            {
+              "id": "data-1",
+              "type": "data",
+              "label": "Market Data",
+              "description": "BTCUSDT 1h data",
+              "config": {"symbol": "BTCUSDT", "timeframe": "1h", "source": "close"},
+              "position": {"x": 100, "y": 100}
+            },
+            {
+              "id": "rsi-1",
+              "type": "indicator",
+              "label": "RSI (14)",
+              "description": "Relative Strength Index",
+              "config": {"indicatorId": "rsi", "parameters": {"length": 14, "source": "close"}},
+              "position": {"x": 350, "y": 100}
+            },
+            {
+              "id": "buy-condition",
+              "type": "condition",
+              "label": "RSI < 30",
+              "description": "Buy when oversold",
+              "config": {"operator": "less_than", "threshold": 30},
+              "position": {"x": 600, "y": 50}
+            },
+            {
+              "id": "sell-condition",
+              "type": "condition",
+              "label": "RSI > 70",
+              "description": "Sell when overbought",
+              "config": {"operator": "greater_than", "threshold": 70},
+              "position": {"x": 600, "y": 150}
+            },
+            {
+              "id": "buy-action",
+              "type": "action",
+              "label": "Buy Order",
+              "description": "Execute buy order",
+              "config": {"orderType": "market", "quantity": "25%"},
+              "position": {"x": 850, "y": 50}
+            },
+            {
+              "id": "sell-action",
+              "type": "action",
+              "label": "Sell Order",
+              "description": "Execute sell order",
+              "config": {"orderType": "market", "quantity": "100%"},
+              "position": {"x": 850, "y": 150}
+            }
+          ],
+          "connections": [
+            {"id": "conn-1", "source": "data-1", "target": "rsi-1"},
+            {"id": "conn-2", "source": "rsi-1", "target": "buy-condition"},
+            {"id": "conn-3", "source": "rsi-1", "target": "sell-condition"},
+            {"id": "conn-4", "source": "buy-condition", "target": "buy-action"},
+            {"id": "conn-5", "source": "sell-condition", "target": "sell-action"}
+          ]
+        },
+        "suggestions": ["Add stop loss", "Add take profit", "Try different RSI levels"]
+      });`;
 
     } else if (lastMessage.includes('macd') || lastMessage.includes('crossover') || lastMessage.includes('histogram') || lastMessage.includes('signal line')) {
-      codeResponse = `\`\`\`pinescript
-//@version=6
-strategy("MACD Crossover Strategy", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=15)
-
-// MACD Parameters
-fastLength = input.int(12, title="Fast Length", minval=1)
-slowLength = input.int(26, title="Slow Length", minval=1)
-signalLength = input.int(9, title="Signal Length", minval=1)
-stopLossPercent = input.float(3.0, title="Stop Loss %", minval=0.1, maxval=10.0)
-takeProfitPercent = input.float(6.0, title="Take Profit %", minval=0.1, maxval=20.0)
-
-// Calculate MACD
-[macdLine, signalLine, histogramLine] = ta.macd(close, fastLength, slowLength, signalLength)
-
-// Trading Conditions
-bullishCrossover = ta.crossover(macdLine, signalLine)
-bearishCrossover = ta.crossunder(macdLine, signalLine)
-
-// Execute Trades
-if bullishCrossover
-    strategy.entry("Long", strategy.long)
-    strategy.exit("Long Exit", "Long", 
-                  stop=close * (1 - stopLossPercent/100), 
-                  limit=close * (1 + takeProfitPercent/100))
-
-if bearishCrossover
-    strategy.entry("Short", strategy.short)
-    strategy.exit("Short Exit", "Short", 
-                  stop=close * (1 + stopLossPercent/100), 
-                  limit=close * (1 - takeProfitPercent/100))
-
-// Plot MACD
-plot(macdLine, title="MACD Line", color=color.blue, linewidth=2)
-plot(signalLine, title="Signal Line", color=color.red, linewidth=2)
-plot(histogramLine, title="Histogram", color=color.gray, style=plot.style_histogram)
-hline(0, title="Zero Line", color=color.black, linestyle=hline.style_solid)
-
-// Plot signals
-plotshape(bullishCrossover, title="Buy Signal", location=location.belowbar, style=shape.labelup, color=color.green, text="BUY")
-plotshape(bearishCrossover, title="Sell Signal", location=location.abovebar, style=shape.labeldown, color=color.red, text="SELL")
-\`\`\`
-
-**MACD Crossover Strategy** - Trend following with 3% SL and 6% TP.`;
+      strategyResponse = JSON.stringify({
+        "message": "I'll create a MACD crossover strategy for you!",
+        "strategy": {
+          "name": "MACD Crossover Strategy",
+          "nodes": [
+            {
+              "id": "data-1",
+              "type": "data",
+              "label": "Market Data",
+              "description": "BTCUSDT 1h data",
+              "config": {"symbol": "BTCUSDT", "timeframe": "1h", "source": "close"},
+              "position": {"x": 100, "y": 100}
+            },
+            {
+              "id": "macd-1",
+              "type": "indicator",
+              "label": "MACD (12,26,9)",
+              "description": "MACD Crossover",
+              "config": {"indicatorId": "macd", "parameters": {"fastLength": 12, "slowLength": 26, "signalLength": 9}},
+              "position": {"x": 350, "y": 100}
+            },
+            {
+              "id": "bullish-cross",
+              "type": "condition",
+              "label": "Bullish Crossover",
+              "description": "MACD crosses above signal",
+              "config": {"operator": "crosses_above"},
+              "position": {"x": 600, "y": 50}
+            },
+            {
+              "id": "bearish-cross",
+              "type": "condition",
+              "label": "Bearish Crossover",
+              "description": "MACD crosses below signal",
+              "config": {"operator": "crosses_below"},
+              "position": {"x": 600, "y": 150}
+            },
+            {
+              "id": "buy-action",
+              "type": "action",
+              "label": "Buy Order",
+              "description": "Execute buy order",
+              "config": {"orderType": "market", "quantity": "50%"},
+              "position": {"x": 850, "y": 50}
+            },
+            {
+              "id": "sell-action",
+              "type": "action",
+              "label": "Sell Order",
+              "description": "Execute sell order",
+              "config": {"orderType": "market", "quantity": "100%"},
+              "position": {"x": 850, "y": 150}
+            }
+          ],
+          "connections": [
+            {"id": "conn-1", "source": "data-1", "target": "macd-1"},
+            {"id": "conn-2", "source": "macd-1", "target": "bullish-cross"},
+            {"id": "conn-3", "source": "macd-1", "target": "bearish-cross"},
+            {"id": "conn-4", "source": "bullish-cross", "target": "buy-action"},
+            {"id": "conn-5", "source": "bearish-cross", "target": "sell-action"}
+          ]
+        },
+        "suggestions": ["Add trend filter", "Add stop loss", "Try different timeframes"]
+      });`;
 
     } else if (lastMessage.includes('bollinger') || lastMessage.includes('bands') || lastMessage.includes('squeeze')) {
-      codeResponse = `\`\`\`pinescript
-//@version=6
-strategy("Bollinger Bands Strategy", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=10)
-
-// Bollinger Bands Parameters
-length = input.int(20, title="BB Length", minval=1)
-mult = input.float(2.0, title="BB Multiplier", minval=0.1, maxval=5.0)
-stopLossPercent = input.float(2.5, title="Stop Loss %", minval=0.1, maxval=10.0)
-takeProfitPercent = input.float(5.0, title="Take Profit %", minval=0.1, maxval=20.0)
-
-// Calculate Bollinger Bands
-basis = ta.sma(close, length)
-dev = mult * ta.stdev(close, length)
-upper = basis + dev
-lower = basis - dev
-
-// Trading Conditions
-longCondition = ta.crossover(close, lower)
-shortCondition = ta.crossunder(close, upper)
-
-// Execute Trades
-if longCondition
-    strategy.entry("Long", strategy.long)
-    strategy.exit("Long Exit", "Long", stop=close * (1 - stopLossPercent/100), limit=close * (1 + takeProfitPercent/100))
-
-if shortCondition
-    strategy.entry("Short", strategy.short)
-    strategy.exit("Short Exit", "Short", stop=close * (1 + stopLossPercent/100), limit=close * (1 - takeProfitPercent/100))
-
-// Plot Bollinger Bands
-plot(basis, title="Middle Band", color=color.blue, linewidth=2)
-plot(upper, title="Upper Band", color=color.red, linewidth=1)
-plot(lower, title="Lower Band", color=color.green, linewidth=1)
-fill(plot(upper), plot(lower), color=color.gray, transp=90)
-
-// Plot signals
-plotshape(longCondition, title="Buy Signal", location=location.belowbar, style=shape.labelup, color=color.green, text="BUY")
-plotshape(shortCondition, title="Sell Signal", location=location.abovebar, style=shape.labeldown, color=color.red, text="SELL")
-\`\`\`
-
-**Bollinger Bands Mean Reversion** - Buy at lower band, sell at upper band.`;
+      strategyResponse = JSON.stringify({
+        "message": "I'll create a Bollinger Bands mean reversion strategy for you!",
+        "strategy": {
+          "name": "Bollinger Bands Strategy",
+          "nodes": [
+            {
+              "id": "data-1",
+              "type": "data",
+              "label": "Market Data",
+              "description": "BTCUSDT 1h data",
+              "config": {"symbol": "BTCUSDT", "timeframe": "1h", "source": "close"},
+              "position": {"x": 100, "y": 100}
+            },
+            {
+              "id": "bb-1",
+              "type": "indicator",
+              "label": "Bollinger Bands (20,2)",
+              "description": "Bollinger Bands",
+              "config": {"indicatorId": "bollinger", "parameters": {"length": 20, "multiplier": 2}},
+              "position": {"x": 350, "y": 100}
+            },
+            {
+              "id": "lower-touch",
+              "type": "condition",
+              "label": "Touch Lower Band",
+              "description": "Price touches lower band",
+              "config": {"operator": "touches_lower"},
+              "position": {"x": 600, "y": 50}
+            },
+            {
+              "id": "upper-touch",
+              "type": "condition",
+              "label": "Touch Upper Band",
+              "description": "Price touches upper band",
+              "config": {"operator": "touches_upper"},
+              "position": {"x": 600, "y": 150}
+            },
+            {
+              "id": "buy-action",
+              "type": "action",
+              "label": "Buy Order",
+              "description": "Execute buy order",
+              "config": {"orderType": "market", "quantity": "30%"},
+              "position": {"x": 850, "y": 50}
+            },
+            {
+              "id": "sell-action",
+              "type": "action",
+              "label": "Sell Order",
+              "description": "Execute sell order",
+              "config": {"orderType": "market", "quantity": "100%"},
+              "position": {"x": 850, "y": 150}
+            }
+          ],
+          "connections": [
+            {"id": "conn-1", "source": "data-1", "target": "bb-1"},
+            {"id": "conn-2", "source": "bb-1", "target": "lower-touch"},
+            {"id": "conn-3", "source": "bb-1", "target": "upper-touch"},
+            {"id": "conn-4", "source": "lower-touch", "target": "buy-action"},
+            {"id": "conn-5", "source": "upper-touch", "target": "sell-action"}
+          ]
+        },
+        "suggestions": ["Add volume filter", "Add RSI confirmation", "Try different BB periods"]
+      });`;
 
     } else if (lastMessage.includes('moving average') || lastMessage.includes('sma') || lastMessage.includes('ema')) {
-      codeResponse = `\`\`\`pinescript
-//@version=6
-strategy("Moving Average Strategy", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=12)
+      strategyResponse = JSON.stringify({
+        "message": "I'll create a moving average crossover strategy for you!",
+        "strategy": {
+          "name": "Moving Average Crossover Strategy",
+          "nodes": [
+            {
+              "id": "data-1",
+              "type": "data",
+              "label": "Market Data",
+              "description": "BTCUSDT 1h data",
+              "config": {"symbol": "BTCUSDT", "timeframe": "1h", "source": "close"},
+              "position": {"x": 100, "y": 100}
+            },
+            {
+              "id": "sma-fast",
+              "type": "indicator",
+              "label": "SMA (10)",
+              "description": "Fast moving average",
+              "config": {"indicatorId": "sma", "parameters": {"length": 10, "source": "close"}},
+              "position": {"x": 350, "y": 50}
+            },
+            {
+              "id": "sma-slow",
+              "type": "indicator",
+              "label": "SMA (20)",
+              "description": "Slow moving average",
+              "config": {"indicatorId": "sma", "parameters": {"length": 20, "source": "close"}},
+              "position": {"x": 350, "y": 150}
+            },
+            {
+              "id": "cross-up",
+              "type": "condition",
+              "label": "MA Cross Up",
+              "description": "Fast MA crosses above slow MA",
+              "config": {"operator": "crosses_above"},
+              "position": {"x": 600, "y": 50}
+            },
+            {
+              "id": "cross-down",
+              "type": "condition",
+              "label": "MA Cross Down",
+              "description": "Fast MA crosses below slow MA",
+              "config": {"operator": "crosses_below"},
+              "position": {"x": 600, "y": 150}
+            },
+            {
+              "id": "buy-action",
+              "type": "action",
+              "label": "Buy Order",
+              "description": "Execute buy order",
+              "config": {"orderType": "market", "quantity": "50%"},
+              "position": {"x": 850, "y": 50}
+            },
+            {
+              "id": "sell-action",
+              "type": "action",
+              "label": "Sell Order",
+              "description": "Execute sell order",
+              "config": {"orderType": "market", "quantity": "100%"},
+              "position": {"x": 850, "y": 150}
+            }
+          ],
+          "connections": [
+            {"id": "conn-1", "source": "data-1", "target": "sma-fast"},
+            {"id": "conn-2", "source": "data-1", "target": "sma-slow"},
+            {"id": "conn-3", "source": "sma-fast", "target": "cross-up"},
+            {"id": "conn-4", "source": "sma-slow", "target": "cross-up"},
+            {"id": "conn-5", "source": "sma-fast", "target": "cross-down"},
+            {"id": "conn-6", "source": "sma-slow", "target": "cross-down"},
+            {"id": "conn-7", "source": "cross-up", "target": "buy-action"},
+            {"id": "conn-8", "source": "cross-down", "target": "sell-action"}
+          ]
+        },
+        "suggestions": ["Add trend confirmation", "Add stop loss", "Try EMA instead of SMA"]
+      });`;
+    }
 
-// MA Parameters
-shortMA = input.int(10, title="Short MA Period", minval=1)
-longMA = input.int(30, title="Long MA Period", minval=1)
-maType = input.string("EMA", title="MA Type", options=["SMA", "EMA"])
-stopLossPercent = input.float(2.0, title="Stop Loss %", minval=0.1, maxval=10.0)
-takeProfitPercent = input.float(4.0, title="Take Profit %", minval=0.1, maxval=20.0)
-
-// Calculate Moving Averages
-shortMAValue = maType == "EMA" ? ta.ema(close, shortMA) : ta.sma(close, shortMA)
-longMAValue = maType == "EMA" ? ta.ema(close, longMA) : ta.sma(close, longMA)
-
-// Trading Conditions
-longCondition = ta.crossover(shortMAValue, longMAValue) and close > longMAValue
-shortCondition = ta.crossunder(shortMAValue, longMAValue) and close < longMAValue
-
-// Execute Trades
-if longCondition
-    strategy.entry("Long", strategy.long)
-    strategy.exit("Long Exit", "Long", stop=close * (1 - stopLossPercent/100), limit=close * (1 + takeProfitPercent/100))
-
-if shortCondition
-    strategy.entry("Short", strategy.short)
-    strategy.exit("Short Exit", "Short", stop=close * (1 + stopLossPercent/100), limit=close * (1 - takeProfitPercent/100))
-
-// Plot MAs
-plot(shortMAValue, title="Short MA", color=color.blue, linewidth=2)
-plot(longMAValue, title="Long MA", color=color.red, linewidth=2)
-
-// Plot signals
-plotshape(longCondition, title="Buy Signal", location=location.belowbar, style=shape.labelup, color=color.green, text="BUY")
-plotshape(shortCondition, title="Sell Signal", location=location.abovebar, style=shape.labeldown, color=color.red, text="SELL")
-\`\`\`
-
-**Moving Average Crossover** - Classic trend following with MA confirmation.`;
-
-    } else {
-      // Default strategy for any other input
-      codeResponse = `\`\`\`pinescript
-//@version=6
-strategy("Simple Trading Strategy", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=10)
-
-// Input Parameters
-fastLength = input.int(9, title="Fast EMA Length", minval=1)
-slowLength = input.int(21, title="Slow EMA Length", minval=1)
-stopLossPercent = input.float(2.0, title="Stop Loss %", minval=0.1, maxval=10.0)
-takeProfitPercent = input.float(4.0, title="Take Profit %", minval=0.1, maxval=20.0)
-
-// Calculate EMAs
-fastEMA = ta.ema(close, fastLength)
-slowEMA = ta.ema(close, slowLength)
-
-// Trading Conditions
-longCondition = ta.crossover(fastEMA, slowEMA)
-shortCondition = ta.crossunder(fastEMA, slowEMA)
-
-// Execute Trades
-if longCondition
-    strategy.entry("Long", strategy.long)
-    strategy.exit("Long Exit", "Long", stop=close * (1 - stopLossPercent/100), limit=close * (1 + takeProfitPercent/100))
-
-if shortCondition
-    strategy.entry("Short", strategy.short)
-    strategy.exit("Short Exit", "Short", stop=close * (1 + stopLossPercent/100), limit=close * (1 - takeProfitPercent/100))
-
-// Plot EMAs
-plot(fastEMA, title="Fast EMA", color=color.blue, linewidth=2)
-plot(slowEMA, title="Slow EMA", color=color.red, linewidth=2)
-
-// Plot Signals
-plotshape(longCondition, title="Buy Signal", location=location.belowbar, style=shape.labelup, color=color.green, text="BUY")
-plotshape(shortCondition, title="Sell Signal", location=location.abovebar, style=shape.labeldown, color=color.red, text="SELL")
-\`\`\`
-
-**EMA Crossover Strategy** - Fast EMA crosses slow EMA with 2% SL and 4% TP.`;
+    // Default strategy if no specific match
+    if (!strategyResponse) {
+      strategyResponse = JSON.stringify({
+        "message": "I'll create a simple EMA crossover strategy for you!",
+        "strategy": {
+          "name": "Simple EMA Crossover Strategy",
+          "nodes": [
+            {
+              "id": "data-1",
+              "type": "data",
+              "label": "Market Data",
+              "description": "BTCUSDT 1h data",
+              "config": {"symbol": "BTCUSDT", "timeframe": "1h", "source": "close"},
+              "position": {"x": 100, "y": 100}
+            },
+            {
+              "id": "ema-fast",
+              "type": "indicator",
+              "label": "EMA (9)",
+              "description": "Fast EMA",
+              "config": {"indicatorId": "ema", "parameters": {"length": 9, "source": "close"}},
+              "position": {"x": 350, "y": 50}
+            },
+            {
+              "id": "ema-slow",
+              "type": "indicator",
+              "label": "EMA (21)",
+              "description": "Slow EMA",
+              "config": {"indicatorId": "ema", "parameters": {"length": 21, "source": "close"}},
+              "position": {"x": 350, "y": 150}
+            },
+            {
+              "id": "cross-up",
+              "type": "condition",
+              "label": "EMA Cross Up",
+              "description": "Fast EMA crosses above slow EMA",
+              "config": {"operator": "crosses_above"},
+              "position": {"x": 600, "y": 50}
+            },
+            {
+              "id": "cross-down",
+              "type": "condition",
+              "label": "EMA Cross Down",
+              "description": "Fast EMA crosses below slow EMA",
+              "config": {"operator": "crosses_below"},
+              "position": {"x": 600, "y": 150}
+            },
+            {
+              "id": "buy-action",
+              "type": "action",
+              "label": "Buy Order",
+              "description": "Execute buy order",
+              "config": {"orderType": "market", "quantity": "25%"},
+              "position": {"x": 850, "y": 50}
+            },
+            {
+              "id": "sell-action",
+              "type": "action",
+              "label": "Sell Order",
+              "description": "Execute sell order",
+              "config": {"orderType": "market", "quantity": "100%"},
+              "position": {"x": 850, "y": 150}
+            }
+          ],
+          "connections": [
+            {"id": "conn-1", "source": "data-1", "target": "ema-fast"},
+            {"id": "conn-2", "source": "data-1", "target": "ema-slow"},
+            {"id": "conn-3", "source": "ema-fast", "target": "cross-up"},
+            {"id": "conn-4", "source": "ema-slow", "target": "cross-up"},
+            {"id": "conn-5", "source": "ema-fast", "target": "cross-down"},
+            {"id": "conn-6", "source": "ema-slow", "target": "cross-down"},
+            {"id": "conn-7", "source": "cross-up", "target": "buy-action"},
+            {"id": "conn-8", "source": "cross-down", "target": "sell-action"}
+          ]
+        },
+        "suggestions": ["Add stop loss", "Add take profit", "Try different EMA periods"]
+      });
     }
 
     return {
-      content: `🔄 **Fallback Strategy Generator**\n\n${codeResponse}`,
-      model: 'pine-genie-fallback',
+      content: strategyResponse,
+      model: 'pine-genie-visual',
       usage: {
         promptTokens: messages.reduce((acc, msg) => acc + msg.content.length, 0),
-        completionTokens: codeResponse.length,
-        totalTokens: messages.reduce((acc, msg) => acc + msg.content.length, 0) + codeResponse.length,
+        completionTokens: strategyResponse.length,
+        totalTokens: messages.reduce((acc, msg) => acc + msg.content.length, 0) + strategyResponse.length,
       }
     };
   }

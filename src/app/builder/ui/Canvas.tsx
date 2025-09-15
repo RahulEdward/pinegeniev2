@@ -759,7 +759,7 @@ const Canvas: React.FC = () => {
               )}
             </svg>
             {/* Render nodes */}
-            {nodes.map(node => (
+            {nodes.filter(node => node.position).map(node => (
               <N8nNode
                 key={node.id}
                 node={node}
@@ -907,8 +907,12 @@ const Canvas: React.FC = () => {
         isOpen={isAIAssistantOpen}
         onClose={() => setIsAIAssistantOpen(false)}
         onStrategyGenerated={(aiNodes, aiConnections) => {
-          // Add AI-generated nodes to canvas
-          setNodes(prev => [...prev, ...aiNodes]);
+          // Add AI-generated nodes to canvas with position validation
+          const validatedNodes = aiNodes.map((node, index) => ({
+            ...node,
+            position: node.position || { x: 300 + (index * 200), y: 200 + (index * 100) }
+          }));
+          setNodes(prev => [...prev, ...validatedNodes]);
 
           // Add AI-generated connections using simple handler
           const currentConnections = simpleConnectionHandler.getConnections();
