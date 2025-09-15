@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
 import { StrategySearchFilters } from '@/types/strategy';
+import { subscriptionPlanManager } from '@/services/subscription';
 
 
 // Force dynamic rendering
@@ -151,6 +152,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check script storage limit before creating strategy
+    const storageCheck = await subscriptionPlanManager.checkScriptStorageLimit(session.user.id);
+    
+    if (!storageCheck.hasAccess) {
+      return NextResponse.json({
+        error: 'Strategy storage limit reached',
+        upgradeRequired: true,
+        message: `You have reached your strategy storage limit (${storageCheck.currentCount}/${storageCheck.limit}). Upgrade to Pro or Premium for unlimited strategy storage.`,
+        currentCount: storageCheck.currentCount,
+        limit: storageCheck.limit,
+        remaining: storageCheck.remaining
+      }, { status: 403 });
+    }
+
     const body = await request.json();
     const { 
       name, 
@@ -249,6 +264,14 @@ export async function POST(request: NextRequest) {
         changeLog: 'Initial version',
       },
     });
+
+    // Record usage for strategy creation
+    try {
+      await subscriptionPlanManager.recordUsage(session.user.id, 'strategies_generated', 1);
+    } catch (usageError) {
+      console.error('Failed to record strategy usage:', usageError);
+      // Don't fail the request if usage recording fails
+    }
 
     // Parse the response data
     const responseStrategy = {

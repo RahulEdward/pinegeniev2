@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { aiService } from '@/lib/ai-service';
+import { subscriptionPlanManager } from '@/services/subscription';
 
 
 // Force dynamic rendering
@@ -9,17 +10,22 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication (skip for development testing)
+    // Check authentication
     const session = await getServerSession(authOptions);
-    const isDevelopment = process.env.NODE_ENV === 'development';
     
-    if (!session && !isDevelopment) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    // Log for development
-    if (isDevelopment) {
-      console.log('🔓 Development mode: Skipping auth check');
+    // Check AI access based on subscription
+    const hasAIAccess = await subscriptionPlanManager.checkAIChatAccess(session.user.id);
+    
+    if (!hasAIAccess) {
+      return NextResponse.json({
+        error: 'AI generation requires a paid subscription plan',
+        upgradeRequired: true,
+        message: 'Upgrade to Pro or Premium to access AI generation features'
+      }, { status: 403 });
     }
 
     const body = await request.json();

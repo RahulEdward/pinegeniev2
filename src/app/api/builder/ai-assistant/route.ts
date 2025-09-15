@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { aiService } from '@/lib/ai-service';
 import { availableModels } from '@/lib/ai-models';
+import { subscriptionPlanManager } from '@/services/subscription';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -28,6 +29,27 @@ export async function POST(request: NextRequest) {
         { error: 'Authentication required' },
         { status: 401 }
       );
+    }
+
+    // Check AI chat access based on subscription
+    const hasAIAccess = await subscriptionPlanManager.checkAIChatAccess(session.user.id);
+    
+    if (!hasAIAccess) {
+      return NextResponse.json({
+        success: false,
+        error: 'AI Chat access requires a paid subscription plan',
+        upgradeRequired: true,
+        message: 'Upgrade to Pro or Premium to access Pine Genie AI Chat features',
+        fallback: {
+          message: "🔒 **AI Chat is a Premium Feature**\n\nTo access Pine Genie AI Chat, please upgrade to a Pro or Premium plan.\n\n**What you get with Pro/Premium:**\n• Unlimited AI-powered Pine Script assistance\n• Advanced strategy generation\n• Custom indicator combinations\n• Priority support\n\nUpgrade now to unlock the full power of Pine Genie AI!",
+          strategy: null,
+          suggestions: [
+            "Upgrade to Pro plan for unlimited AI access",
+            "Try the visual builder with free templates",
+            "Explore our strategy library"
+          ]
+        }
+      }, { status: 403 });
     }
 
     const body: BuilderAIRequest = await request.json();
@@ -153,6 +175,18 @@ export async function GET() {
         { error: 'Authentication required' },
         { status: 401 }
       );
+    }
+
+    // Check AI chat access based on subscription
+    const hasAIAccess = await subscriptionPlanManager.checkAIChatAccess(session.user.id);
+    
+    if (!hasAIAccess) {
+      return NextResponse.json({
+        success: false,
+        error: 'AI Chat access requires a paid subscription plan',
+        upgradeRequired: true,
+        models: []
+      }, { status: 403 });
     }
 
     // Filter models available for builder AI - only PineGenie and ChatGPT-4

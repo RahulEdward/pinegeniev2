@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
+import { subscriptionPlanManager } from '@/services/subscription';
 
 
 // Force dynamic rendering
@@ -16,6 +17,17 @@ export async function GET(request: NextRequest) {
         { error: 'Unauthorized' },
         { status: 401 }
       );
+    }
+
+    // Check AI access based on subscription
+    const hasAIAccess = await subscriptionPlanManager.checkAIChatAccess(session.user.id);
+    
+    if (!hasAIAccess) {
+      return NextResponse.json({
+        error: 'AI chat conversations require a paid subscription plan',
+        upgradeRequired: true,
+        message: 'Upgrade to Pro or Premium to access AI chat features'
+      }, { status: 403 });
     }
 
     // Fetch user's conversations with message count and last message
@@ -107,6 +119,17 @@ export async function POST(request: NextRequest) {
         { error: 'Unauthorized' },
         { status: 401 }
       );
+    }
+
+    // Check AI access based on subscription
+    const hasAIAccess = await subscriptionPlanManager.checkAIChatAccess(session.user.id);
+    
+    if (!hasAIAccess) {
+      return NextResponse.json({
+        error: 'Creating AI chat conversations requires a paid subscription plan',
+        upgradeRequired: true,
+        message: 'Upgrade to Pro or Premium to access AI chat features'
+      }, { status: 403 });
     }
 
     const body = await request.json();

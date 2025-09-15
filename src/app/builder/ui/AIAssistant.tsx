@@ -102,6 +102,9 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
           if (data.success) {
             setAvailableModels(data.models);
           }
+        } else if (response.status === 403) {
+          // User doesn't have AI access, set empty models
+          setAvailableModels([]);
         }
       } catch (error) {
         console.error('Failed to load AI models:', error);
@@ -194,6 +197,21 @@ const AIAssistant: React.FC<AIAssistantProps> = ({
 
       // Remove thinking message
       setMessages(prev => prev.filter(msg => msg.id !== thinkingMessage.id));
+
+      // Handle subscription access error
+      if (response.status === 403 && data.upgradeRequired) {
+        const upgradeMessage: ChatMessage = {
+          id: (Date.now() + 5).toString(),
+          type: 'ai',
+          content: data.fallback?.message || data.message || 'AI Chat requires a paid subscription plan',
+          timestamp: new Date(),
+          model: selectedModel,
+          suggestions: data.fallback?.suggestions || ['Upgrade to Pro plan for unlimited AI access']
+        };
+
+        setMessages(prev => [...prev, upgradeMessage]);
+        return;
+      }
 
       if (data.success && data.response) {
         const aiResponse = data.response;

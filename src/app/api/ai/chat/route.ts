@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { aiService } from '@/lib/ai-service';
+import { subscriptionPlanManager } from '@/services/subscription';
 
 
 // Force dynamic rendering
@@ -29,6 +30,17 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Check AI access based on subscription
+    const hasAIAccess = await subscriptionPlanManager.checkAIChatAccess(user.id);
+    
+    if (!hasAIAccess) {
+      return NextResponse.json({
+        error: 'AI chat requires a paid subscription plan',
+        upgradeRequired: true,
+        message: 'Upgrade to Pro or Premium to access AI chat features'
+      }, { status: 403 });
     }
 
     // Get or create conversation

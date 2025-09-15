@@ -1,3 +1,11 @@
+// Load environment variables
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+// Load .env files in order of precedence
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();

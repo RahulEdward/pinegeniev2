@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { aiService } from '@/lib/ai-service';
+import { subscriptionPlanManager } from '@/services/subscription';
 
 
 // Force dynamic rendering
@@ -11,8 +12,19 @@ export async function POST(request: NextRequest) {
   try {
     // Check authentication
     const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    // Check AI access based on subscription
+    const hasAIAccess = await subscriptionPlanManager.checkAIChatAccess(session.user.id);
+    
+    if (!hasAIAccess) {
+      return NextResponse.json({
+        error: 'AI chat requires a paid subscription plan',
+        upgradeRequired: true,
+        message: 'Upgrade to Pro or Premium to access AI chat features'
+      }, { status: 403 });
     }
 
     const body = await request.json();

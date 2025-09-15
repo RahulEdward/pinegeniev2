@@ -900,28 +900,7 @@ const Canvas: React.FC = () => {
         </div>
       </div>
 
-      {/* DEBUG: Direct Test Button */}
-      <button
-        onClick={() => {
-          console.log('🔥 DIRECT TEST BUTTON CLICKED');
-          alert('Direct test button clicked!');
-          setIsAIAssistantOpen(true);
-        }}
-        style={{
-          position: 'fixed',
-          top: '10px',
-          right: '10px',
-          zIndex: 10000,
-          backgroundColor: 'red',
-          color: 'white',
-          padding: '10px',
-          border: 'none',
-          borderRadius: '5px',
-          cursor: 'pointer'
-        }}
-      >
-        🔥 TEST AI MODAL
-      </button>
+
 
       {/* AI Assistant Modal */}
       <AIAssistant
